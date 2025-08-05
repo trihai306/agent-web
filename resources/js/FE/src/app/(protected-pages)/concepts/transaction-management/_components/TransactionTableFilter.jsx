@@ -1,0 +1,145 @@
+'use client'
+import { useState, useEffect } from 'react'
+import Button from '@/components/ui/Button'
+import Drawer from '@/components/ui/Drawer'
+import { Form, FormItem } from '@/components/ui/Form'
+import { useTransactionListStore } from '../_store/transactionListStore'
+import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
+import { TbFilter } from 'react-icons/tb'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Select } from '@/components/ui'
+import getUsers from '@/server/actions/getUsers'
+import debounce from 'lodash/debounce'
+
+const validationSchema = z.object({
+    type: z.string().optional(),
+    user_id: z.string().optional(),
+})
+
+const DrawerFooter = ({ onCancel, onSaveClick }) => {
+    return (
+        <div className="text-right w-full">
+            <Button size="sm" className="mr-2" onClick={onCancel}>
+                Cancel
+            </Button>
+            <Button size="sm" variant="solid" onClick={onSaveClick}>
+                Apply
+            </Button>
+        </div>
+    )
+}
+
+const transactionTypeOptions = [
+    { value: 'deposit', label: 'Deposit' },
+    { value: 'withdrawal', label: 'Withdrawal' },
+]
+
+const UserTableFilter = () => {
+    const [isOpen, setIsOpen] = useState(false)
+    const [userData, setUserData] = useState([])
+    const [userLoading, setUserLoading] = useState(false)
+
+    const filterData = useTransactionListStore((state) => state.filterData)
+    const setFilterData = useTransactionListStore((state) => state.setFilterData)
+
+    const { onAppendQueryParams } = useAppendQueryParams()
+
+    const openDrawer = () => {
+        setIsOpen(true)
+    }
+
+    const onDrawerClose = () => {
+        setIsOpen(false)
+    }
+
+    const { handleSubmit, control, reset } = useForm({
+        defaultValues: filterData,
+        resolver: zodResolver(validationSchema),
+    })
+
+    useEffect(() => {
+        if(isOpen) {
+            reset(filterData)
+        }
+    }, [isOpen, filterData, reset])
+
+    const onSubmit = (values) => {
+        onAppendQueryParams({
+            'filter[type]': values.type,
+            'filter[user_id]': values.user_id,
+        })
+        setFilterData(values)
+        onDrawerClose()
+    }
+
+    const fetchUsers = async (search) => {
+        setUserLoading(true);
+        const res = await getUsers({ search });
+        if (res.success) {
+            const options = res.list.map(user => ({ value: user.id.toString(), label: `${user.full_name} (${user.email})` }))
+            setUserData(options);
+        }
+        setUserLoading(false);
+    };
+
+    const debouncedFetchUsers = debounce(fetchUsers, 500);
+
+    return (
+        <>
+            <Button icon={<TbFilter />} onClick={() => openDrawer()}>
+                Filter
+            </Button>
+            <Drawer
+                title="Filter"
+                isOpen={isOpen}
+                onClose={onDrawerClose}
+                onRequestClose={onDrawerClose}
+                footer={
+                    <DrawerFooter
+                        onCancel={onDrawerClose}
+                        onSaveClick={handleSubmit(onSubmit)}
+                    />
+                }
+            >
+                <Form onSubmit={handleSubmit(onSubmit)}>
+                    <FormItem label="Transaction Type">
+                        <Controller
+                            name="type"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    placeholder="Select type"
+                                    options={transactionTypeOptions}
+                                    isClearable
+                                    {...field}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="User">
+                        <Controller
+                            name="user_id"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    placeholder="Search by name or email"
+                                    isClearable
+                                    isLoading={userLoading}
+                                    options={userData}
+                                    onInputChange={debouncedFetchUsers}
+                                    {...field}
+                                    value={userData.find(option => option.value === field.value)}
+                                    onChange={(option) => field.onChange(option ? option.value : '')}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                </Form>
+            </Drawer>
+        </>
+    )
+}
+
+export default UserTableFilter
