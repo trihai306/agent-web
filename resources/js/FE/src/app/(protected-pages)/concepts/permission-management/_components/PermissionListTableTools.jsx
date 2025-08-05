@@ -11,12 +11,15 @@ import deletePermissions from '@/server/actions/deletePermissions'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 const PermissionListBulkActionTools = () => {
     const router = useRouter()
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const selectedPermission = usePermissionListStore((state) => state.selectedPermission)
     const setSelectAllPermission = usePermissionListStore((state) => state.setSelectAllPermission)
+    const t = useTranslations('permissionManagement.bulkAction')
+    const tConfirm = useTranslations('permissionManagement.bulkDeleteConfirm')
 
     const onBulkDelete = () => setShowDeleteConfirmation(true)
     const onClearSelection = () => setSelectAllPermission([])
@@ -46,7 +49,7 @@ const PermissionListBulkActionTools = () => {
         <>
             <div className="flex flex-col items-start md:flex-row md:items-center gap-3">
                 <span className="font-semibold leading-9">
-                    {selectedPermission.length} permission selected
+                    {t('selected', { count: selectedPermission.length })}
                 </span>
                 <Button
                     size="sm"
@@ -55,7 +58,7 @@ const PermissionListBulkActionTools = () => {
                     icon={<TbTrash />}
                     onClick={onBulkDelete}
                 >
-                    Delete
+                    {t('delete')}
                 </Button>
                 <Button
                     size="sm"
@@ -63,7 +66,7 @@ const PermissionListBulkActionTools = () => {
                     icon={<TbX />}
                     onClick={onClearSelection}
                 >
-                    Clear
+                    {t('clear')}
                 </Button>
             </div>
             <Dialog
@@ -71,24 +74,23 @@ const PermissionListBulkActionTools = () => {
                 onClose={() => setShowDeleteConfirmation(false)}
                 onRequestClose={() => setShowDeleteConfirmation(false)}
             >
-                <h5 className="mb-4">Delete Confirmation</h5>
+                <h5 className="mb-4">{tConfirm('title')}</h5>
                 <p>
-                    Are you sure you want to delete {selectedPermission.length}{' '}
-                    selected permission(s)? This action cannot be undone.
+                    {tConfirm('content', { count: selectedPermission.length })}
                 </p>
                 <div className="text-right mt-6">
                     <Button
                         className="ltr:mr-2 rtl:ml-2"
                         onClick={() => setShowDeleteConfirmation(false)}
                     >
-                        Cancel
+                        {tConfirm('cancel')}
                     </Button>
                     <Button
                         variant="solid"
                         color="red-600"
                         onClick={handleDeleteConfirm}
                     >
-                        Delete
+                        {tConfirm('delete')}
                     </Button>
                 </div>
             </Dialog>

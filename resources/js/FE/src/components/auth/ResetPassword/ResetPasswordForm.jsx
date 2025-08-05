@@ -6,6 +6,7 @@ import PasswordInput from '@/components/shared/PasswordInput'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z
     .object({
@@ -21,6 +22,7 @@ const validationSchema = z
 
 const ResetPasswordForm = (props) => {
     const [isSubmitting, setSubmitting] = useState(false)
+    const t = useTranslations('resetPassword')
 
     const {
         className,
@@ -55,7 +57,7 @@ const ResetPasswordForm = (props) => {
             {!resetComplete ? (
                 <Form onSubmit={handleSubmit(handleResetPassword)}>
                     <FormItem
-                        label="Password"
+                        label={t('newPassword')}
                         invalid={Boolean(errors.newPassword)}
                         errorMessage={errors.newPassword?.message}
                     >
@@ -72,7 +74,7 @@ const ResetPasswordForm = (props) => {
                         />
                     </FormItem>
                     <FormItem
-                        label="Confirm Password"
+                        label={t('confirmPassword')}
                         invalid={Boolean(errors.confirmPassword)}
                         errorMessage={errors.confirmPassword?.message}
                     >
@@ -82,7 +84,7 @@ const ResetPasswordForm = (props) => {
                             render={({ field }) => (
                                 <PasswordInput
                                     autoComplete="off"
-                                    placeholder="Confirm Password"
+                                    placeholder={t('confirmPassword')}
                                     {...field}
                                 />
                             )}
@@ -94,7 +96,7 @@ const ResetPasswordForm = (props) => {
                         variant="solid"
                         type="submit"
                     >
-                        {isSubmitting ? 'Submiting...' : 'Submit'}
+                        {isSubmitting ? t('submitting') : t('submit')}
                     </Button>
                 </Form>
             ) : (

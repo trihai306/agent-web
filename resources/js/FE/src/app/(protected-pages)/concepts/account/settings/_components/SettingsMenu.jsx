@@ -11,18 +11,19 @@ import {
     TbRefreshDot,
 } from 'react-icons/tb'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 const { MenuItem } = Menu
 
-const menuList = [
-    { label: 'Profile', value: 'profile', icon: <TbUserSquare /> },
-    { label: 'Security', value: 'security', icon: <TbLock /> },
-    { label: 'Notification', value: 'notification', icon: <TbBell /> },
-    { label: 'Billing', value: 'billing', icon: <TbFileDollar /> },
-    { label: 'Integration', value: 'integration', icon: <TbRefreshDot /> },
-]
-
-export const SettingsMenu = ({ onChange }) => {
+const SettingsMenu = ({ onChange }) => {
+    const t = useTranslations('account.settings.menu')
+    const menuList = [
+        { label: t('profile'), value: 'profile', icon: <TbUserSquare /> },
+        { label: t('security'), value: 'security', icon: <TbLock /> },
+        { label: t('notification'), value: 'notification', icon: <TbBell /> },
+        { label: t('billing'), value: 'billing', icon: <TbFileDollar /> },
+        { label: t('integration'), value: 'integration', icon: <TbRefreshDot /> },
+    ]
     const searchParams = useSearchParams()
 
     const { currentView, setCurrentView } = useSettingsStore()

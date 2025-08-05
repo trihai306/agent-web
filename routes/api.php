@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TransactionAnalyticController;
+use App\Http\Controllers\Api\SettingController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -26,6 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/settings', [ProfileController::class, 'update']);
     Route::post('/profile/change-password', [ProfileController::class, 'changePassword']);
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+
+    // Settings routes
+    Route::get('/settings', [SettingController::class, 'index']);
+    Route::post('/settings', [SettingController::class, 'update']);
 
     // Transaction routes (User)
     Route::post('/deposit', [TransactionController::class, 'deposit']);

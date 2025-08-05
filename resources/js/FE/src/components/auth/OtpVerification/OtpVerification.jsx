@@ -2,11 +2,13 @@ import Alert from '@/components/ui/Alert'
 import OtpVerificationForm from './OtpVerificationForm'
 import sleep from '@/utils/sleep'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
+import { useTranslations } from 'next-intl'
 
 export const OtpVerification = () => {
     const [otpVerified, setOtpVerified] = useTimeOutMessage()
     const [otpResend, setOtpResend] = useTimeOutMessage()
     const [message, setMessage] = useTimeOutMessage()
+    const t = useTranslations('otpVerification')
 
     const handleResendOtp = async () => {
         try {
@@ -23,10 +25,8 @@ export const OtpVerification = () => {
     return (
         <div>
             <div className="mb-8">
-                <h3 className="mb-2">OTP Verification</h3>
-                <p className="font-semibold heading-text">
-                    We have sent you One Time Password to your email.
-                </p>
+                <h3 className="mb-2">{t('title')}</h3>
+                <p className="font-semibold heading-text">{t('subtitle')}</p>
             </div>
             {message && (
                 <Alert showIcon className="mb-4" type="danger">
@@ -48,12 +48,12 @@ export const OtpVerification = () => {
                 setOtpVerified={setOtpVerified}
             />
             <div className="mt-4 text-center">
-                <span className="font-semibold">Din&apos;t receive OTP? </span>
+                <span className="font-semibold">{t('didntReceive')} </span>
                 <button
                     className="heading-text font-bold underline"
                     onClick={handleResendOtp}
                 >
-                    Resend OTP
+                    {t('resend')}
                 </button>
             </div>
         </div>

@@ -7,6 +7,7 @@ import sleep from '@/utils/sleep'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslations } from 'next-intl'
 
 const OTP_LENGTH = 6
 
@@ -16,6 +17,7 @@ const validationSchema = z.object({
 
 const OtpVerificationForm = (props) => {
     const [isSubmitting, setSubmitting] = useState(false)
+    const t = useTranslations('otpVerification')
 
     const { className, setMessage, setOtpVerified } = props
 
@@ -72,7 +74,7 @@ const OtpVerificationForm = (props) => {
                     variant="solid"
                     type="submit"
                 >
-                    {isSubmitting ? 'Verifying...' : 'Verify OTP'}
+                    {isSubmitting ? t('verifying') : t('verify')}
                 </Button>
             </Form>
         </div>

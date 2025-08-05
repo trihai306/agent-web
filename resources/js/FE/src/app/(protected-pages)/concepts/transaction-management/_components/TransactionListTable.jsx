@@ -12,6 +12,7 @@ import dayjs from 'dayjs'
 import cloneDeep from 'lodash/cloneDeep'
 import { FaCheck, FaTimes } from 'react-icons/fa'
 import Dialog from '@/components/ui/Dialog'
+import { useTranslations } from 'next-intl'
 
 const transactionStatusColor = {
     pending: 'bg-yellow-200 dark:bg-yellow-200 text-gray-900 dark:text-gray-900',
@@ -34,6 +35,8 @@ const TransactionListTable = ({
     const isInitialLoading = useTransactionListStore((state) => state.initialLoading)
     const setSelectedTransaction = useTransactionListStore((state) => state.setSelectedTransaction)
     const setSelectAllTransaction = useTransactionListStore((state) => state.setSelectAllTransaction)
+    const t = useTranslations('transactionManagement.table')
+    const tAction = useTranslations('transactionManagement.actionConfirm')
 
     const [dialogIsOpen, setDialogIsOpen] = useState(false)
     const [confirmAction, setConfirmAction] = useState(null)
@@ -58,11 +61,11 @@ const TransactionListTable = ({
     const columns = useMemo(
         () => [
             {
-                header: 'Transaction ID',
+                header: t('transactionId'),
                 accessorKey: 'id',
             },
             {
-                header: 'User',
+                header: t('user'),
                 accessorKey: 'user.full_name',
                 cell: (props) => {
                     const row = props.row.original
@@ -77,7 +80,7 @@ const TransactionListTable = ({
                 }
             },
             {
-                header: 'Type',
+                header: t('type'),
                 accessorKey: 'type',
                 cell: (props) => {
                     const row = props.row.original
@@ -91,7 +94,7 @@ const TransactionListTable = ({
                 },
             },
             {
-                header: 'Amount',
+                header: t('amount'),
                 accessorKey: 'amount',
                 cell: (props) => {
                     const amount = parseFloat(props.row.original.amount)
@@ -99,11 +102,11 @@ const TransactionListTable = ({
                 }
             },
             {
-                header: 'Description',
+                header: t('description'),
                 accessorKey: 'description',
             },
             {
-                header: 'Status',
+                header: t('status'),
                 accessorKey: 'status',
                 cell: (props) => {
                     const { status } = props.row.original
@@ -117,14 +120,14 @@ const TransactionListTable = ({
                 },
             },
             {
-                header: 'Date',
+                header: t('date'),
                 accessorKey: 'created_at',
                 cell: (props) => {
                     return <span>{dayjs(props.row.original.created_at).format('DD/MM/YYYY')}</span>
                 }
             },
             {
-                header: 'Actions',
+                header: t('actions'),
                 accessorKey: 'actions',
                 cell: (props) => {
                     const row = props.row.original
@@ -227,9 +230,9 @@ const TransactionListTable = ({
                 onClose={onDialogClose}
                 onRequestClose={onDialogClose}
             >
-                <h5 className="mb-4">Confirm Action</h5>
+                <h5 className="mb-4">{tAction('title')}</h5>
                 <p>
-                    Are you sure you want to {confirmAction?.toLowerCase()} this transaction?
+                    {tAction('content', { action: confirmAction?.toLowerCase() })}
                 </p>
                 <div className="text-right mt-6">
                     <Button
@@ -237,10 +240,10 @@ const TransactionListTable = ({
                         variant="plain"
                         onClick={onDialogClose}
                     >
-                        Cancel
+                        {tAction('cancel')}
                     </Button>
                     <Button variant="solid" onClick={handleAction}>
-                        Confirm
+                        {tAction('confirm')}
                     </Button>
                 </div>
             </Dialog>

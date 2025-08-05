@@ -20,6 +20,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import blockUsers from '@/server/actions/blockUsers'
 import deleteUsers from '@/server/actions/deleteUsers'
 import getRoles from '@/server/actions/getRoles'
+import { useTranslations } from 'next-intl'
 
 const baseSchema = z.object({
     first_name: z.string().min(1, 'First Name is required'),
@@ -55,6 +56,9 @@ const PasswordInput = ({ field, placeholder }) => {
 
 const FormAction = ({ mode, isSubmitting, onBlock, onDelete }) => {
     const router = useRouter()
+    const t = useTranslations('userManagement.form')
+    const tBlock = useTranslations('userManagement.blockConfirm')
+    const tDelete = useTranslations('userManagement.deleteConfirm')
     return (
         <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-600">
             <Button
@@ -62,16 +66,16 @@ const FormAction = ({ mode, isSubmitting, onBlock, onDelete }) => {
                 icon={<TbArrowBack />}
                 onClick={() => router.push('/concepts/user-management')}
             >
-                Back
+                {t('back')}
             </Button>
             <div className="flex items-center gap-2">
                 {mode === 'edit' && (
                     <>
                         <ConfirmDialog
                             onConfirm={onBlock}
-                            title="Block User"
-                            content="Are you sure you want to block this user?"
-                            confirmText="Block"
+                            title={tBlock('title')}
+                            content={tBlock('content')}
+                            confirmText={tBlock('confirmText')}
                         >
                             <Button
                                 type="button"
@@ -79,14 +83,14 @@ const FormAction = ({ mode, isSubmitting, onBlock, onDelete }) => {
                                 color="red-500"
                                 icon={<TbLock />}
                             >
-                                Block
+                                {t('block')}
                             </Button>
                         </ConfirmDialog>
                         <ConfirmDialog
                             onConfirm={onDelete}
-                            title="Delete User"
-                            content="Are you sure you want to delete this user?"
-                            confirmText="Delete"
+                            title={tDelete('title')}
+                            content={tDelete('content')}
+                            confirmText={tDelete('confirmText')}
                         >
                             <Button
                                 type="button"
@@ -94,7 +98,7 @@ const FormAction = ({ mode, isSubmitting, onBlock, onDelete }) => {
                                 color="red-500"
                                 icon={<TbTrash />}
                             >
-                                Delete
+                                {t('delete')}
                             </Button>
                         </ConfirmDialog>
                     </>
@@ -104,7 +108,7 @@ const FormAction = ({ mode, isSubmitting, onBlock, onDelete }) => {
                     type="submit"
                     loading={isSubmitting}
                 >
-                    {isSubmitting ? 'Saving...' : 'Save'}
+                    {isSubmitting ? t('saving') : t('save')}
                 </Button>
             </div>
         </div>
@@ -114,6 +118,7 @@ const FormAction = ({ mode, isSubmitting, onBlock, onDelete }) => {
 const UserForm = ({ mode = 'add', user }) => {
     const router = useRouter()
     const [roles, setRoles] = useState([])
+    const t = useTranslations('userManagement.form')
     const {
         control,
         handleSubmit,
@@ -258,29 +263,29 @@ const UserForm = ({ mode = 'add', user }) => {
                         </div>
                         <div className="lg:col-span-2 space-y-4">
                             <Card>
-                                <h5 className="mb-4">Basic Information</h5>
+                                <h5 className="mb-4">{t('basicInfo')}</h5>
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                     <FormItem label="First Name" invalid={Boolean(errors.first_name)} errorMessage={errors.first_name?.message}>
-                                         <Controller name="first_name" control={control} render={({ field }) => <Input placeholder="First Name" {...field} />} />
+                                     <FormItem label={t('firstName')} invalid={Boolean(errors.first_name)} errorMessage={errors.first_name?.message}>
+                                         <Controller name="first_name" control={control} render={({ field }) => <Input placeholder={t('firstName')} {...field} />} />
                                      </FormItem>
-                                     <FormItem label="Last Name" invalid={Boolean(errors.last_name)} errorMessage={errors.last_name?.message}>
-                                         <Controller name="last_name" control={control} render={({ field }) => <Input placeholder="Last Name" {...field} />} />
+                                     <FormItem label={t('lastName')} invalid={Boolean(errors.last_name)} errorMessage={errors.last_name?.message}>
+                                         <Controller name="last_name" control={control} render={({ field }) => <Input placeholder={t('lastName')} {...field} />} />
                                      </FormItem>
                                  </div>
                             </Card>
                             <Card>
-                                <h5 className="mb-4">Contact Information</h5>
+                                <h5 className="mb-4">{t('contactInfo')}</h5>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormItem label="Email" invalid={Boolean(errors.email)} errorMessage={errors.email?.message}>
-                                        <Controller name="email" control={control} render={({ field }) => <Input type="email" placeholder="Email" {...field} />} />
+                                    <FormItem label={t('email')} invalid={Boolean(errors.email)} errorMessage={errors.email?.message}>
+                                        <Controller name="email" control={control} render={({ field }) => <Input type="email" placeholder={t('email')} {...field} />} />
                                     </FormItem>
-                                    <FormItem label="Phone Number" invalid={Boolean(errors.phone_number)} errorMessage={errors.phone_number?.message}>
-                                        <Controller name="phone_number" control={control} render={({ field }) => <Input placeholder="Phone Number" {...field} />} />
+                                    <FormItem label={t('phoneNumber')} invalid={Boolean(errors.phone_number)} errorMessage={errors.phone_number?.message}>
+                                        <Controller name="phone_number" control={control} render={({ field }) => <Input placeholder={t('phoneNumber')} {...field} />} />
                                     </FormItem>
                                 </div>
                             </Card>
                              <Card>
-                                <h5 className="mb-4">Roles</h5>
+                                <h5 className="mb-4">{t('roles')}</h5>
                                 <FormItem>
                                     <Controller
                                         name="roles"
@@ -304,21 +309,21 @@ const UserForm = ({ mode = 'add', user }) => {
                             </Card>
                             {mode === 'add' && (
                                 <Card>
-                                    <h5 className="mb-4">Password</h5>
+                                    <h5 className="mb-4">{t('password')}</h5>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormItem label="Password" invalid={Boolean(errors.password)} errorMessage={errors.password?.message}>
-                                            <Controller name="password" control={control} render={({ field }) => <PasswordInput field={field} placeholder="Password" />} />
+                                        <FormItem label={t('password')} invalid={Boolean(errors.password)} errorMessage={errors.password?.message}>
+                                            <Controller name="password" control={control} render={({ field }) => <PasswordInput field={field} placeholder={t('password')} />} />
                                         </FormItem>
-                                        <FormItem label="Confirm Password" invalid={Boolean(errors.password_confirmation)} errorMessage={errors.password_confirmation?.message}>
-                                            <Controller name="password_confirmation" control={control} render={({ field }) => <PasswordInput field={field} placeholder="Confirm Password" />} />
+                                        <FormItem label={t('confirmPassword')} invalid={Boolean(errors.password_confirmation)} errorMessage={errors.password_confirmation?.message}>
+                                            <Controller name="password_confirmation" control={control} render={({ field }) => <PasswordInput field={field} placeholder={t('confirmPassword')} />} />
                                         </FormItem>
                                     </div>
                                 </Card>
                             )}
                             {mode === 'edit' && (
                                 <Card>
-                                    <h5 className="mb-4">Password</h5>
-                                    <p>Password can only be changed by the user.</p>
+                                    <h5 className="mb-4">{t('password')}</h5>
+                                    <p>{t('passwordInfo')}</p>
                                 </Card>
                             )}
                         </div>

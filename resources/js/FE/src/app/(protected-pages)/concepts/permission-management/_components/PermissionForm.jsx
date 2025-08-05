@@ -15,6 +15,7 @@ import { TbArrowBack, TbTrash } from 'react-icons/tb'
 import { useEffect } from 'react'
 import AdaptableCard from '@/components/shared/AdaptiveCard'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -22,6 +23,7 @@ const validationSchema = z.object({
 
 const PermissionForm = ({ mode = 'add', permission, onClose }) => {
     const router = useRouter()
+    const t = useTranslations('permissionManagement.form')
     const {
         control,
         handleSubmit,
@@ -75,9 +77,9 @@ const PermissionForm = ({ mode = 'add', permission, onClose }) => {
     return (
         <Form onSubmit={handleSubmit(onSubmit)}>
             <FormContainer>
-                <h5 className="mb-4">{mode === 'add' ? 'Create New' : 'Edit'} Permission</h5>
-                <FormItem label="Name" invalid={Boolean(errors.name)} errorMessage={errors.name?.message}>
-                    <Controller name="name" control={control} render={({ field }) => <Input placeholder="Permission Name" {...field} />} />
+                <h5 className="mb-4">{mode === 'add' ? t('createTitle') : t('editTitle')}</h5>
+                <FormItem label={t('nameLabel')} invalid={Boolean(errors.name)} errorMessage={errors.name?.message}>
+                    <Controller name="name" control={control} render={({ field }) => <Input placeholder={t('namePlaceholder')} {...field} />} />
                 </FormItem>
                 <div className="text-right mt-4">
                     <Button
@@ -85,14 +87,14 @@ const PermissionForm = ({ mode = 'add', permission, onClose }) => {
                         className="mr-2"
                         onClick={onClose}
                     >
-                        Cancel
+                        {t('cancel')}
                     </Button>
                     <Button
                         variant="solid"
                         type="submit"
                         loading={isSubmitting}
                     >
-                        {isSubmitting ? 'Saving...' : 'Save'}
+                        {isSubmitting ? t('saving') : t('save')}
                     </Button>
                 </div>
             </FormContainer>

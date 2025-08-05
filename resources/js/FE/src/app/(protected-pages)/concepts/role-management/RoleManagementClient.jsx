@@ -7,6 +7,7 @@ import RoleListActionTools from './_components/RoleListActionTools'
 import { useRoleListStore } from './_store/roleListStore'
 import Dialog from '@/components/ui/Dialog'
 import RoleForm from './_components/RoleForm'
+import { useTranslations } from 'next-intl'
 
 const RoleManagementClient = ({ data, params }) => {
     const isFormOpen = useRoleListStore((state) => state.isFormOpen)
@@ -14,6 +15,7 @@ const RoleManagementClient = ({ data, params }) => {
     const selectedRoleForForm = useRoleListStore((state) => state.selectedRoleForForm)
     const openForm = useRoleListStore((state) => state.openForm)
     const closeForm = useRoleListStore((state) => state.closeForm)
+    const t = useTranslations('roleManagement')
 
     return (
         <RoleListProvider roleList={data.list}>
@@ -21,7 +23,7 @@ const RoleManagementClient = ({ data, params }) => {
                 <AdaptiveCard>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            <h3>Roles</h3>
+                            <h3>{t('title')}</h3>
                             <RoleListActionTools onAddNew={() => openForm('add')} />
                         </div>
                         <RoleListTable

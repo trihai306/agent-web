@@ -354,56 +354,7 @@ const conceptsNavigationConfig = [
                         },
                         subMenu: [],
                     },
-                    {
-                        key: 'concepts.account.activityLog',
-                        path: `${CONCEPTS_PREFIX_PATH}/account/activity-log`,
-                        title: 'Activity log',
-                        translateKey: 'nav.conceptsAccount.activityLog',
-                        icon: 'accountActivityLogs',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, USER],
-                        meta: {
-                            description: {
-                                translateKey:
-                                    'nav.conceptsAccount.activityLogDesc',
-                                label: 'View recent activities',
-                            },
-                        },
-                        subMenu: [],
-                    },
-                    {
-                        key: 'concepts.account.rolesPermissions',
-                        path: `${CONCEPTS_PREFIX_PATH}/account/roles-permissions`,
-                        title: 'Roles & Permissions',
-                        translateKey: 'nav.conceptsAccount.rolesPermissions',
-                        icon: 'accountRoleAndPermission',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, USER],
-                        meta: {
-                            description: {
-                                translateKey:
-                                    'nav.conceptsAccount.rolesPermissionsDesc',
-                                label: 'Manage roles & permissions',
-                            },
-                        },
-                        subMenu: [],
-                    },
-                    {
-                        key: 'concepts.account.pricing',
-                        path: `${CONCEPTS_PREFIX_PATH}/account/pricing`,
-                        title: 'Pricing',
-                        translateKey: 'nav.conceptsAccount.pricing',
-                        icon: 'accountPricing',
-                        type: NAV_ITEM_TYPE_ITEM,
-                        authority: [ADMIN, USER],
-                        meta: {
-                            description: {
-                                translateKey: 'nav.conceptsAccount.pricingDesc',
-                                label: 'View pricing plans',
-                            },
-                        },
-                        subMenu: [],
-                    },
+
                 ],
             },
             // {

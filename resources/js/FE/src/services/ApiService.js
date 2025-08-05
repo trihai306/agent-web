@@ -1,5 +1,6 @@
 import AxiosBase from './axios/AxiosBase'
 import appConfig from '@/configs/app.config'
+import { signOut } from 'next-auth/react'
 
 const ApiService = {
     fetchData(param) {
@@ -24,6 +25,10 @@ const ApiService = {
         }
         
         return fetch(finalUrl, options).then(async (response) => {
+            if (response.status === 401) {
+                signOut()
+            }
+
             if (response.headers.get('Content-Type')?.includes('application/json')) {
                 const res = await response.json()
                 if (response.ok) {

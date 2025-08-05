@@ -8,6 +8,7 @@ import { useRolePermissionsStore } from '../_store/rolePermissionsStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import dayjs from 'dayjs'
 import { TbChevronDown } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const statusColor = {
     active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
@@ -15,6 +16,7 @@ const statusColor = {
 }
 
 const RolesPermissionsUserTable = (props) => {
+    const t = useTranslations('account.rolesPermissions')
     const { userListTotal = 0, pageIndex = 1, pageSize = 10 } = props
 
     const initialLoading = useRolePermissionsStore(
@@ -81,7 +83,7 @@ const RolesPermissionsUserTable = (props) => {
     const columns = useMemo(
         () => [
             {
-                header: 'Name',
+                header: t('name'),
                 accessorKey: 'name',
                 cell: (props) => {
                     const row = props.row.original
@@ -99,7 +101,7 @@ const RolesPermissionsUserTable = (props) => {
                 },
             },
             {
-                header: 'Status',
+                header: t('status'),
                 accessorKey: 'status',
                 cell: (props) => {
                     const row = props.row.original
@@ -113,7 +115,7 @@ const RolesPermissionsUserTable = (props) => {
                 },
             },
             {
-                header: 'Last online',
+                header: t('lastOnline'),
                 accessorKey: 'lastOnline',
                 cell: (props) => {
                     const row = props.row.original
@@ -132,7 +134,7 @@ const RolesPermissionsUserTable = (props) => {
                 },
             },
             {
-                header: 'Role',
+                header: t('role'),
                 accessorKey: 'role',
                 size: 70,
                 cell: (props) => {

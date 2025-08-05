@@ -13,6 +13,7 @@ const languageList = [
     { label: 'Chinese', value: 'zh', flag: 'CN' },
     { label: 'Espanol', value: 'es', flag: 'ES' },
     { label: 'Arabic', value: 'ar', flag: 'SA' },
+    { label: 'Vietnamese', value: 'vi', flag: 'VN' },
 ]
 
 const _LanguageSelector = ({ className }) => {

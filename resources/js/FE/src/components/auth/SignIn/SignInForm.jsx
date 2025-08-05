@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import { FormItem, Form } from '@/components/ui/Form'
 import PasswordInput from '@/components/shared/PasswordInput'
 import classNames from '@/utils/classNames'
+import { useTranslations } from 'next-intl'
 
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,6 +22,7 @@ const validationSchema = z.object({
 
 const SignInForm = (props) => {
     const [isSubmitting, setSubmitting] = useState(false)
+    const t = useTranslations('signIn')
 
     const { className, setMessage, onSignIn, passwordHint } = props
 
@@ -46,7 +48,7 @@ const SignInForm = (props) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(handleSignIn)}>
                 <FormItem
-                    label="Email or Phone Number"
+                    label={t('emailOrPhone')}
                     invalid={Boolean(errors.login)}
                     errorMessage={errors.login?.message}
                 >
@@ -56,7 +58,7 @@ const SignInForm = (props) => {
                         render={({ field }) => (
                             <Input
                                 type="text"
-                                placeholder="Email or Phone Number"
+                                placeholder={t('emailOrPhone')}
                                 autoComplete="off"
                                 {...field}
                             />
@@ -64,7 +66,7 @@ const SignInForm = (props) => {
                     />
                 </FormItem>
                 <FormItem
-                    label="Password"
+                    label={t('password')}
                     invalid={Boolean(errors.password)}
                     errorMessage={errors.password?.message}
                     className={classNames(
@@ -79,7 +81,7 @@ const SignInForm = (props) => {
                         render={({ field }) => (
                             <PasswordInput
                                 type="text"
-                                placeholder="Password"
+                                placeholder={t('password')}
                                 autoComplete="off"
                                 {...field}
                             />
@@ -93,7 +95,7 @@ const SignInForm = (props) => {
                     variant="solid"
                     type="submit"
                 >
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
+                    {isSubmitting ? t('signingIn') : t('signIn')}
                 </Button>
             </Form>
         </div>

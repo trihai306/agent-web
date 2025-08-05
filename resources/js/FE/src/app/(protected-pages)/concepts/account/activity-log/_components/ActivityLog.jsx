@@ -5,6 +5,7 @@ import Loading from '@/components/shared/Loading'
 import Log from './Log'
 import LogAction from './LogAction'
 import { apiGetLogs } from '@/services/LogService'
+import { useTranslations } from 'next-intl'
 import {
     UPDATE_TICKET,
     COMMENT,
@@ -27,6 +28,7 @@ const defaultSelectedType = [
 ]
 
 const ActivityLog = () => {
+    const t = useTranslations('account.activityLog')
     const [isLoading, setIsLoading] = useState(false)
     const [activityIndex, setActivityIndex] = useState(1)
     const [showMentionedOnly, setShowMentionedOnly] = useState(false)
@@ -75,7 +77,7 @@ const ActivityLog = () => {
         <AdaptiveCard className="h-full" bodyClass="h-full">
             <div className="max-w-[800px] mx-auto h-full">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <h3>Acitvity log</h3>
+                    <h3>{t('title')}</h3>
                     <LogAction
                         selectedType={selectedType}
                         showMentionedOnly={showMentionedOnly}

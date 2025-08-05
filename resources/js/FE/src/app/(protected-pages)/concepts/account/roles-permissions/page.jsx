@@ -8,9 +8,11 @@ import RolesPermissionsAccessDialog from './_components/RolesPermissionsAccessDi
 import RolesPermissionsProvider from './_components/RolesPermissionsProvider'
 import getRolesPermissionsRoles from '@/server/actions/getRolesPermissionsRoles'
 import getRolesPermissionsUsers from '@/server/actions/getRolesPermissionsUsers'
+import { getTranslations } from 'next-intl/server'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams
+    const t = await getTranslations('account.rolesPermissions')
 
     const roleList = await getRolesPermissionsRoles()
     const userList = await getRolesPermissionsUsers(params)
@@ -25,7 +27,7 @@ export default async function Page({ searchParams }) {
             <Container>
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h3>Roles & Permissions</h3>
+                        <h3>{t('title')}</h3>
                         <RolesPermissionsGroupsAction />
                     </div>
                     <div className="mb-10">
@@ -35,7 +37,7 @@ export default async function Page({ searchParams }) {
                 <div>
                     <div>
                         <div className="mb-6 flex flex-col gap-5">
-                            <h3>All accounts</h3>
+                            <h3>{t('allAccounts')}</h3>
                             <div className="flex-1">
                                 <RolesPermissionsUserAction />
                             </div>

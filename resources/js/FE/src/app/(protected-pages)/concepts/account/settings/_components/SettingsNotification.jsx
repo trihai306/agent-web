@@ -2,66 +2,78 @@
 import Checkbox from '@/components/ui/Checkbox'
 import Radio from '@/components/ui/Radio'
 import Switcher from '@/components/ui/Switcher'
-import { apiGetSettingsNotification } from '@/services/AccontsService'
-import useSWR from 'swr'
+import {
+    apiGetSettings,
+    apiUpdateSettings,
+} from '@/services/SettingService'
+import useSWR, { useSWRConfig } from 'swr'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbMessageCircleCheck } from 'react-icons/tb'
 import useCurrentSession from '@/utils/hooks/useCurrentSession'
-
-const emailNotificationOption = [
-    {
-        label: 'News & updates',
-        value: 'newsAndUpdate',
-        desc: 'New about product and features update',
-    },
-    {
-        label: 'Tips & tutorials',
-        value: 'tipsAndTutorial',
-        desc: 'Tips & trick in order to increase your performance efficiency',
-    },
-    {
-        label: 'Offer & promotions',
-        value: 'offerAndPromotion',
-        desc: 'Promotion about product price & lastest discount',
-    },
-    {
-        label: 'Follow up remider',
-        value: 'followUpReminder',
-        desc: 'Receive notification all the reminder that have been made',
-    },
-]
-
-const notifyMeOption = [
-    {
-        label: 'All new messages',
-        value: 'allNewMessage',
-        desc: 'Broadcast notifications to the channel for each new message',
-    },
-    {
-        label: 'Mentions only',
-        value: 'mentionsOnly',
-        desc: 'Only alert me in the channel if someone mentions me in a message',
-    },
-    {
-        label: 'Nothing',
-        value: 'nothing',
-        desc: `Don't notify me anything`,
-    },
-]
+import toast from '@/components/ui/toast'
+import Notification from '@/components/ui/Notification'
+import { useTranslations } from 'next-intl'
 
 const SettingsNotification = () => {
-    const { session } = useCurrentSession()
-    const {
-        data = {
-            email: [],
-            desktop: false,
-            unreadMessageBadge: false,
-            notifymeAbout: '',
+    const t = useTranslations('account.settings.notification')
+
+    const emailNotificationOption = [
+        {
+            label: t('newsAndUpdate'),
+            value: 'newsAndUpdate',
+            desc: t('newsAndUpdateDescription'),
         },
-        mutate,
-    } = useSWR(
-        session?.accessToken ? '/api/settings/notification/' : null,
-        () => apiGetSettingsNotification(session.accessToken),
+        {
+            label: t('tipsAndTutorial'),
+            value: 'tipsAndTutorial',
+            desc: t('tipsAndTutorialDescription'),
+        },
+        {
+            label: t('offerAndPromotion'),
+            value: 'offerAndPromotion',
+            desc: t('offerAndPromotionDescription'),
+        },
+        {
+            label: t('followUpReminder'),
+            value: 'followUpReminder',
+            desc: t('followUpReminderDescription'),
+        },
+    ]
+    
+    const notifyMeOption = [
+        {
+            label: t('allNewMessages'),
+            value: 'allNewMessage',
+            desc: t('allNewMessagesDescription'),
+        },
+        {
+            label: t('mentionsOnly'),
+            value: 'mentionsOnly',
+            desc: t('mentionsOnlyDescription'),
+        },
+        {
+            label: t('nothing'),
+            value: 'nothing',
+            desc: t('nothingDescription'),
+        },
+    ]
+    
+    const defaultSettings = {
+        email: [],
+        desktop: false,
+        unreadMessageBadge: false,
+        notifymeAbout: '',
+    }
+    const { session } = useCurrentSession()
+    const { mutate: globalMutate } = useSWRConfig()
+    const { data, mutate } = useSWR(
+        session?.accessToken ? '/settings' : null,
+        () =>
+            apiGetSettings(session.accessToken).then((res) => {
+                const settings = res
+                console.log(settings)
+                return { ...defaultSettings, ...settings }
+            }),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -69,10 +81,32 @@ const SettingsNotification = () => {
         },
     )
 
+    const updateSettings = async (newData) => {
+        try {
+            await apiUpdateSettings(newData, session.accessToken)
+            mutate(newData, false) // Optimistic update
+            globalMutate('/settings') // Revalidate
+            toast.push(
+                <Notification type="success">
+                    Settings updated successfully.
+                </Notification>,
+            )
+        } catch (error) {
+            toast.push(
+                <Notification title="Error" type="danger">
+                    Failed to update settings.
+                </Notification>,
+                {
+                    placement: 'top-center',
+                },
+            )
+        }
+    }
+
     const handleEmailNotificationOptionChange = (values) => {
         const newData = cloneDeep(data)
         newData.email = values
-        mutate(newData, false)
+        updateSettings(newData)
     }
 
     const handleEmailNotificationOptionCheckAll = (value) => {
@@ -88,68 +122,68 @@ const SettingsNotification = () => {
             newData.email = []
         }
 
-        mutate(newData, false)
+        updateSettings(newData)
     }
 
     const handleDesktopNotificationCheck = (value) => {
         const newData = cloneDeep(data)
         newData.desktop = value
-        mutate(newData, false)
+        updateSettings(newData)
     }
 
     const handleUnreadMessagebadgeCheck = (value) => {
         const newData = cloneDeep(data)
         newData.unreadMessageBadge = value
-        mutate(newData, false)
+        updateSettings(newData)
     }
 
     const handleNotifyMeChange = (value) => {
         const newData = cloneDeep(data)
         newData.notifymeAbout = value
-        mutate(newData, false)
+        updateSettings(newData)
     }
+
+    const settingsData = data || defaultSettings
 
     return (
         <div>
-            <h4>Notification</h4>
+            <h4>{t('title')}</h4>
             <div className="mt-2">
                 <div className="flex items-center justify-between py-6 border-b border-gray-200 dark:border-gray-600">
                     <div>
-                        <h5>Enable desktop notification</h5>
+                        <h5>{t('enableDesktopNotification')}</h5>
                         <p>
-                            Decide whether you want to be notified of new
-                            message & updates
+                            {t('desktopNotificationDescription')}
                         </p>
                     </div>
                     <div>
                         <Switcher
-                            checked={data.desktop}
+                            checked={settingsData.desktop}
                             onChange={handleDesktopNotificationCheck}
                         />
                     </div>
                 </div>
                 <div className="flex items-center justify-between py-6 border-b border-gray-200 dark:border-gray-600">
                     <div>
-                        <h5>Enable unread notification badge</h5>
+                        <h5>{t('enableUnreadNotificationBadge')}</h5>
                         <p>
-                            Display a red indicator on of the notification icon
-                            when you have unread message
+                            {t('unreadNotificationBadgeDescription')}
                         </p>
                     </div>
                     <div>
                         <Switcher
-                            checked={data.unreadMessageBadge}
+                            checked={settingsData.unreadMessageBadge}
                             onChange={handleUnreadMessagebadgeCheck}
                         />
                     </div>
                 </div>
                 <div className="py-6 border-b border-gray-200 dark:border-gray-600">
-                    <h5>Enable unread notification badge</h5>
+                    <h5>{t('notifyMeAbout')}</h5>
                     <div className="mt-4">
                         <Radio.Group
                             vertical
                             className="flex flex-col gap-6"
-                            value={data.notifymeAbout}
+                            value={settingsData.notifymeAbout}
                             onChange={handleNotifyMeChange}
                         >
                             {notifyMeOption.map((option) => (
@@ -173,15 +207,17 @@ const SettingsNotification = () => {
                 </div>
                 <div className="flex items-center justify-between py-6">
                     <div>
-                        <h5>Email notification</h5>
+                        <h5>{t('emailNotification')}</h5>
                         <p>
-                            Substance can send you email notification for any
-                            new direct message
+                           {t('emailNotificationDescription')}
                         </p>
                     </div>
                     <div>
                         <Switcher
-                            checked={data.email.length > 0}
+                            checked={
+                                settingsData.email &&
+                                settingsData.email.length > 0
+                            }
                             onChange={handleEmailNotificationOptionCheckAll}
                         />
                     </div>
@@ -189,7 +225,7 @@ const SettingsNotification = () => {
                 <Checkbox.Group
                     vertical
                     className="flex flex-col gap-6"
-                    value={data.email}
+                    value={settingsData.email}
                     onChange={handleEmailNotificationOptionChange}
                 >
                     {emailNotificationOption.map((option) => (

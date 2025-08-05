@@ -1,66 +1,45 @@
 'use client'
 import { useState, useRef } from 'react'
-import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { Form, FormItem } from '@/components/ui/Form'
-import classNames from '@/utils/classNames'
-import sleep from '@/utils/sleep'
-import isLastChild from '@/utils/isLastChild'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
-
-const authenticatorList = [
-    {
-        label: 'Google Authenticator',
-        value: 'googleAuthenticator',
-        img: '/img/others/google.png',
-        desc: 'Using Google Authenticator app generates time-sensitive codes for secure logins.',
-    },
-    {
-        label: 'Okta Verify',
-        value: 'oktaVerify',
-        img: '/img/others/okta.png',
-        desc: 'Receive push notifications from Okta Verify app on your phone for quick login approval.',
-    },
-    {
-        label: 'E Mail verification',
-        value: 'emailVerification',
-        img: '/img/others/email.png',
-        desc: 'Unique codes sent to email for confirming logins.',
-    },
-]
+import { apiChangePassword } from '@/services/AuthService'
+import useCurrentSession from '@/utils/hooks/useCurrentSession'
+import toast from '@/components/ui/toast'
+import Notification from '@/components/ui/Notification'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z
     .object({
-        currentPassword: z
+        current_password: z
             .string()
             .min(1, { message: 'Please enter your current password!' }),
-        newPassword: z
+        password: z
             .string()
             .min(1, { message: 'Please enter your new password!' }),
-        confirmNewPassword: z
+        password_confirmation: z
             .string()
             .min(1, { message: 'Please confirm your new password!' }),
     })
-    .refine((data) => data.confirmNewPassword === data.newPassword, {
+    .refine((data) => data.password_confirmation === data.password, {
         message: 'Password not match',
-        path: ['confirmNewPassword'],
+        path: ['password_confirmation'],
     })
 
 const SettingsSecurity = () => {
-    const [selected2FaType, setSelected2FaType] = useState(
-        'googleAuthenticator',
-    )
+    const t = useTranslations('account.settings.security')
+    const { session } = useCurrentSession()
     const [confirmationOpen, setConfirmationOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const formRef = useRef(null)
 
     const {
-        getValues,
+        reset,
         handleSubmit,
         formState: { errors },
         control,
@@ -68,39 +47,62 @@ const SettingsSecurity = () => {
         resolver: zodResolver(validationSchema),
     })
 
-    const handlePostSubmit = async () => {
+    const handlePostSubmit = async (values) => {
         setIsSubmitting(true)
-        await sleep(1000)
-        console.log('getValues', getValues())
-        setConfirmationOpen(false)
-        setIsSubmitting(false)
+        try {
+            const resp = await apiChangePassword(values, session.accessToken)
+            if (resp.data) {
+                setConfirmationOpen(false)
+                toast.push(
+                    <Notification type="success">
+                        Password updated successfully!
+                    </Notification>,
+                )
+                reset()
+            }
+        } catch (error) {
+            const errors = error.response.data.errors
+            const errorMessages = Object.keys(errors)
+                .map((key) => errors[key].join(', '))
+                .join('\n')
+
+            toast.push(
+                <Notification title="Error" type="danger">
+                    {errorMessages}
+                </Notification>,
+                {
+                    placement: 'top-center',
+                },
+            )
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
-    const onSubmit = async () => {
+    const onSubmit = async (values) => {
         setConfirmationOpen(true)
     }
 
     return (
         <div>
             <div className="mb-8">
-                <h4>Password</h4>
+                <h4>{t('title')}</h4>
                 <p>
-                    Remember, your password is your digital key to your account.
-                    Keep it safe, keep it secure!
+                    {t('description')}
                 </p>
             </div>
             <Form
                 ref={formRef}
                 className="mb-8"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handlePostSubmit)}
             >
                 <FormItem
-                    label="Current password"
-                    invalid={Boolean(errors.currentPassword)}
-                    errorMessage={errors.currentPassword?.message}
+                    label={t('currentPassword')}
+                    invalid={Boolean(errors.current_password)}
+                    errorMessage={errors.current_password?.message}
                 >
                     <Controller
-                        name="currentPassword"
+                        name="current_password"
                         control={control}
                         render={({ field }) => (
                             <Input
@@ -113,12 +115,12 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="New password"
-                    invalid={Boolean(errors.newPassword)}
-                    errorMessage={errors.newPassword?.message}
+                    label={t('newPassword')}
+                    invalid={Boolean(errors.password)}
+                    errorMessage={errors.password?.message}
                 >
                     <Controller
-                        name="newPassword"
+                        name="password"
                         control={control}
                         render={({ field }) => (
                             <Input
@@ -131,12 +133,12 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="Confirm new password"
-                    invalid={Boolean(errors.confirmNewPassword)}
-                    errorMessage={errors.confirmNewPassword?.message}
+                    label={t('confirmNewPassword')}
+                    invalid={Boolean(errors.password_confirmation)}
+                    errorMessage={errors.password_confirmation?.message}
                 >
                     <Controller
-                        name="confirmNewPassword"
+                        name="password_confirmation"
                         control={control}
                         render={({ field }) => (
                             <Input
@@ -149,84 +151,25 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <div className="flex justify-end">
-                    <Button variant="solid" type="submit">
-                        Update
+                    <Button variant="solid" type="submit" loading={isSubmitting}>
+                        {t('update')}
                     </Button>
                 </div>
             </Form>
             <ConfirmDialog
                 isOpen={confirmationOpen}
                 type="warning"
-                title="Update password"
+                title={t('updatePassword')}
                 confirmButtonProps={{
                     loading: isSubmitting,
-                    onClick: handlePostSubmit,
+                    onClick: handleSubmit(handlePostSubmit),
                 }}
                 onClose={() => setConfirmationOpen(false)}
                 onRequestClose={() => setConfirmationOpen(false)}
                 onCancel={() => setConfirmationOpen(false)}
             >
-                <p>Are you sure you want to change your password?</p>
+                <p>{t('updatePasswordConfirmation')}</p>
             </ConfirmDialog>
-            <div className="mb-8">
-                <h4>2-Step verification</h4>
-                <p>
-                    Your account holds great value to hackers. Enable two-step
-                    verification to safeguard your account!
-                </p>
-                <div className="mt-8">
-                    {authenticatorList.map((authOption, index) => (
-                        <div
-                            key={authOption.value}
-                            className={classNames(
-                                'py-6 border-gray-200 dark:border-gray-600',
-                                !isLastChild(authenticatorList, index) &&
-                                    'border-b',
-                            )}
-                        >
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <Avatar
-                                        size={35}
-                                        className="bg-transparent"
-                                        src={authOption.img}
-                                    />
-                                    <div>
-                                        <h6>{authOption.label}</h6>
-                                        <span>{authOption.desc}</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    {selected2FaType === authOption.value ? (
-                                        <Button
-                                            size="sm"
-                                            customColorClass={() =>
-                                                'border-success ring-1 ring-success text-success hover:border-success hover:ring-success hover:text-success bg-transparent'
-                                            }
-                                            onClick={() =>
-                                                setSelected2FaType('')
-                                            }
-                                        >
-                                            Activated
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            size="sm"
-                                            onClick={() =>
-                                                setSelected2FaType(
-                                                    authOption.value,
-                                                )
-                                            }
-                                        >
-                                            Enable
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
         </div>
     )
 }

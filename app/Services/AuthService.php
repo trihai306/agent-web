@@ -29,9 +29,14 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $tokenResult = $user->createToken('api-token');
+        $token = $tokenResult->plainTextToken;
 
-        return ['user' => $user, 'token' => $token];
+        return [
+            'user' => $user,
+            'token' => $token,
+            'expires_in' => config('sanctum.expiration'),
+        ];
     }
 
     public function login(array $data): array
@@ -53,9 +58,14 @@ class AuthService
         }
 
         $user = $this->userService->findUserByEmailOrPhone($login);
-        $token = $user->createToken('api-token')->plainTextToken;
+        $tokenResult = $user->createToken('api-token');
+        $token = $tokenResult->plainTextToken;
 
-        return ['user' => $user, 'token' => $token];
+        return [
+            'user' => $user,
+            'token' => $token,
+            'expires_in' => config('sanctum.expiration'),
+        ];
     }
 
     public function logout(): void

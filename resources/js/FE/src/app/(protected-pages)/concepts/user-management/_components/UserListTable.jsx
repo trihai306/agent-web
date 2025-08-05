@@ -13,6 +13,7 @@ import UsersListTableTools from './UsersListTableTools'
 import dayjs from 'dayjs'
 import Dialog from '@/components/ui/Dialog'
 import UserDetail from './UserDetail'
+import { useTranslations } from 'next-intl'
 
 const statusColor = {
     active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
@@ -34,9 +35,10 @@ const NameColumn = ({ row, onViewDetail }) => {
 }
 
 const ActionColumn = ({ onEdit, onViewDetail }) => {
+    const t = useTranslations('userManagement.table')
     return (
         <div className="flex items-center gap-3">
-            <Tooltip title="Edit">
+            <Tooltip title={t('edit')}>
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -45,7 +47,7 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
                     <TbPencil />
                 </div>
             </Tooltip>
-            <Tooltip title="View">
+            <Tooltip title={t('view')}>
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -58,22 +60,23 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
     )
 }
 
-const allColumns = [
-    { header: 'Name', accessorKey: 'full_name' },
-    { header: 'Email', accessorKey: 'email' },
-    { header: 'Phone', accessorKey: 'phone_number' },
-    { header: 'Roles', accessorKey: 'roles' },
-    { header: 'Balance', accessorKey: 'balance' },
-    { header: 'Created Date', accessorKey: 'created_at' },
-    { header: 'Status', accessorKey: 'status' },
-]
-
 const UserListTable = ({
     userListTotal,
     page = 1,
     per_page = 10,
 }) => {
     const router = useRouter()
+    const t = useTranslations('userManagement.table')
+    const tDetail = useTranslations('userManagement.detail')
+    const allColumns = [
+        { header: t('name'), accessorKey: 'full_name' },
+        { header: t('email'), accessorKey: 'email' },
+        { header: t('phone'), accessorKey: 'phone_number' },
+        { header: t('roles'), accessorKey: 'roles' },
+        { header: t('balance'), accessorKey: 'balance' },
+        { header: t('createdDate'), accessorKey: 'created_at' },
+        { header: t('status'), accessorKey: 'status' },
+    ]
 
     const [visibleColumns, setVisibleColumns] = useState(allColumns.map(c => c.accessorKey))
     const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
@@ -113,7 +116,7 @@ const UserListTable = ({
         () => {
             const baseColumns = [
                 {
-                    header: 'Name',
+                    header: t('name'),
                     accessorKey: 'full_name',
                     cell: (props) => {
                         const row = props.row.original
@@ -121,15 +124,15 @@ const UserListTable = ({
                     },
                 },
                 {
-                    header: 'Email',
+                    header: t('email'),
                     accessorKey: 'email',
                 },
                 {
-                    header: 'Phone',
+                    header: t('phone'),
                     accessorKey: 'phone_number',
                 },
                 {
-                    header: 'Roles',
+                    header: t('roles'),
                     accessorKey: 'roles',
                     cell: (props) => {
                         const roles = props.row.original.roles
@@ -145,18 +148,18 @@ const UserListTable = ({
                     }
                 },
                 {
-                    header: 'Balance',
+                    header: t('balance'),
                     accessorKey: 'balance',
                 },
                 {
-                    header: 'Created Date',
+                    header: t('createdDate'),
                     accessorKey: 'created_at',
                     cell: (props) => {
                         return <span>{dayjs(props.row.original.created_at).format('DD/MM/YYYY')}</span>
                     }
                 },
                 {
-                    header: 'Status',
+                    header: t('status'),
                     accessorKey: 'status',
                     cell: (props) => {
                         const row = props.row.original
@@ -254,7 +257,7 @@ const UserListTable = ({
                 {selectedUserForDetail && (
                     <div className="flex flex-col h-full">
                         <div className="p-4 border-b border-gray-200 dark:border-gray-600">
-                            <h5 className="font-bold">User Details</h5>
+                            <h5 className="font-bold">{tDetail('title')}</h5>
                         </div>
                         <div className="p-4 overflow-y-auto">
                            <UserDetail user={selectedUserForDetail} />
@@ -264,7 +267,7 @@ const UserListTable = ({
                                 icon={<TbPencil />}
                                 onClick={() => handleEdit(selectedUserForDetail)}
                             >
-                                Edit
+                                {tDetail('edit')}
                             </Button>
                         </div>
                     </div>

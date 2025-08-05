@@ -6,8 +6,10 @@ import Button from '@/components/ui/Button'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { useRolePermissionsStore } from '../_store/rolePermissionsStore'
 import { TbChecks } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const RolesPermissionsUserSelected = () => {
+    const t = useTranslations('account.rolesPermissions')
     const userList = useRolePermissionsStore((state) => state.userList)
     const setSelectAllUser = useRolePermissionsStore(
         (state) => state.setSelectAllUser,
@@ -52,9 +54,9 @@ const RolesPermissionsUserSelected = () => {
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                {selectedUser.length} Users
+                                                {selectedUser.length} {t('users')}
                                             </span>
-                                            <span>selected</span>
+                                            <span>{t('selected')}</span>
                                         </span>
                                     </span>
                                 )}
@@ -70,7 +72,7 @@ const RolesPermissionsUserSelected = () => {
                                     }
                                     onClick={handleDelete}
                                 >
-                                    Delete
+                                    {t('delete')}
                                 </Button>
                             </div>
                         </div>
@@ -80,7 +82,7 @@ const RolesPermissionsUserSelected = () => {
             <ConfirmDialog
                 isOpen={deleteConfirmationOpen}
                 type="danger"
-                title="Remove users"
+                title={t('removeUsers')}
                 onClose={handleCancel}
                 onRequestClose={handleCancel}
                 onCancel={handleCancel}
@@ -88,8 +90,7 @@ const RolesPermissionsUserSelected = () => {
             >
                 <p>
                     {' '}
-                    Are you sure you want to remove these users? This action
-                    can&apos;t be undo.{' '}
+                    {t('removeUsersConfirmation')}{' '}
                 </p>
             </ConfirmDialog>
         </>

@@ -5,8 +5,10 @@ import { useRolePermissionsStore } from '../_store/rolePermissionsStore'
 import Skeleton from '@/components/ui/Skeleton'
 import UsersAvatarGroup from '@/components/shared/UsersAvatarGroup'
 import { TbArrowRight } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const RolesPermissionsGroups = () => {
+    const t = useTranslations('account.rolesPermissions')
     const roleList = useRolePermissionsStore((state) => state.roleList)
     const setRoleDialog = useRolePermissionsStore(
         (state) => state.setRoleDialog,
@@ -96,7 +98,7 @@ const RolesPermissionsGroups = () => {
                                 iconAlignment="end"
                                 onClick={() => handleEditRoleClick(role.id)}
                             >
-                                Edit role
+                                {t('editRole')}
                             </Button>
                         </div>
                     </div>

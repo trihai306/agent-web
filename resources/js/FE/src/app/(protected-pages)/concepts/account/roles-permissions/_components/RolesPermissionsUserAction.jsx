@@ -6,24 +6,9 @@ import { useRolePermissionsStore } from '../_store/rolePermissionsStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import { TbSearch } from 'react-icons/tb'
 import { components } from 'react-select'
+import { useTranslations } from 'next-intl'
 
 const { Control } = components
-
-const statusOptions = [
-    { label: 'All', value: '', dotBackground: 'bg-gray-200' },
-    { label: 'Active', value: 'active', dotBackground: 'bg-success' },
-    { label: 'Blocked', value: 'blocked', dotBackground: 'bg-error' },
-]
-
-const roleOptions = [
-    { label: 'All', value: '' },
-    { label: 'Admin', value: 'admin' },
-    { label: 'Supervisor', value: 'supervisor' },
-    { label: 'Support', value: 'support' },
-    { label: 'User', value: 'user' },
-    { label: 'Auditor', value: 'auditor' },
-    { label: 'Guest', value: 'guest' },
-]
 
 const StatusSelectOption = (props) => {
     return (
@@ -63,10 +48,26 @@ const CustomControl = ({ children, ...props }) => {
 }
 
 const RolesPermissionsUserAction = () => {
+    const t = useTranslations('account.rolesPermissions')
     const filterData = useRolePermissionsStore((state) => state.filterData)
     const setFilterData = useRolePermissionsStore(
         (state) => state.setFilterData,
     )
+    const statusOptions = [
+        { label: t('all'), value: '', dotBackground: 'bg-gray-200' },
+        { label: t('active'), value: 'active', dotBackground: 'bg-success' },
+        { label: t('blocked'), value: 'blocked', dotBackground: 'bg-error' },
+    ]
+    
+    const roleOptions = [
+        { label: t('all'), value: '' },
+        { label: 'Admin', value: 'admin' },
+        { label: 'Supervisor', value: 'supervisor' },
+        { label: 'Support', value: 'support' },
+        { label: 'User', value: 'user' },
+        { label: 'Auditor', value: 'auditor' },
+        { label: 'Guest', value: 'guest' },
+    ]
 
     const { onAppendQueryParams } = useAppendQueryParams()
 
@@ -94,7 +95,7 @@ const RolesPermissionsUserAction = () => {
         <div className="flex items-center justify-between">
             <DebouceInput
                 className="max-w-[300px]"
-                placeholder="Search..."
+                placeholder={t('search')}
                 type="text"
                 size="sm"
                 prefix={<TbSearch className="text-lg" />}
@@ -110,9 +111,9 @@ const RolesPermissionsUserAction = () => {
                     }}
                     options={statusOptions}
                     size="sm"
-                    placeholder="Status"
+                    placeholder={t('status')}
                     defaultValue={{
-                        label: 'All',
+                        label: t('all'),
                         value: '',
                         dotBackground: 'bg-gray-200',
                     }}
@@ -128,8 +129,8 @@ const RolesPermissionsUserAction = () => {
                     }}
                     options={roleOptions}
                     size="sm"
-                    placeholder="Role"
-                    defaultValue={{ label: 'All', value: '' }}
+                    placeholder={t('role')}
+                    defaultValue={{ label: t('all'), value: '' }}
                     value={roleOptions.find(
                         (option) => option.value === filterData.role,
                     )}

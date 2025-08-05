@@ -4,8 +4,10 @@ import Button from '@/components/ui/Button'
 import { ActivityAvatar, ActivityEvent } from '@/components/view/Activity'
 import isEmpty from 'lodash/isEmpty'
 import dayjs from 'dayjs'
+import { useTranslations } from 'next-intl'
 
 const Log = ({ activities, loadable, isLoading, onLoadMore, filter = [] }) => {
+    const t = useTranslations('account.activityLog')
     return (
         <div>
             {activities.map((log, index) => (
@@ -39,10 +41,10 @@ const Log = ({ activities, loadable, isLoading, onLoadMore, filter = [] }) => {
             <div className="text-center">
                 {loadable ? (
                     <Button loading={isLoading} onClick={onLoadMore}>
-                        Load More
+                        {t('loadMore')}
                     </Button>
                 ) : (
-                    'No more activity to load'
+                    t('noMoreActivity')
                 )}
             </div>
         </div>

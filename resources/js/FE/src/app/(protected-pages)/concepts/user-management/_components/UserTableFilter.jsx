@@ -10,6 +10,7 @@ import { TbFilter } from 'react-icons/tb'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z.object({
     email: z.string().email({ message: 'Invalid email address' }).optional().or(z.literal('')),
@@ -19,13 +20,14 @@ const validationSchema = z.object({
 })
 
 const DrawerFooter = ({ onCancel, onSaveClick }) => {
+    const t = useTranslations('userManagement.filterForm')
     return (
         <div className="text-right w-full">
             <Button size="sm" className="mr-2" onClick={onCancel}>
-                Cancel
+                {t('cancel')}
             </Button>
             <Button size="sm" variant="solid" onClick={onSaveClick}>
-                Apply
+                {t('apply')}
             </Button>
         </div>
     )
@@ -33,6 +35,8 @@ const DrawerFooter = ({ onCancel, onSaveClick }) => {
 
 const UserTableFilter = () => {
     const [isOpen, setIsOpen] = useState(false)
+    const t = useTranslations('userManagement')
+    const tForm = useTranslations('userManagement.filterForm')
 
     const filterData = useUserListStore((state) => state.filterData)
     const setFilterData = useUserListStore((state) => state.setFilterData)
@@ -66,10 +70,10 @@ const UserTableFilter = () => {
     return (
         <>
             <Button icon={<TbFilter />} onClick={() => openDrawer()}>
-                Filter
+                {t('filter')}
             </Button>
             <Drawer
-                title="Filter"
+                title={t('filter')}
                 isOpen={isOpen}
                 onClose={onDrawerClose}
                 onRequestClose={onDrawerClose}
@@ -81,49 +85,49 @@ const UserTableFilter = () => {
                 }
             >
                 <Form onSubmit={handleSubmit(onSubmit)}>
-                    <FormItem label="Email">
+                    <FormItem label={tForm('email')}>
                         <Controller
                             name="email"
                             control={control}
                             render={({ field }) => (
                                 <Input
-                                    placeholder="Filter by email"
+                                    placeholder={tForm('email')}
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
-                    <FormItem label="First Name">
+                    <FormItem label={tForm('firstName')}>
                         <Controller
                             name="first_name"
                             control={control}
                             render={({ field }) => (
                                 <Input
-                                    placeholder="Filter by first name"
+                                    placeholder={tForm('firstName')}
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Last Name">
+                    <FormItem label={tForm('lastName')}>
                         <Controller
                             name="last_name"
                             control={control}
                             render={({ field }) => (
                                 <Input
-                                    placeholder="Filter by last name"
+                                    placeholder={tForm('lastName')}
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Phone Number">
+                    <FormItem label={tForm('phoneNumber')}>
                         <Controller
                             name="phone_number"
                             control={control}
                             render={({ field }) => (
                                 <Input
-                                    placeholder="Filter by phone number"
+                                    placeholder={tForm('phoneNumber')}
                                     {...field}
                                 />
                             )}

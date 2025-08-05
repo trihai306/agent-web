@@ -12,11 +12,13 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import deleteRoles from '@/server/actions/deleteRoles'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
+import { useTranslations } from 'next-intl'
 
 const ActionColumn = ({ onEdit, onDelete }) => {
+    const t = useTranslations('roleManagement')
     return (
         <div className="flex items-center justify-end gap-3">
-            <Tooltip title="Edit">
+            <Tooltip title={t('table.edit')}>
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -27,11 +29,11 @@ const ActionColumn = ({ onEdit, onDelete }) => {
             </Tooltip>
             <ConfirmDialog
                 onConfirm={onDelete}
-                title="Delete Role"
-                content="Are you sure you want to delete this role?"
-                confirmText="Delete"
+                title={t('deleteConfirm.title')}
+                content={t('deleteConfirm.content')}
+                confirmText={t('deleteConfirm.confirmText')}
             >
-                <Tooltip title="Delete">
+                <Tooltip title={t('table.delete')}>
                     <div
                         className={`text-xl cursor-pointer select-none font-semibold text-red-500`}
                         role="button"
@@ -44,18 +46,18 @@ const ActionColumn = ({ onEdit, onDelete }) => {
     )
 }
 
-const allColumns = [
-    { header: 'Name', accessorKey: 'name' },
-    { header: 'Guard Name', accessorKey: 'guard_name' },
-    { header: 'Created Date', accessorKey: 'created_at' },
-]
-
 const RoleListTable = ({
     roleListTotal,
     page = 1,
     per_page = 10,
 }) => {
     const router = useRouter()
+    const t = useTranslations('roleManagement.table')
+    const allColumns = [
+        { header: t('name'), accessorKey: 'name' },
+        { header: t('guardName'), accessorKey: 'guard_name' },
+        { header: t('createdDate'), accessorKey: 'created_at' },
+    ]
     const [visibleColumns, setVisibleColumns] = useState(allColumns.map(c => c.accessorKey))
     const roleList = useRoleListStore((state) => state.roleList)
     const isInitialLoading = useRoleListStore((state) => state.initialLoading)
@@ -98,10 +100,10 @@ const RoleListTable = ({
     const columns = useMemo(
         () => {
             const baseColumns = [
-                { header: 'Name', accessorKey: 'name' },
-                { header: 'Guard Name', accessorKey: 'guard_name' },
+                { header: t('name'), accessorKey: 'name' },
+                { header: t('guardName'), accessorKey: 'guard_name' },
                 {
-                    header: 'Created Date',
+                    header: t('createdDate'),
                     accessorKey: 'created_at',
                     cell: (props) => <span>{dayjs(props.row.original.created_at).format('DD/MM/YYYY')}</span>
                 },

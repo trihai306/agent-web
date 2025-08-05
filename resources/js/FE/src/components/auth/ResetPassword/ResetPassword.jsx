@@ -6,12 +6,14 @@ import ActionLink from '@/components/shared/ActionLink'
 import ResetPasswordForm from './ResetPasswordForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export const ResetPassword = ({
     signInUrl = '/sign-in',
     onResetPasswordSubmit,
 }) => {
     const [resetComplete, setResetComplete] = useState(false)
+    const t = useTranslations('resetPassword')
 
     const [message, setMessage] = useTimeOutMessage()
 
@@ -26,16 +28,16 @@ export const ResetPassword = ({
             <div className="mb-6">
                 {resetComplete ? (
                     <>
-                        <h3 className="mb-1">Reset done</h3>
+                        <h3 className="mb-1">{t('resetDoneTitle')}</h3>
                         <p className="font-semibold heading-text">
-                            Your password has been successfully reset
+                            {t('resetDoneSubtitle')}
                         </p>
                     </>
                 ) : (
                     <>
-                        <h3 className="mb-1">Set new password</h3>
+                        <h3 className="mb-1">{t('title')}</h3>
                         <p className="font-semibold heading-text">
-                            Your new password must different to previos password
+                            {t('subtitle')}
                         </p>
                     </>
                 )}
@@ -57,17 +59,17 @@ export const ResetPassword = ({
                     type="button"
                     onClick={handleContinue}
                 >
-                    Continue
+                    {t('continue')}
                 </Button>
             </ResetPasswordForm>
             <div className="mt-4 text-center">
-                <span>Back to </span>
+                <span>{t('backToSignIn')} </span>
                 <ActionLink
                     href={signInUrl}
                     className="heading-text font-bold"
                     themeColor={false}
                 >
-                    Sign in
+                    {t('signIn')}
                 </ActionLink>
             </div>
         </div>

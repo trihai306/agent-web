@@ -3,8 +3,10 @@ import { useMemo } from 'react'
 import Dropdown from '@/components/ui/Dropdown'
 import Checkbox from '@/components/ui/Checkbox'
 import { TbColumnInsertLeft, TbColumnInsertRight } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const ColumnSelector = ({ columns = [], selectableColumns = [], onColumnToggle }) => {
+    const t = useTranslations('userManagement')
     
     const selectableColumn = useMemo(() => {
         return selectableColumns.map(column => ({
@@ -18,7 +20,7 @@ const ColumnSelector = ({ columns = [], selectableColumns = [], onColumnToggle }
             placement="bottom-end"
             renderTitle={
                 <div className="flex items-center gap-2 cursor-pointer select-none">
-                    <span>Columns</span>
+                    <span>{t('columns')}</span>
                     <TbColumnInsertRight />
                 </div>
             }

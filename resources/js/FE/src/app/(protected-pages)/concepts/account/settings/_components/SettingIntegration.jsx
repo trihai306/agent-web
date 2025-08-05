@@ -13,8 +13,10 @@ import {
 } from 'react-icons/tb'
 import { apiGetSettingsIntergration } from '@/services/AccontsService'
 import useCurrentSession from '@/utils/hooks/useCurrentSession'
+import { useTranslations } from 'next-intl'
 
 const SettingIntegration = () => {
+    const t = useTranslations('account.settings.integration')
     const { session } = useCurrentSession()
     const [selectedIntegration, setSelectedIntegration] = useState({
         integration: {},
@@ -53,8 +55,8 @@ const SettingIntegration = () => {
 
     return (
         <div>
-            <h4>Integration</h4>
-            <p>Supercharge your workflow using these integration</p>
+            <h4>{t('title')}</h4>
+            <p>{t('description')}</p>
             <div className="mt-4">
                 {data.map((app, index) => (
                     <div
@@ -86,7 +88,7 @@ const SettingIntegration = () => {
                                     })
                                 }
                             >
-                                Learn more
+                                {t('learnMore')}
                             </Button>
                             <Switcher
                                 checked={app.active}
@@ -121,7 +123,7 @@ const SettingIntegration = () => {
                     </div>
                 </div>
                 <div className="mt-6">
-                    <span className="font-bold heading-text">Overview</span>
+                    <span className="font-bold heading-text">{t('overview')}</span>
                     <p className="mt-2">
                         Wings medium plunger pot, redeye doppio siphon froth
                         iced. Latte, and, barista cultivar fair trade grinder
@@ -132,7 +134,7 @@ const SettingIntegration = () => {
                     </p>
                     <div className="mt-6">
                         <span className="font-bold heading-text">
-                            Key Features:
+                            {t('keyFeatures')}
                         </span>
                         <ul className="list-disc mt-4 flex flex-col gap-3">
                             <li className="flex gap-2">
@@ -167,7 +169,7 @@ const SettingIntegration = () => {
                 </div>
                 <div className=" mt-6">
                     <Button block onClick={handleDialogClose}>
-                        Acknowledge
+                        {t('acknowledge')}
                     </Button>
                 </div>
             </Dialog>

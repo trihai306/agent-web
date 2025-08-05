@@ -12,7 +12,7 @@ export async function apiGetSettingsNotification(token) {
 
 export async function apiGetSettingsBilling(token) {
     return ApiService.fetchDataWithAxios({
-        url: '/setting/billing',
+        url: '/settings',
         method: 'get',
         headers: {
             Authorization: `Bearer ${token}`,

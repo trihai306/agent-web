@@ -1,4 +1,4 @@
-import { signOut } from '@/auth'
+import { signOut } from 'next-auth/react'
 
 const AxiosResponseIntrceptorErrorCallback = (error) => {
     if (error.response?.status === 401) {

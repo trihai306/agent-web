@@ -14,11 +14,15 @@ import blockUsers from '@/server/actions/blockUsers'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 const UserListBulkActionTools = () => {
     const router = useRouter()
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const [showBlockConfirmation, setShowBlockConfirmation] = useState(false)
+    const t = useTranslations('userManagement.bulkAction')
+    const tDelete = useTranslations('userManagement.bulkDeleteConfirm')
+    const tBlock = useTranslations('userManagement.bulkBlockConfirm')
 
     const selectedUser = useUserListStore((state) => state.selectedUser)
     const setSelectAllUser = useUserListStore((state) => state.setSelectAllUser)
@@ -82,7 +86,7 @@ const UserListBulkActionTools = () => {
         <>
             <div className="flex flex-col items-start md:flex-row md:items-center gap-3">
                 <span className="font-semibold leading-9">
-                    {selectedUser.length} user selected
+                    {t('selected', { count: selectedUser.length })}
                 </span>
                 <Button
                     size="sm"
@@ -91,7 +95,7 @@ const UserListBulkActionTools = () => {
                     icon={<TbTrash />}
                     onClick={onBulkDelete}
                 >
-                    Delete
+                    {t('delete')}
                 </Button>
                 <Button
                     size="sm"
@@ -100,7 +104,7 @@ const UserListBulkActionTools = () => {
                     icon={<TbLock />}
                     onClick={onBulkBlock}
                 >
-                    Block
+                    {t('block')}
                 </Button>
                 <Button
                     size="sm"
@@ -108,7 +112,7 @@ const UserListBulkActionTools = () => {
                     icon={<TbX />}
                     onClick={onClearSelection}
                 >
-                    Clear
+                    {t('clear')}
                 </Button>
             </div>
             <Dialog
@@ -116,24 +120,23 @@ const UserListBulkActionTools = () => {
                 onClose={() => setShowDeleteConfirmation(false)}
                 onRequestClose={() => setShowDeleteConfirmation(false)}
             >
-                <h5 className="mb-4">Delete Confirmation</h5>
+                <h5 className="mb-4">{tDelete('title')}</h5>
                 <p>
-                    Are you sure you want to delete {selectedUser.length}{' '}
-                    selected user(s)? This action cannot be undone.
+                    {tDelete('content', { count: selectedUser.length })}
                 </p>
                 <div className="text-right mt-6">
                     <Button
                         className="ltr:mr-2 rtl:ml-2"
                         onClick={() => setShowDeleteConfirmation(false)}
                     >
-                        Cancel
+                        {tDelete('cancel')}
                     </Button>
                     <Button
                         variant="solid"
                         color="red-600"
                         onClick={handleDeleteConfirm}
                     >
-                        Delete
+                        {tDelete('delete')}
                     </Button>
                 </div>
             </Dialog>
@@ -142,20 +145,19 @@ const UserListBulkActionTools = () => {
                 onClose={() => setShowBlockConfirmation(false)}
                 onRequestClose={() => setShowBlockConfirmation(false)}
             >
-                <h5 className="mb-4">Block Confirmation</h5>
+                <h5 className="mb-4">{tBlock('title')}</h5>
                 <p>
-                    Are you sure you want to block {selectedUser.length} selected
-                    user(s)?
+                    {tBlock('content', { count: selectedUser.length })}
                 </p>
                 <div className="text-right mt-6">
                     <Button
                         className="ltr:mr-2 rtl:ml-2"
                         onClick={() => setShowBlockConfirmation(false)}
                     >
-                        Cancel
+                        {tBlock('cancel')}
                     </Button>
                     <Button variant="solid" onClick={handleBlockConfirm}>
-                        Block
+                        {tBlock('block')}
                     </Button>
                 </div>
             </Dialog>

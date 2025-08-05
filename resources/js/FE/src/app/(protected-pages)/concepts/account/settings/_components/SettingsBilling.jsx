@@ -8,6 +8,7 @@ import toast from '@/components/ui/toast'
 import CreditCardDialog from '@/components/view/CreditCardDialog'
 import BillingHistory from './BillingHistory'
 import { apiGetSettingsBilling } from '@/services/AccontsService'
+import { apiGetUserTransactions } from '@/services/TransactionService'
 import classNames from '@/utils/classNames'
 import isLastChild from '@/utils/isLastChild'
 import sleep from '@/utils/sleep'
@@ -18,12 +19,16 @@ import { useRouter } from 'next/navigation'
 import { PiLightningFill } from 'react-icons/pi'
 import { NumericFormat } from 'react-number-format'
 import useCurrentSession from '@/utils/hooks/useCurrentSession'
+import { Spinner } from '@/components/ui'
+import { useTranslations } from 'next-intl'
 
 const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ]
 
 const SettingsBilling = () => {
+    const t = useTranslations('account.settings.billing')
+
     const router = useRouter()
     const { session } = useCurrentSession()
 
@@ -34,22 +39,23 @@ const SettingsBilling = () => {
     })
 
     const {
-        data = {
-            currentPlan: {
-                plan: '',
-                status: '',
-                billingCycle: '',
-                nextPaymentDate: null,
-                amount: null,
-            },
-            paymentMethods: [],
-            transactionHistory: [],
-        },
-    } = useSWR(session?.accessToken ? '/api/settings/billing/' : null, () => apiGetSettingsBilling(session.accessToken), {
+        data: settingsData,
+        isLoading: isSettingsLoading
+    } = useSWR(session?.accessToken ? '/settings' : null, () => apiGetSettingsBilling(session.accessToken), {
         revalidateOnFocus: false,
         revalidateIfStale: false,
         revalidateOnReconnect: false,
     })
+    
+    const { data: transactionData, isLoading: isTransactionLoading } = useSWR(
+        session?.accessToken ? '/my-transactions' : null,
+        () => apiGetUserTransactions({}, session.accessToken),
+        {
+            revalidateOnFocus: false,
+            revalidateIfStale: false,
+            revalidateOnReconnect: false,
+        }
+    )
 
     const handleEditCreditCard = (card) => {
         setSelectedCard({
@@ -71,28 +77,31 @@ const SettingsBilling = () => {
         await sleep(500)
         handleCreditCardDialogClose()
         toast.push(
-            <Notification type="success">Credit card updated!</Notification>,
+            <Notification type="success">{t('creditCardUpdated')}</Notification>,
             { placement: 'top-center' },
         )
     }
 
-    const handleAddCreditCardSubmit = async (values) => {
-        console.log('Submitted values', values)
-        await sleep(500)
-        handleCreditCardDialogClose()
-        toast.push(
-            <Notification type="success">Credit card added!</Notification>,
-            { placement: 'top-center' },
-        )
-    }
+
 
     const handleChangePlan = () => {
         router.push('/concepts/account/pricing?subcription=basic&cycle=monthly')
     }
+    
+    const currentPlan = settingsData?.billing?.current_plan || {}
+    const paymentMethods = settingsData?.billing?.payment_methods || []
+
+    if (isSettingsLoading) {
+        return (
+            <div className="flex justify-center items-center h-full">
+                <Spinner size="lg" />
+            </div>
+        )
+    }
 
     return (
         <div>
-            <h4 className="mb-4">Billing</h4>
+            <h4 className="mb-4">{t('title')}</h4>
             <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -106,36 +115,36 @@ const SettingsBilling = () => {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h6 className="font-bold">
-                                    {data.currentPlan.plan}
+                                    {currentPlan.plan}
                                 </h6>
                                 <Tag className="bg-success-subtle text-success rounded-md border-0">
                                     <span className="capitalize">
-                                        {data.currentPlan.status}
+                                        {currentPlan.status}
                                     </span>
                                 </Tag>
                             </div>
                             <div className="font-semibold">
                                 <span>
-                                    Billing {data.currentPlan.billingCycle}
+                                    {t('billing')} {currentPlan.billing_cycle}
                                 </span>
                                 <span> | </span>
                                 <span>
-                                    Next payment on{' '}
+                                    {t('nextPaymentOn')}{' '}
                                     {dayjs
                                         .unix(
-                                            data.currentPlan.nextPaymentDate ||
+                                            currentPlan.next_payment_date ||
                                                 0,
                                         )
                                         .format('MM/DD/YYYY')}
                                 </span>
                                 <span>
-                                    <span className="mx-1">for</span>
+                                    <span className="mx-1">{t('for')}</span>
                                     <NumericFormat
                                         className="font-bold heading-text"
                                         displayType="text"
                                         value={(
                                             Math.round(
-                                                (data.currentPlan.amount || 0) *
+                                                (currentPlan.amount || 0) *
                                                     100,
                                             ) / 100
                                         ).toFixed(2)}
@@ -152,20 +161,20 @@ const SettingsBilling = () => {
                             variant="solid"
                             onClick={handleChangePlan}
                         >
-                            Change plan
+                            {t('changePlan')}
                         </Button>
                     </div>
                 </div>
             </div>
             <div className="mt-8">
-                <h5>Payment method</h5>
+                <h5>{t('paymentMethod')}</h5>
                 <div>
-                    {data.paymentMethods?.map((card, index) => (
+                    {paymentMethods?.map((card, index) => (
                         <div
                             key={card.cardId}
                             className={classNames(
                                 'flex items-center justify-between p-4',
-                                !isLastChild(data.paymentMethods, index) &&
+                                !isLastChild(paymentMethods, index) &&
                                     'border-b border-gray-200 dark:border-gray-600',
                             )}
                         >
@@ -192,13 +201,13 @@ const SettingsBilling = () => {
                                             <Tag className="bg-primary-subtle text-primary rounded-md border-0 mx-2">
                                                 <span className="capitalize">
                                                     {' '}
-                                                    Primary{' '}
+                                                    {t('primary')}{' '}
                                                 </span>
                                             </Tag>
                                         )}
                                     </div>
                                     <span>
-                                        Expired{' '}
+                                        {t('expired')}{' '}
                                         {months[parseInt(card.expMonth) - 1]} 20
                                         {card.expYear}
                                     </span>
@@ -210,47 +219,28 @@ const SettingsBilling = () => {
                                     type="button"
                                     onClick={() => handleEditCreditCard(card)}
                                 >
-                                    Edit
+                                    {t('edit')}
                                 </Button>
                             </div>
                         </div>
                     ))}
-                    <Button
-                        variant="plain"
-                        icon={<TbPlus />}
-                        onClick={() => {
-                            setSelectedCard({
-                                type: 'NEW',
-                                dialogOpen: true,
-                                cardInfo: {},
-                            })
-                        }}
-                    >
-                        Add payment method
-                    </Button>
+                    
                 </div>
             </div>
             <div className="mt-8">
-                <h5>Transaction history</h5>
+                <h5>{t('transactionHistory')}</h5>
                 <BillingHistory
                     className="mt-4"
-                    data={data.transactionHistory}
+                    data={transactionData?.data || []}
+                    loading={isTransactionLoading}
                 />
             </div>
             <CreditCardDialog
-                title={
-                    selectedCard.type === 'NEW'
-                        ? 'Add credit card'
-                        : 'Edit credit card'
-                }
+                title={t('editCreditCard')}
                 defaultValues={selectedCard.cardInfo}
                 dialogOpen={selectedCard.dialogOpen}
                 onDialogClose={handleCreditCardDialogClose}
-                onSubmit={
-                    selectedCard.type === 'NEW'
-                        ? (values) => handleAddCreditCardSubmit(values)
-                        : handleEditCreditCardSubmit
-                }
+                onSubmit={handleEditCreditCardSubmit}
             />
         </div>
     )

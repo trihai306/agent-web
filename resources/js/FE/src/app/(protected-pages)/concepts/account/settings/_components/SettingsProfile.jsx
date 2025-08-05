@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { HiOutlineUser } from 'react-icons/hi'
 import { TbPlus } from 'react-icons/tb'
 import useCurrentSession from '@/utils/hooks/useCurrentSession'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z.object({
     first_name: z.string().min(1, { message: 'First name required' }),
@@ -28,6 +29,7 @@ const validationSchema = z.object({
 })
 
 const SettingsProfile = () => {
+    const t = useTranslations('account.settings.profile')
     const { session } = useCurrentSession()
 
     const { data, mutate } = useSWR(
@@ -89,7 +91,7 @@ const SettingsProfile = () => {
 
     return (
         <>
-            <h4 className="mb-8">Personal information</h4>
+            <h4 className="mb-8">{t('title')}</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-8">
                     <Controller
@@ -122,7 +124,7 @@ const SettingsProfile = () => {
                                             type="button"
                                             icon={<TbPlus />}
                                         >
-                                            Upload Image
+                                            {t('uploadImage')}
                                         </Button>
                                     </Upload>
                                     <Button
@@ -132,7 +134,7 @@ const SettingsProfile = () => {
                                             field.onChange('')
                                         }}
                                     >
-                                        Remove
+                                        {t('remove')}
                                     </Button>
                                 </div>
                             </div>
@@ -141,7 +143,7 @@ const SettingsProfile = () => {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormItem
-                        label="First name"
+                        label={t('firstName')}
                         invalid={Boolean(errors.first_name)}
                         errorMessage={errors.first_name?.message}
                     >
@@ -152,14 +154,14 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="First Name"
+                                    placeholder={t('firstName')}
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
                     <FormItem
-                        label="Last name"
+                        label={t('lastName')}
                         invalid={Boolean(errors.last_name)}
                         errorMessage={errors.last_name?.message}
                     >
@@ -170,7 +172,7 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="Last Name"
+                                    placeholder={t('lastName')}
                                     {...field}
                                 />
                             )}
@@ -178,7 +180,7 @@ const SettingsProfile = () => {
                     </FormItem>
                 </div>
                 <FormItem
-                    label="Email"
+                    label={t('email')}
                     invalid={Boolean(errors.email)}
                     errorMessage={errors.email?.message}
                 >
@@ -189,14 +191,14 @@ const SettingsProfile = () => {
                             <Input
                                 type="email"
                                 autoComplete="off"
-                                placeholder="Email"
+                                placeholder={t('email')}
                                 {...field}
                             />
                         )}
                     />
                 </FormItem>
                 <FormItem
-                    label="Phone Number"
+                    label={t('phoneNumber')}
                     invalid={Boolean(errors.phone_number)}
                     errorMessage={errors.phone_number?.message}
                 >
@@ -207,7 +209,7 @@ const SettingsProfile = () => {
                             <Input
                                 type="text"
                                 autoComplete="off"
-                                placeholder="Phone Number"
+                                placeholder={t('phoneNumber')}
                                 {...field}
                             />
                         )}
@@ -219,7 +221,7 @@ const SettingsProfile = () => {
                         type="submit"
                         loading={isSubmitting}
                     >
-                        Save
+                        {t('save')}
                     </Button>
                 </div>
             </Form>

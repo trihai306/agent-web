@@ -2,8 +2,10 @@
 
 import Button from '@/components/ui/Button'
 import { TbPlus } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const RoleListActionTools = ({ onAddNew }) => {
+    const t = useTranslations('roleManagement')
     return (
         <div className="flex flex-col md:flex-row gap-3">
             <Button
@@ -11,7 +13,7 @@ const RoleListActionTools = ({ onAddNew }) => {
                 icon={<TbPlus />}
                 onClick={onAddNew}
             >
-                Add new role
+                {t('addNew')}
             </Button>
         </div>
     )

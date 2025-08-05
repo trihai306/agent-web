@@ -21,6 +21,7 @@ import {
     TbFileChart,
     TbCheck,
 } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const moduleIcon = {
     users: <TbUserCog />,
@@ -33,6 +34,7 @@ const moduleIcon = {
 const { useUniqueId } = hooks
 
 const RolesPermissionsAccessDialog = () => {
+    const t = useTranslations('account.rolesPermissions')
     const roleList = useRolePermissionsStore((state) => state.roleList)
     const setRoleList = useRolePermissionsStore((state) => state.setRoleList)
 
@@ -111,19 +113,19 @@ const RolesPermissionsAccessDialog = () => {
             onClose={handleClose}
             onRequestClose={handleClose}
         >
-            <h4>{roleDialog.type === 'new' ? 'Create role' : modules?.name}</h4>
+            <h4>{roleDialog.type === 'new' ? t('createRole') : modules?.name}</h4>
             <ScrollBar className="mt-6 max-h-[600px] overflow-y-auto">
                 <div className="px-4">
                     {roleDialog.type === 'new' && (
                         <>
-                            <FormItem label="Role name">
+                            <FormItem label={t('roleName')}>
                                 <Input ref={roleNameRef} />
                             </FormItem>
-                            <FormItem label="Description">
+                            <FormItem label={t('description')}>
                                 <Input ref={descriptionRef} textArea />
                             </FormItem>
                             <span className="font-semibold mb-2">
-                                Permission
+                                {t('permission')}
                             </span>
                         </>
                     )}
@@ -144,8 +146,8 @@ const RolesPermissionsAccessDialog = () => {
                                     shape="round"
                                 />
                                 <div>
-                                    <h6 className="font-bold">{module.name}</h6>
-                                    <span>{module.description}</span>
+                                    <h6 className="font-bold">{t(module.name)}</h6>
+                                    <span>{t(module.description)}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -192,7 +194,7 @@ const RolesPermissionsAccessDialog = () => {
                                                             onSegmentItemClick
                                                         }
                                                     >
-                                                        {access.label}
+                                                        {t(access.label)}
                                                     </Button>
                                                 )
                                             }}
@@ -208,7 +210,7 @@ const RolesPermissionsAccessDialog = () => {
                             variant="plain"
                             onClick={handleClose}
                         >
-                            Cancel
+                            {t('cancel')}
                         </Button>
                         <Button
                             variant="solid"
@@ -218,7 +220,7 @@ const RolesPermissionsAccessDialog = () => {
                                     : handleSubmit
                             }
                         >
-                            {roleDialog.type === 'edit' ? 'Update' : 'Create'}
+                            {roleDialog.type === 'edit' ? t('update') : t('create')}
                         </Button>
                     </div>
                 </div>

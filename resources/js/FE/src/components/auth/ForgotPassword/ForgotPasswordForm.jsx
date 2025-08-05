@@ -6,6 +6,7 @@ import { FormItem, Form } from '@/components/ui/Form'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z.object({
     email: z.string().email().min(5),
@@ -13,6 +14,7 @@ const validationSchema = z.object({
 
 const ForgotPasswordForm = (props) => {
     const [isSubmitting, setSubmitting] = useState(false)
+    const t = useTranslations('forgotPassword')
 
     const {
         className,
@@ -47,7 +49,7 @@ const ForgotPasswordForm = (props) => {
             {!emailSent ? (
                 <Form onSubmit={handleSubmit(onForgotPassword)}>
                     <FormItem
-                        label="Email"
+                        label={t('email')}
                         invalid={Boolean(errors.email)}
                         errorMessage={errors.email?.message}
                     >
@@ -57,7 +59,7 @@ const ForgotPasswordForm = (props) => {
                             render={({ field }) => (
                                 <Input
                                     type="email"
-                                    placeholder="Email"
+                                    placeholder={t('email')}
                                     autoComplete="off"
                                     {...field}
                                 />
@@ -70,7 +72,7 @@ const ForgotPasswordForm = (props) => {
                         variant="solid"
                         type="submit"
                     >
-                        {isSubmitting ? 'Submiting...' : 'Submit'}
+                        {isSubmitting ? t('submitting') : t('submit')}
                     </Button>
                 </Form>
             ) : (

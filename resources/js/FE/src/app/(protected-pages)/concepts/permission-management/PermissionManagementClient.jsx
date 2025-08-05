@@ -7,6 +7,7 @@ import PermissionListActionTools from './_components/PermissionListActionTools'
 import { usePermissionListStore } from './_store/permissionListStore'
 import Dialog from '@/components/ui/Dialog'
 import PermissionForm from './_components/PermissionForm'
+import { useTranslations } from 'next-intl'
 
 const PermissionManagementClient = ({ data, params }) => {
     const isFormOpen = usePermissionListStore((state) => state.isFormOpen)
@@ -14,6 +15,7 @@ const PermissionManagementClient = ({ data, params }) => {
     const selectedPermissionForForm = usePermissionListStore((state) => state.selectedPermissionForForm)
     const openForm = usePermissionListStore((state) => state.openForm)
     const closeForm = usePermissionListStore((state) => state.closeForm)
+    const t = useTranslations('permissionManagement')
 
     return (
         <PermissionListProvider permissionList={data.list}>
@@ -21,7 +23,7 @@ const PermissionManagementClient = ({ data, params }) => {
                 <AdaptiveCard>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            <h3>Permissions</h3>
+                            <h3>{t('title')}</h3>
                             <PermissionListActionTools onAddNew={() => openForm('add')} />
                         </div>
                         <PermissionListTable

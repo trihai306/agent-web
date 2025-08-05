@@ -11,12 +11,15 @@ import deleteRoles from '@/server/actions/deleteRoles'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 const RoleListBulkActionTools = () => {
     const router = useRouter()
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const selectedRole = useRoleListStore((state) => state.selectedRole)
     const setSelectAllRole = useRoleListStore((state) => state.setSelectAllRole)
+    const t = useTranslations('roleManagement.bulkAction')
+    const tConfirm = useTranslations('roleManagement.bulkDeleteConfirm')
 
     const onBulkDelete = () => setShowDeleteConfirmation(true)
     const onClearSelection = () => setSelectAllRole([])
@@ -46,7 +49,7 @@ const RoleListBulkActionTools = () => {
         <>
             <div className="flex flex-col items-start md:flex-row md:items-center gap-3">
                 <span className="font-semibold leading-9">
-                    {selectedRole.length} role(s) selected
+                    {t('selected', { count: selectedRole.length })}
                 </span>
                 <Button
                     size="sm"
@@ -55,7 +58,7 @@ const RoleListBulkActionTools = () => {
                     icon={<TbTrash />}
                     onClick={onBulkDelete}
                 >
-                    Delete
+                    {t('delete')}
                 </Button>
                 <Button
                     size="sm"
@@ -63,7 +66,7 @@ const RoleListBulkActionTools = () => {
                     icon={<TbX />}
                     onClick={onClearSelection}
                 >
-                    Clear
+                    {t('clear')}
                 </Button>
             </div>
             <Dialog
@@ -71,24 +74,23 @@ const RoleListBulkActionTools = () => {
                 onClose={() => setShowDeleteConfirmation(false)}
                 onRequestClose={() => setShowDeleteConfirmation(false)}
             >
-                <h5 className="mb-4">Delete Confirmation</h5>
+                <h5 className="mb-4">{tConfirm('title')}</h5>
                 <p>
-                    Are you sure you want to delete {selectedRole.length}{' '}
-                    selected role(s)? This action cannot be undone.
+                    {tConfirm('content', { count: selectedRole.length })}
                 </p>
                 <div className="text-right mt-6">
                     <Button
                         className="ltr:mr-2 rtl:ml-2"
                         onClick={() => setShowDeleteConfirmation(false)}
                     >
-                        Cancel
+                        {tConfirm('cancel')}
                     </Button>
                     <Button
                         variant="solid"
                         color="red-600"
                         onClick={handleDeleteConfirm}
                     >
-                        Delete
+                        {tConfirm('delete')}
                     </Button>
                 </div>
             </Dialog>

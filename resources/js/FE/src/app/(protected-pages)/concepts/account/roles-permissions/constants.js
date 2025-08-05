@@ -1,95 +1,95 @@
 export const accessModules = [
     {
         id: 'users',
-        name: 'User management',
-        description: 'Access control for user management',
+        name: 'modules.users.name',
+        description: 'modules.users.description',
         accessor: [
             {
-                label: 'Read',
+                label: 'accessor.read',
                 value: 'read',
             },
             {
-                label: 'Write',
+                label: 'accessor.write',
                 value: 'write',
             },
             {
-                label: 'Delete',
+                label: 'accessor.delete',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'products',
-        name: 'Products authority',
-        description: 'Access control for product operations',
+        name: 'modules.products.name',
+        description: 'modules.products.description',
         accessor: [
             {
-                label: 'Read',
+                label: 'accessor.read',
                 value: 'read',
             },
             {
-                label: 'Write',
+                label: 'accessor.write',
                 value: 'write',
             },
             {
-                label: 'Delete',
+                label: 'accessor.delete',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'configurations',
-        name: 'System configurations',
-        description: 'Access control for system settings',
+        name: 'modules.configurations.name',
+        description: 'modules.configurations.description',
         accessor: [
             {
-                label: 'Read',
+                label: 'accessor.read',
                 value: 'read',
             },
             {
-                label: 'Write',
+                label: 'accessor.write',
                 value: 'write',
             },
             {
-                label: 'Delete',
+                label: 'accessor.delete',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'files',
-        name: 'File management',
-        description: 'Access control for file management',
+        name: 'modules.files.name',
+        description: 'modules.files.description',
         accessor: [
             {
-                label: 'Read',
+                label: 'accessor.read',
                 value: 'read',
             },
             {
-                label: 'Write',
+                label: 'accessor.write',
                 value: 'write',
             },
             {
-                label: 'Delete',
+                label: 'accessor.delete',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'reports',
-        name: 'Reports',
-        description: 'Access control for generating reports',
+        name: 'modules.reports.name',
+        description: 'modules.reports.description',
         accessor: [
             {
-                label: 'Read',
+                label: 'accessor.read',
                 value: 'read',
             },
             {
-                label: 'Write',
+                label: 'accessor.write',
                 value: 'write',
             },
             {
-                label: 'Delete',
+                label: 'accessor.delete',
                 value: 'delete',
             },
         ],

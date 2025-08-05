@@ -10,14 +10,7 @@ import {
     CREATE_TICKET,
 } from '@/components/view/Activity/constants'
 import { TbFilter, TbCheck } from 'react-icons/tb'
-
-const filterItems = [
-    { label: 'Ticket status', value: UPDATE_TICKET },
-    { label: 'Assign ticket', value: ASSIGN_TICKET },
-    { label: 'New ticket', value: CREATE_TICKET },
-    { label: 'Add tags', value: ADD_TAGS_TO_TICKET },
-    { label: 'Add files', value: ADD_FILES_TO_TICKET },
-]
+import { useTranslations } from 'next-intl'
 
 const LogAction = ({
     showMentionedOnly,
@@ -25,19 +18,29 @@ const LogAction = ({
     onFilterChange,
     onCheckboxChange,
 }) => {
+    const t = useTranslations('account.activityLog')
+
+    const filterItems = useMemo(() => [
+        { label: t('filter.ticketStatus'), value: UPDATE_TICKET },
+        { label: t('filter.assignTicket'), value: ASSIGN_TICKET },
+        { label: t('filter.newTicket'), value: CREATE_TICKET },
+        { label: t('filter.addTags'), value: ADD_TAGS_TO_TICKET },
+        { label: t('filter.addFiles'), value: ADD_FILES_TO_TICKET },
+    ], [t])
+
     const allUnchecked = useMemo(() => {
         return !selectedType.some((type) =>
             filterItems.map((item) => item.value).includes(type),
         )
-    }, [selectedType])
+    }, [selectedType, filterItems])
 
     return (
         <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
                 <span className="font-semibold">
                     {showMentionedOnly
-                        ? 'Show all activity'
-                        : 'Show mentioned only'}
+                        ? t('showAllActivity')
+                        : t('showMentionedOnly')}
                 </span>
                 <Switcher
                     checked={showMentionedOnly}

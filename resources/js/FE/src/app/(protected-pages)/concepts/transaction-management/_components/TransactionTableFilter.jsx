@@ -12,6 +12,7 @@ import { z } from 'zod'
 import { Select } from '@/components/ui'
 import getUsers from '@/server/actions/getUsers'
 import debounce from 'lodash/debounce'
+import { useTranslations } from 'next-intl'
 
 const validationSchema = z.object({
     type: z.string().optional(),
@@ -19,13 +20,14 @@ const validationSchema = z.object({
 })
 
 const DrawerFooter = ({ onCancel, onSaveClick }) => {
+    const t = useTranslations('transactionManagement.filterForm')
     return (
         <div className="text-right w-full">
             <Button size="sm" className="mr-2" onClick={onCancel}>
-                Cancel
+                {t('cancel')}
             </Button>
             <Button size="sm" variant="solid" onClick={onSaveClick}>
-                Apply
+                {t('apply')}
             </Button>
         </div>
     )
@@ -40,6 +42,8 @@ const UserTableFilter = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [userData, setUserData] = useState([])
     const [userLoading, setUserLoading] = useState(false)
+    const t = useTranslations('transactionManagement')
+    const tForm = useTranslations('transactionManagement.filterForm')
 
     const filterData = useTransactionListStore((state) => state.filterData)
     const setFilterData = useTransactionListStore((state) => state.setFilterData)
@@ -89,10 +93,10 @@ const UserTableFilter = () => {
     return (
         <>
             <Button icon={<TbFilter />} onClick={() => openDrawer()}>
-                Filter
+                {t('filter')}
             </Button>
             <Drawer
-                title="Filter"
+                title={tForm('title')}
                 isOpen={isOpen}
                 onClose={onDrawerClose}
                 onRequestClose={onDrawerClose}
@@ -104,13 +108,13 @@ const UserTableFilter = () => {
                 }
             >
                 <Form onSubmit={handleSubmit(onSubmit)}>
-                    <FormItem label="Transaction Type">
+                    <FormItem label={tForm('transactionType')}>
                         <Controller
                             name="type"
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    placeholder="Select type"
+                                    placeholder={tForm('selectType')}
                                     options={transactionTypeOptions}
                                     isClearable
                                     {...field}
@@ -118,13 +122,13 @@ const UserTableFilter = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="User">
+                    <FormItem label={tForm('user')}>
                         <Controller
                             name="user_id"
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    placeholder="Search by name or email"
+                                    placeholder={tForm('searchUser')}
                                     isClearable
                                     isLoading={userLoading}
                                     options={userData}

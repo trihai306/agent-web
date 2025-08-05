@@ -27,6 +27,7 @@ export default {
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
+                // Initial sign-in
                 token.id = user.id
                 token.name = user.full_name // Use full_name from API
                 token.email = user.email
@@ -34,8 +35,20 @@ export default {
                 token.accessToken = user.token
                 token.first_name = user.first_name
                 token.last_name = user.last_name
+                // Set the token's expiration time
+                const expiresIn = user.expires_in || 60 // Default to 60 minutes if not provided
+                token.accessTokenExpires = Date.now() + expiresIn * 60 * 1000 // Convert minutes to milliseconds
             }
-            return token
+
+            // Return previous token if the access token has not expired yet
+            if (Date.now() < token.accessTokenExpires) {
+                return token
+            }
+
+            // Access token has expired, try to update it
+            // For now, we will just sign the user out by returning null
+            // In the future, you might want to implement a token refresh mechanism here
+            return null
         },
         async session({ session, token }) {
             session.user.id = token.id

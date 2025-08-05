@@ -13,6 +13,7 @@ import {
     PatternFormat,
     NumberFormatBase,
 } from 'react-number-format'
+import { useTranslations } from 'next-intl'
 
 function limit(val, max) {
     if (val.length === 1 && val[0] > max[0]) {
@@ -38,6 +39,7 @@ function cardExpiryFormat(val) {
 }
 
 const PaymentDialog = () => {
+    const t = useTranslations('account.pricing.payment')
     const [loading, setLoading] = useState(false)
     const [paymentSuccessful, setPaymentSuccessful] = useState(false)
 
@@ -86,30 +88,28 @@ const PaymentDialog = () => {
                             <TbCheck className="text-5xl text-white" />
                         </div>
                         <div className="mt-6">
-                            <h4>Thank you for your purchase!</h4>
+                            <h4>{t('successTitle')}</h4>
                             <p className="text-base max-w-[400px] mx-auto mt-4 leading-relaxed">
-                                We&apos;ve received your order and are
-                                processing it now. You&apos;ll get an email with
-                                your order details soon
+                                {t('successMessage')}
                             </p>
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-8">
                             <Button block onClick={handleManageSubscription}>
-                                Manage subscription
+                                {t('manageSubscription')}
                             </Button>
                             <Button
                                 block
                                 variant="solid"
                                 onClick={handleDialogClose}
                             >
-                                Close
+                                {t('close')}
                             </Button>
                         </div>
                     </div>
                 </>
             ) : (
                 <>
-                    <h4>{selectedPlan.planName} plan</h4>
+                    <h4>{t('title', {planName: selectedPlan.planName})}</h4>
                     <div className="mt-6">
                         <Segment
                             defaultValue={selectedPlan.paymentCycle}
@@ -133,10 +133,9 @@ const PaymentDialog = () => {
                                                 >
                                                     <div>
                                                         <div className="heading-text mb-0.5">
-                                                            Pay{' '}
                                                             {key === 'monthly'
-                                                                ? 'monthly'
-                                                                : 'anually'}
+                                                                ? t('payMonthly')
+                                                                : t('payAnnually')}
                                                         </div>
                                                         <span className="text-lg font-bold heading-text flex gap-0.5">
                                                             <NumericFormat
@@ -170,12 +169,12 @@ const PaymentDialog = () => {
                     <div className="mt-6 border border-gray-200 dark:border-gray-600 rounded-lg">
                         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
                             <div className="w-full">
-                                <span>Billing email</span>
+                                <span>{t('billingEmail')}</span>
                                 <div className="flex items-center gap-2 mt-2">
                                     <TbMail className="text-2xl" />
                                     <input
                                         className="focus:outline-hidden heading-text flex-1"
-                                        placeholder="Enter email"
+                                        placeholder={t('enterEmail')}
                                         type="email"
                                     />
                                 </div>
@@ -183,14 +182,14 @@ const PaymentDialog = () => {
                         </div>
                         <div className="flex items-center justify-between p-4">
                             <div className="w-full">
-                                <span>Credit card</span>
+                                <span>{t('creditCard')}</span>
                                 <div className="flex items-center gap-2 mt-2">
                                     <div className="flex-1">
                                         <TbCreditCard className="text-2xl" />
                                     </div>
                                     <PatternFormat
                                         className="focus:outline-hidden heading-text w-full"
-                                        placeholder="Credit card number"
+                                        placeholder={t('creditCardNumber')}
                                         format="#### #### #### ####"
                                     />
                                     <NumberFormatBase
@@ -200,7 +199,7 @@ const PaymentDialog = () => {
                                     />
                                     <PatternFormat
                                         className="focus:outline-hidden heading-text max-w-12 sm:max-w-28"
-                                        placeholder="CVC"
+                                        placeholder={t('cvc')}
                                         format="###"
                                     />
                                 </div>
@@ -209,7 +208,7 @@ const PaymentDialog = () => {
                     </div>
                     <div className="mt-6 flex flex-col items-end">
                         <h4>
-                            <span>Bill now: </span>
+                            <span>{t('billNow')} </span>
                             <span>
                                 <NumericFormat
                                     displayType="text"
@@ -225,9 +224,7 @@ const PaymentDialog = () => {
                         </h4>
                         <div className="max-w-[350px] ltr:text-right rtl:text-left leading-none mt-2 opacity-80">
                             <small>
-                                By clicking &quot;Pay&quot;, you agree to be
-                                charged $399 every month, you can cancel this
-                                subscription any time.
+                                {t('disclaimer', {amount: selectedPlan.price?.[selectedPlan.paymentCycle]})}
                             </small>
                         </div>
                     </div>
@@ -238,7 +235,7 @@ const PaymentDialog = () => {
                             loading={loading}
                             onClick={handlePay}
                         >
-                            Pay
+                            {t('pay')}
                         </Button>
                     </div>
                 </>

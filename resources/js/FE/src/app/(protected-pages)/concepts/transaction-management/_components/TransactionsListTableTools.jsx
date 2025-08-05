@@ -1,5 +1,4 @@
 'use client'
-
 import TransactionListSearch from './TransactionListSearch'
 import TransactionTableFilter from './TransactionTableFilter'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
@@ -12,10 +11,13 @@ import deleteTransactions from '@/server/actions/deleteTransactions'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 const TransactionListBulkActionTools = () => {
     const router = useRouter()
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+    const t = useTranslations('transactionManagement.bulkAction')
+    const tConfirm = useTranslations('transactionManagement.deleteConfirm')
 
     const selectedTransaction = useTransactionListStore((state) => state.selectedTransaction)
     const setSelectAllTransaction = useTransactionListStore((state) => state.setSelectAllTransaction)
@@ -54,7 +56,7 @@ const TransactionListBulkActionTools = () => {
         <>
             <div className="flex flex-col items-start md:flex-row md:items-center gap-3">
                 <span className="font-semibold leading-9">
-                    {selectedTransaction.length} transaction(s) selected
+                    {t('selected', { count: selectedTransaction.length })}
                 </span>
                 <Button
                     size="sm"
@@ -63,7 +65,7 @@ const TransactionListBulkActionTools = () => {
                     icon={<TbTrash />}
                     onClick={onBulkDelete}
                 >
-                    Delete
+                    {t('delete')}
                 </Button>
                 <Button
                     size="sm"
@@ -71,7 +73,7 @@ const TransactionListBulkActionTools = () => {
                     icon={<TbX />}
                     onClick={onClearSelection}
                 >
-                    Clear
+                    {t('clear')}
                 </Button>
             </div>
             <Dialog
@@ -79,24 +81,23 @@ const TransactionListBulkActionTools = () => {
                 onClose={() => setShowDeleteConfirmation(false)}
                 onRequestClose={() => setShowDeleteConfirmation(false)}
             >
-                <h5 className="mb-4">Delete Confirmation</h5>
+                <h5 className="mb-4">{tConfirm('title')}</h5>
                 <p>
-                    Are you sure you want to delete {selectedTransaction.length}{' '}
-                    selected transaction(s)? This action cannot be undone.
+                    {tConfirm('content', { count: selectedTransaction.length })}
                 </p>
                 <div className="text-right mt-6">
                     <Button
                         className="ltr:mr-2 rtl:ml-2"
                         onClick={() => setShowDeleteConfirmation(false)}
                     >
-                        Cancel
+                        {tConfirm('cancel')}
                     </Button>
                     <Button
                         variant="solid"
                         color="red-600"
                         onClick={handleDeleteConfirm}
                     >
-                        Delete
+                        {tConfirm('delete')}
                     </Button>
                 </div>
             </Dialog>

@@ -51,3 +51,14 @@ export async function apiGetProfile(token) {
         },
     })
 }
+
+export async function apiChangePassword(data, token) {
+    return ApiService.fetchData({
+        url: '/profile/change-password',
+        method: 'post',
+        data,
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    })
+}

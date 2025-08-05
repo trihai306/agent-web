@@ -7,8 +7,10 @@ import classNames from '@/utils/classNames'
 import isLastChild from '@/utils/isLastChild'
 import { NumericFormat } from 'react-number-format'
 import { TbCheck } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 const Plans = ({ data, subcription, cycle }) => {
+    const t = useTranslations('account.pricing')
     const { paymentCycle, setPaymentDialog, setSelectedPlan } =
         usePricingStore()
 
@@ -28,7 +30,7 @@ const Plans = ({ data, subcription, cycle }) => {
                             <span>{plan.name}</span>
                             {plan.recommended && (
                                 <Tag className="rounded-full bg-green-200 font-bold">
-                                    Recommended
+                                    {t('recommended')}
                                 </Tag>
                             )}
                         </h5>
@@ -44,7 +46,7 @@ const Plans = ({ data, subcription, cycle }) => {
                             <span className="text-lg font-bold">
                                 {' '}
                                 /{' '}
-                                {paymentCycle === 'monthly' ? 'month' : 'year'}
+                                {paymentCycle === 'monthly' ? t('month') : t('year')}
                             </span>
                         </div>
                         <div className="flex flex-col gap-4 border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
@@ -66,7 +68,7 @@ const Plans = ({ data, subcription, cycle }) => {
                                                 )}
                                             />
                                             <span>
-                                                {feature.description[plan.id]}
+                                                {t(feature.description[plan.id])}
                                             </span>
                                         </>
                                     )}
@@ -91,8 +93,8 @@ const Plans = ({ data, subcription, cycle }) => {
                             }}
                         >
                             {subcription === plan.id && cycle === paymentCycle
-                                ? 'Current plan'
-                                : 'Select plan'}
+                                ? t('currentPlan')
+                                : t('selectPlan')}
                         </Button>
                     </div>
                 </div>

@@ -2,8 +2,10 @@
 
 import Button from '@/components/ui/Button'
 import { useRolePermissionsStore } from '../_store/rolePermissionsStore'
+import { useTranslations } from 'next-intl'
 
 const RolesPermissionsGroupsAction = () => {
+    const t = useTranslations('account.rolesPermissions')
     const { setRoleDialog } = useRolePermissionsStore()
 
     return (
@@ -17,7 +19,7 @@ const RolesPermissionsGroupsAction = () => {
                     })
                 }
             >
-                Create role
+                {t('createRole')}
             </Button>
         </div>
     )

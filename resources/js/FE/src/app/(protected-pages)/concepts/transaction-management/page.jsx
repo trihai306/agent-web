@@ -3,10 +3,12 @@ import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import TransactionListProvider from './_components/TransactionListProvider'
 import TransactionListTable from './_components/TransactionListTable'
 import getTransactions from '@/server/actions/getTransactions'
+import { useTranslations } from 'next-intl'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams
     const data = await getTransactions(params)
+    const t = useTranslations('transactionManagement')
 
     return (
         <TransactionListProvider transactionList={data.list || []}>
@@ -14,7 +16,7 @@ export default async function Page({ searchParams }) {
                 <AdaptiveCard>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            <h3>Transactions</h3>
+                            <h3>{t('title')}</h3>
                         </div>
                         <TransactionListTable
                             transactionListTotal={data.total || 0}
