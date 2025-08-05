@@ -1,64 +1,48 @@
 import ApiService from './ApiService'
 
-const getHeaders = (token) => {
-    const headers = {
-        'Content-Type': 'application/json',
-    }
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-    }
-    return headers
-}
-
-export async function apiGetUsers(params, token) {
+export async function apiGetUsers(params) {
     return ApiService.fetchDataWithAxios({
         url: '/users',
         method: 'get',
         params,
-        headers: getHeaders(token),
     })
 }
 
-export async function apiGetUser(id, token) {
+export async function apiGetUser(id) {
     return ApiService.fetchDataWithAxios({
         url: `/users/${id}`,
         method: 'get',
-        headers: getHeaders(token),
     })
 }
 
-export async function apiCreateUser(data, token) {
+export async function apiCreateUser(data) {
     return ApiService.fetchDataWithAxios({
         url: '/users',
         method: 'post',
         data,
-        headers: getHeaders(token),
     })
 }
 
-export async function apiUpdateUser(id, data, token) {
+export async function apiUpdateUser(id, data) {
     return ApiService.fetchDataWithAxios({
         url: `/users/${id}`,
         method: 'put',
         data,
-        headers: getHeaders(token),
     })
 }
 
-export async function apiDeleteUsers(data, token) {
+export async function apiDeleteUsers(data) {
     return ApiService.fetchDataWithAxios({
-        url: '/users/delete-multiple',
-        method: 'delete',
+        url: '/users/bulk-delete',
+        method: 'post',
         data,
-        headers: getHeaders(token),
     })
 }
 
-export async function apiUpdateUserStatus(data, token) {
+export async function apiUpdateUserStatus(data) {
     return ApiService.fetchDataWithAxios({
         url: '/users/bulk-update-status',
         method: 'post',
         data,
-        headers: getHeaders(token),
     })
 }

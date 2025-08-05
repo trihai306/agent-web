@@ -1,5 +1,6 @@
-import { lazy } from 'react'
+
 import { ADMIN, USER } from '@/constants/roles.constant'
+import { LAYOUT_TOP_BAR_CLASSIC } from '@/constants/theme.constant'
 
 const conceptsRoute = {
     '/concepts/ai/chat': {
@@ -106,6 +107,7 @@ const conceptsRoute = {
         key: 'concepts.account.settings',
         authority: [ADMIN, USER],
         meta: {
+            // layout: LAYOUT_TOP_BAR_CLASSIC,
             header: {
                 title: 'Settings',
             },

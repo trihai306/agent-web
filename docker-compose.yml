@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: ./resources/js/FE
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+  
+  frontend-dev:
+    build:
+      context: ./resources/js/FE
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./resources/js/FE:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development

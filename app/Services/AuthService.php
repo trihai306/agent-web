@@ -75,7 +75,9 @@ class AuthService
 
     public function getProfile(): User
     {
-        return Auth::user();
+        $user = Auth::user();
+        $user->balance = $user->balance; 
+        return $user;
     }
 
     public function forgotPassword(string $email): string

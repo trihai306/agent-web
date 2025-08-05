@@ -4,6 +4,8 @@ import AuthorityCheck from '@/components/shared/AuthorityCheck'
 import VerticalMenuIcon from './VerticalMenuIcon'
 import Link from 'next/link'
 import Dropdown from '@/components/ui/Dropdown'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const { MenuItem } = Menu
 
@@ -15,8 +17,10 @@ const CollapsedItem = ({
     onLinkClick,
     userAuthority,
     t,
-    currentKey,
 }) => {
+    const pathname = usePathname()
+    const isActive = pathname.startsWith(nav.path)
+
     return (
         <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
             {renderAsIcon ? (
@@ -27,10 +31,10 @@ const CollapsedItem = ({
                     {children}
                 </Tooltip>
             ) : (
-                <Dropdown.Item active={currentKey === nav.key}>
+                <Dropdown.Item active={isActive ? 'true' : undefined}>
                     {nav.path ? (
                         <Link
-                            className="h-full w-full flex items-center outline-hidden"
+                            className="h-full w-full flex items-center"
                             href={nav.path}
                             target={nav.isExternalLink ? '_blank' : ''}
                             onClick={() =>
@@ -62,10 +66,25 @@ const DefaultItem = (props) => {
         userAuthority,
         t,
     } = props
+    
+    const pathname = usePathname()
+    const [isActive, setIsActive] = useState(false)
+
+    useEffect(() => {
+        if (nav.path) {
+            // Exact match or starts with for parent routes
+            setIsActive(pathname === nav.path || pathname.startsWith(nav.path + '/'))
+        }
+    }, [pathname, nav.path])
 
     return (
         <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
-            <MenuItem key={nav.key} eventKey={nav.key} dotIndent={indent}>
+            <MenuItem 
+                key={nav.key} 
+                eventKey={nav.key} 
+                dotIndent={indent}
+                active={isActive ? 'true' : undefined}
+            >
                 <Link
                     href={nav.path}
                     className="flex items-center gap-2 h-full w-full"
@@ -97,15 +116,15 @@ const VerticalSingleMenuItem = ({
     showIcon,
     showTitle,
     t,
-    currentKey,
-    parentKeys,
 }) => {
+    if (!nav.path) {
+        return null
+    }
+
     return (
         <>
             {sideCollapsed ? (
                 <CollapsedItem
-                    currentKey={currentKey}
-                    parentKeys={parentKeys}
                     nav={nav}
                     direction={direction}
                     renderAsIcon={renderAsIcon}

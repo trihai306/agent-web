@@ -8,11 +8,10 @@ import toast from '@/components/ui/toast'
 import CreditCardDialog from '@/components/view/CreditCardDialog'
 import BillingHistory from './BillingHistory'
 import { apiGetSettingsBilling } from '@/services/AccontsService'
-import { apiGetUserTransactions } from '@/services/TransactionService'
+import TransactionService from '@/services/TransactionService'
 import classNames from '@/utils/classNames'
 import isLastChild from '@/utils/isLastChild'
 import sleep from '@/utils/sleep'
-import { TbPlus } from 'react-icons/tb'
 import useSWR from 'swr'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
@@ -49,7 +48,7 @@ const SettingsBilling = () => {
     
     const { data: transactionData, isLoading: isTransactionLoading } = useSWR(
         session?.accessToken ? '/my-transactions' : null,
-        () => apiGetUserTransactions({}, session.accessToken),
+        () => TransactionService.getUserTransactions({}),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -101,6 +100,17 @@ const SettingsBilling = () => {
 
     return (
         <div>
+            <div className="mb-4">
+                <h5 className="mb-2">{t('balance')}</h5>
+                <p>
+                    <NumericFormat
+                        displayType="text"
+                        value={session?.balance || 0}
+                        prefix={'$'}
+                        thousandSeparator={true}
+                    />
+                </p>
+            </div>
             <h4 className="mb-4">{t('title')}</h4>
             <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

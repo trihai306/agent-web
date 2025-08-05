@@ -13,6 +13,9 @@ import cloneDeep from 'lodash/cloneDeep'
 import { FaCheck, FaTimes } from 'react-icons/fa'
 import Dialog from '@/components/ui/Dialog'
 import { useTranslations } from 'next-intl'
+import updateTransactionStatus from '@/server/actions/updateTransactionStatus'
+import toast from '@/components/ui/toast'
+import Notification from '@/components/ui/Notification'
 
 const transactionStatusColor = {
     pending: 'bg-yellow-200 dark:bg-yellow-200 text-gray-900 dark:text-gray-900',
@@ -37,6 +40,7 @@ const TransactionListTable = ({
     const setSelectAllTransaction = useTransactionListStore((state) => state.setSelectAllTransaction)
     const t = useTranslations('transactionManagement.table')
     const tAction = useTranslations('transactionManagement.actionConfirm')
+    const router = useRouter()
 
     const [dialogIsOpen, setDialogIsOpen] = useState(false)
     const [confirmAction, setConfirmAction] = useState(null)
@@ -50,10 +54,25 @@ const TransactionListTable = ({
         setCurrentRow(null)
     }
 
-    const handleAction = () => {
+    const handleAction = async () => {
         if (confirmAction && currentRow) {
-            console.log(confirmAction, currentRow.id)
-            // Perform the action here
+            const action = confirmAction.toLowerCase()
+            const result = await updateTransactionStatus(currentRow.id, action)
+
+            if (result.success) {
+                toast.push(
+                    <Notification title="Success" type="success" closable>
+                        {result.message}
+                    </Notification>
+                )
+                router.refresh() // Re-fetch data
+            } else {
+                toast.push(
+                    <Notification title="Error" type="danger" closable>
+                        {result.message}
+                    </Notification>
+                )
+            }
         }
         onDialogClose()
     }

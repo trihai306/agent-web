@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use App\Exceptions\InsufficientFundsException;
+use Dedoc\Scramble\Attributes\Group;
 
 /**
  * @authenticated
@@ -52,10 +55,10 @@ class TransactionController extends Controller
     }
 
     /**
-     * Withdraw funds
+     * Request a withdrawal
      *
-     * Subtracts a specified amount from the authenticated user's balance.
-     * @throws InsufficientFundsException if the withdrawal amount exceeds the user's balance.
+     * Creates a pending withdrawal request from the authenticated user's balance.
+     * @throws InsufficientFundsException if the user has insufficient funds to make the request.
      * @response \App\Models\Transaction
      */
     public function withdrawal(Request $request)
@@ -77,7 +80,7 @@ class TransactionController extends Controller
             $transaction = $this->transactionService->withdrawal(
                 Auth::user(),
                 $validated['amount'],
-                $validated['description'] ?? 'Withdrawal'
+                $validated['description'] ?? 'Withdrawal Request'
             );
             return response()->json($transaction, 201);
         } catch (InsufficientFundsException $e) {
@@ -124,23 +127,50 @@ class TransactionController extends Controller
     /**
      * Get a specific transaction (Admin)
      *
-     * @param int $id The transaction ID.
+     * @param Transaction $transaction The transaction model instance.
      * @response \App\Models\Transaction
      */
-    public function show(int $id)
+    public function show(Transaction $transaction)
     {
-        $transaction = $this->transactionService->getTransactionById($id);
-        return response()->json($transaction);
+        return response()->json($this->transactionService->getTransactionById($transaction->id));
+    }
+
+    /**
+     * Approve a pending transaction (Admin)
+     * @response \App\Models\Transaction
+     */
+    public function approve(Transaction $transaction)
+    {
+        try {
+            $updatedTransaction = $this->transactionService->approveTransaction($transaction);
+            return response()->json($updatedTransaction);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Reject a pending transaction (Admin)
+     * @response \App\Models\Transaction
+     */
+    public function reject(Transaction $transaction)
+    {
+        try {
+            $updatedTransaction = $this->transactionService->rejectTransaction($transaction);
+            return response()->json($updatedTransaction);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     /**
      * Delete a transaction (Admin)
      *
-     * @param int $id The transaction ID.
+     * @param Transaction $transaction The transaction model instance.
      */
-    public function destroy(int $id)
+    public function destroy(Transaction $transaction)
     {
-        $this->transactionService->deleteTransaction($id);
+        $this->transactionService->deleteTransaction($transaction->id);
         return response()->json(null, 204);
     }
 

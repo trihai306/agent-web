@@ -10,8 +10,12 @@ import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
 import LayoutBase from '@/components//template/LayoutBase'
 import { LAYOUT_TOP_BAR_CLASSIC } from '@/constants/theme.constant'
+import useCurrentSession from '@/utils/hooks/useCurrentSession'
+import Balance from '@/components/template/Balance'
 
 const TopBarClassic = ({ children }) => {
+    const { session } = useCurrentSession()
+
     return (
         <LayoutBase
             type={LAYOUT_TOP_BAR_CLASSIC}
@@ -31,6 +35,7 @@ const TopBarClassic = ({ children }) => {
                         headerMiddle={<HorizontalNav />}
                         headerEnd={
                             <>
+                                <Balance balance={session?.balance} />
                                 <Search />
                                 <LanguageSelector />
                                 <Notification />

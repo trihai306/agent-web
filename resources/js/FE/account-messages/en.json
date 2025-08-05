@@ -227,6 +227,7 @@
             },
             "billing": {
                 "title": "Billing",
+                "balance": "Balance",
                 "currentPlan": "Current plan",
                 "billing": "Billing",
                 "nextPaymentOn": "Next payment on",

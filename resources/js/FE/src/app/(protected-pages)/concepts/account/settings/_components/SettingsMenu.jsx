@@ -22,7 +22,7 @@ const SettingsMenu = ({ onChange }) => {
         { label: t('security'), value: 'security', icon: <TbLock /> },
         { label: t('notification'), value: 'notification', icon: <TbBell /> },
         { label: t('billing'), value: 'billing', icon: <TbFileDollar /> },
-        { label: t('integration'), value: 'integration', icon: <TbRefreshDot /> },
+
     ]
     const searchParams = useSearchParams()
 

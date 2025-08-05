@@ -227,6 +227,7 @@
             },
             "billing": {
                 "title": "Thanh toán",
+                "balance": "Số dư",
                 "currentPlan": "Gói hiện tại",
                 "billing": "Thanh toán",
                 "nextPaymentOn": "Thanh toán tiếp theo vào",

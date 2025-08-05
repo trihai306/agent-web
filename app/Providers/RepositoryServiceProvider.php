@@ -19,6 +19,14 @@ use App\Repositories\TransactionRepositoryInterface;
 use App\Repositories\Eloquent\TransactionRepository;
 use App\Repositories\TransactionAnalyticRepositoryInterface;
 use App\Repositories\Eloquent\TransactionAnalyticRepository;
+use App\Repositories\InteractionScenarioRepositoryInterface;
+use App\Repositories\Eloquent\InteractionScenarioRepository;
+use App\Repositories\ScenarioScriptRepositoryInterface;
+use App\Repositories\Eloquent\ScenarioScriptRepository;
+use App\Repositories\AccountTaskRepositoryInterface;
+use App\Repositories\Eloquent\AccountTaskRepository;
+use App\Repositories\DeviceRepositoryInterface;
+use App\Repositories\Eloquent\DeviceRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -35,6 +43,10 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
         $this->app->bind(TransactionRepositoryInterface::class, TransactionRepository::class);
         $this->app->bind(TransactionAnalyticRepositoryInterface::class, TransactionAnalyticRepository::class);
+        $this->app->bind(InteractionScenarioRepositoryInterface::class, InteractionScenarioRepository::class);
+        $this->app->bind(ScenarioScriptRepositoryInterface::class, ScenarioScriptRepository::class);
+        $this->app->bind(AccountTaskRepositoryInterface::class, AccountTaskRepository::class);
+        $this->app->bind(DeviceRepositoryInterface::class, DeviceRepository::class);
     }
 
     /**

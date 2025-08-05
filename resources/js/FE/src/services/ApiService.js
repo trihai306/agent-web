@@ -1,16 +1,25 @@
 import AxiosBase from './axios/AxiosBase'
 import appConfig from '@/configs/app.config'
-import { signOut } from 'next-auth/react'
+import { auth } from '@/auth'
 
 const ApiService = {
-    fetchData(param) {
+    async fetchData(param) {
         const { url, method, data, params, headers } = param
         let finalUrl = `${appConfig.API_BASE_URL}${url}`
+        const session = await auth()
+        const token = session.accessToken
+        const defaultHeaders = {
+            'Content-Type': 'application/json',
+        }
+
+        if (token) {
+            defaultHeaders['Authorization'] = `Bearer ${token}`
+        }
 
         const options = {
             method,
             headers: {
-                'Content-Type': 'application/json',
+                ...defaultHeaders,
                 ...headers,
             },
         }
@@ -25,10 +34,6 @@ const ApiService = {
         }
         
         return fetch(finalUrl, options).then(async (response) => {
-            if (response.status === 401) {
-                signOut()
-            }
-
             if (response.headers.get('Content-Type')?.includes('application/json')) {
                 const res = await response.json()
                 if (response.ok) {
@@ -36,18 +41,32 @@ const ApiService = {
                 }
                 return Promise.reject(res)
             }
-            // Handle non-JSON responses
+            
             if (response.ok) {
-                return response.text(); // or handle as needed
+                return response.text(); 
             }
             const errorText = await response.text();
             return Promise.reject(new Error(errorText));
         })
     },
 
-    fetchDataWithAxios(param) {
+    async fetchDataWithAxios(param) {
+        const session = await auth();
+        const token = session?.user?.token;
+
+        const headers = param.headers || {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        // Ensure the base URL is prepended by Axios
+        const finalParam = {
+            ...param,
+            headers,
+        }
+
         return new Promise((resolve, reject) => {
-            AxiosBase(param)
+            AxiosBase(finalParam)
                 .then((response) => {
                     resolve(response.data)
                 })

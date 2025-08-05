@@ -9,7 +9,7 @@ import Profile from './SettingsProfile'
 import Security from './SettingsSecurity'
 import Notification from './SettingsNotification'
 import Billing from './SettingsBilling'
-import Integration from './SettingIntegration'
+
 
 const Settings = () => {
     const { currentView } = useSettingsStore()
@@ -29,7 +29,7 @@ const Settings = () => {
                         {currentView === 'security' && <Security />}
                         {currentView === 'notification' && <Notification />}
                         {currentView === 'billing' && <Billing />}
-                        {currentView === 'integration' && <Integration />}
+
                     </div>
                 </div>
             </div>

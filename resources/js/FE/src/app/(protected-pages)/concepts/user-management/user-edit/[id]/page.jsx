@@ -2,13 +2,13 @@ import UserForm from '../../_components/UserForm'
 import Container from '@/components/shared/Container'
 import getUser from '@/server/actions/getUser'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
-import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
 
 
 const UserEdit = async (props) => {
     const { id } = await props.params
     const user = await getUser(id)
-    const t = useTranslations('userManagement')
+    const t = await getTranslations('userManagement')
     console.log('User data in page:', user)
 
     return (

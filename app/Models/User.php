@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class User extends Authenticatable
 {
@@ -93,7 +95,7 @@ class User extends Authenticatable
     /**
      * Get the transactions for the user.
      */
-    public function transactions()
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
@@ -101,8 +103,24 @@ class User extends Authenticatable
     /**
      * Get the settings for the user.
      */
-    public function settings()
+    public function settings(): HasMany
     {
         return $this->hasMany(Setting::class);
+    }
+
+    /**
+     * Get the devices for the user.
+     */
+    public function devices(): HasMany
+    {
+        return $this->hasMany(Device::class);
+    }
+
+    /**
+     * Get the interaction scenarios for the user.
+     */
+    public function interactionScenarios(): HasMany
+    {
+        return $this->hasMany(InteractionScenario::class);
     }
 }

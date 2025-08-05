@@ -12,6 +12,10 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TransactionAnalyticController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\InteractionScenarioController;
+use App\Http\Controllers\Api\ScenarioScriptController;
+use App\Http\Controllers\Api\AccountTaskController;
+use App\Http\Controllers\Api\DeviceController;
 
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -39,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transaction routes (Admin)
     Route::apiResource('transactions', TransactionController::class)->except(['store', 'update']);
+    Route::post('transactions/{transaction}/approve', [TransactionController::class, 'approve']);
+    Route::post('transactions/{transaction}/reject', [TransactionController::class, 'reject']);
     Route::post('transactions/bulk-delete', [TransactionController::class, 'bulkDelete']);
 
     // Notification routes (User)
@@ -65,6 +71,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('users/{user}/assign-role', [UserController::class, 'assignRole']);
     Route::post('users/bulk-delete', [UserController::class, 'bulkDelete']);
     Route::post('users/bulk-update-status', [UserController::class, 'bulkUpdateStatus']);
+
+    // Interaction Scenarios, Scripts, and Tasks
+    Route::apiResource('interaction-scenarios', InteractionScenarioController::class);
+    Route::apiResource('scenario-scripts', ScenarioScriptController::class);
+    Route::apiResource('account-tasks', AccountTaskController::class);
+    Route::apiResource('devices', DeviceController::class);
     
     // Analytics
     Route::get('/analytic/transactions', TransactionAnalyticController::class);

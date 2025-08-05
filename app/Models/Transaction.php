@@ -21,20 +21,21 @@ class Transaction extends Model
      *
      * @var array
      */
-    public $filterable = ['type', 'user_id'];
+    public $filterable = ['type', 'user_id', 'status'];
 
     /**
      * The fields that are sortable.
      *
      * @var array
      */
-    public $sortable = ['amount', 'created_at'];
+    public $sortable = ['amount', 'created_at', 'status'];
 
     protected $fillable = [
         'user_id',
         'type',
         'amount',
         'description',
+        'status',
     ];
 
     /**

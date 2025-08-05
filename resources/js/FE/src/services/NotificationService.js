@@ -1,32 +1,23 @@
 import ApiService from './ApiService'
 
-export async function apiGetNotifications(params, token) {
+export async function apiGetNotifications(params) {
     return ApiService.fetchDataWithAxios({
         url: '/notifications',
         method: 'get',
         params,
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }
 
-export async function apiMarkNotificationAsRead(id, token) {
+export async function apiMarkNotificationAsRead(id) {
     return ApiService.fetchDataWithAxios({
         url: `/notifications/${id}/read`,
         method: 'patch',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }
 
-export async function apiMarkAllNotificationsAsRead(token) {
+export async function apiMarkAllNotificationsAsRead() {
     return ApiService.fetchDataWithAxios({
         url: '/notifications/mark-all-as-read',
         method: 'post',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }

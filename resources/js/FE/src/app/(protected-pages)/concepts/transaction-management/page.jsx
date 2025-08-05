@@ -1,31 +1,9 @@
-import Container from '@/components/shared/Container'
-import AdaptiveCard from '@/components/shared/AdaptiveCard'
-import TransactionListProvider from './_components/TransactionListProvider'
-import TransactionListTable from './_components/TransactionListTable'
 import getTransactions from '@/server/actions/getTransactions'
-import { useTranslations } from 'next-intl'
+import TransactionManagementClient from './_components/TransactionManagementClient'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams
     const data = await getTransactions(params)
-    const t = useTranslations('transactionManagement')
 
-    return (
-        <TransactionListProvider transactionList={data.list || []}>
-            <Container>
-                <AdaptiveCard>
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            <h3>{t('title')}</h3>
-                        </div>
-                        <TransactionListTable
-                            transactionListTotal={data.total || 0}
-                            page={parseInt(params.page) || 1}
-                            per_page={parseInt(params.per_page) || 10}
-                        />
-                    </div>
-                </AdaptiveCard>
-            </Container>
-        </TransactionListProvider>
-    )
+    return <TransactionManagementClient data={data} params={params} />
 }

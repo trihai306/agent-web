@@ -1,3 +1,4 @@
+'use client'
 import UserForm from '../_components/UserForm'
 import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'

@@ -1,45 +1,33 @@
 import ApiService from './ApiService'
 
-export async function apiGetPermissions(params, token) {
+export async function apiGetPermissions(params) {
     return ApiService.fetchData({
         url: '/permissions',
         method: 'get',
         params,
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }
 
-export async function apiCreatePermission(data, token) {
+export async function apiCreatePermission(data) {
     return ApiService.fetchData({
         url: '/permissions',
         method: 'post',
         data,
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }
 
-export async function apiUpdatePermission(id, data, token) {
+export async function apiUpdatePermission(id, data) {
     return ApiService.fetchData({
         url: `/permissions/${id}`,
         method: 'put',
         data,
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }
 
-export async function apiDeletePermissions(ids, token) {
+export async function apiDeletePermissions(ids) {
     return ApiService.fetchData({
         url: '/permissions/bulk-delete',
         method: 'post',
         data: { ids },
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
     })
 }

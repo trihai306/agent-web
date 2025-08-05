@@ -30,6 +30,7 @@
             },
             "billing": {
                 "title": "الفواتير",
+                "balance": "الرصيد",
                 "currentPlan": "الخطة الحالية",
                 "billing": "الفواتير",
                 "nextPaymentOn": "الدفع التالي في",
