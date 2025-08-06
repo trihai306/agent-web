@@ -4,7 +4,7 @@ import RecentOrder from './_components/RecentOrder'
 import SalesTarget from './_components/SalesTarget'
 import TopProduct from './_components/TopProduct'
 import RevenueByChannel from './_components/RevenueByChannel'
-import getEcommerceDashboard from '@/server/actions/getEcommerceDashboard'
+import getEcommerceDashboard from '@/server/actions/analytic/getEcommerceDashboard'
 
 export default async function Page() {
     const data = await getEcommerceDashboard()

@@ -35,30 +35,33 @@ export default {
                 token.accessToken = user.token
                 token.first_name = user.first_name
                 token.last_name = user.last_name
-                // Set the token's expiration time
-                const expiresIn = user.expires_in || 60 // Default to 60 minutes if not provided
-                token.accessTokenExpires = Date.now() + expiresIn * 60 * 1000 // Convert minutes to milliseconds
+                token.roles = user.roles
+                token.permissions = user.permissions
+                // Set a long expiration time for simplicity, as we don't have refresh tokens yet
+                token.accessTokenExpires = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
             }
 
-            // Return previous token if the access token has not expired yet
+            // Return previous token if it has not expired yet
             if (Date.now() < token.accessTokenExpires) {
                 return token
             }
 
-            // Access token has expired, try to update it
-            // For now, we will just sign the user out by returning null
-            // In the future, you might want to implement a token refresh mechanism here
+            // In a real-world app, you'd handle token refresh here.
+            // For this project, we'll just let the session expire.
             return null
         },
         async session({ session, token }) {
-            session.user.id = token.id
-            session.user.name = token.name
-            session.user.email = token.email
-            session.user.avatar = token.avatar
-            session.accessToken = token.accessToken
-            session.user.first_name = token.first_name
-            session.user.last_name = token.last_name
-            session.user.authority = ['admin', 'user'] // Mock authority
+            if (token) {
+                session.user.id = token.id
+                session.user.name = token.name
+                session.user.email = token.email
+                session.user.avatar = token.avatar
+                session.accessToken = token.accessToken
+                session.user.first_name = token.first_name
+                session.user.last_name = token.last_name
+                session.user.roles = token.roles?.map((role) => role.name) || []
+                session.user.permissions = token.permissions?.map((p) => p.name) || []
+            }
             return session
         },
     },

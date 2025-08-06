@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import getLogs from '@/server/actions/getLogs'
+import getLogs from '@/server/actions/log/getLogs'
 
 export async function GET(request) {
     const searchParams = request.nextUrl.searchParams

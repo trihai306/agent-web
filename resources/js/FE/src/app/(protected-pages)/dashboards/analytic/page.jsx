@@ -1,5 +1,5 @@
 import AnalyticDashboard from './_components/AnalyticDashboard'
-import getAnalyticDashboard from '@/server/actions/getAnalyticDashboard'
+import getAnalyticDashboard from '@/server/actions/analytic/getAnalyticDashboard'
 
 const emptyMetric = { value: 0, growShrink: 0 };
 
@@ -29,6 +29,10 @@ const defaultData = {
 
 export default async function Page() {
     const response = await getAnalyticDashboard()
+
+    // Không cần kiểm tra unauthorized nữa!
+    // Nếu có lỗi 401, người dùng đã bị redirect ở bước trước.
+
     const data = response.success ? response.data : defaultData
 
     return <AnalyticDashboard data={data} />

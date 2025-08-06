@@ -7,10 +7,11 @@ const validateCredential = async (values) => {
     try {
         // Use native fetch to call the login API directly.
         // This avoids using the global Axios instance and breaks the circular dependency.
-        const response = await fetch(`${appConfig.API_BASE_URL}/login`, {
+        const response = await fetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Accept: 'application/json',
             },
             body: JSON.stringify({ login, password }),
         })

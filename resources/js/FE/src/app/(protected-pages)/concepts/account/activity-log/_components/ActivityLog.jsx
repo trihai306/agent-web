@@ -4,7 +4,7 @@ import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Loading from '@/components/shared/Loading'
 import Log from './Log'
 import LogAction from './LogAction'
-import { apiGetLogs } from '@/services/LogService'
+import getLogs from '@/server/actions/log/getLogs'
 import { useTranslations } from 'next-intl'
 import {
     UPDATE_TICKET,
@@ -40,11 +40,13 @@ const ActivityLog = () => {
     const setLoadable = useActivityLog((state) => state.setLoadable)
     const initialLoading = useActivityLog((state) => state.initialLoading)
 
-    const getLogs = async (index) => {
+    const fetchLogs = async (index) => {
         setIsLoading(true)
-        const resp = await apiGetLogs({ activityIndex: index })
-        setActivities([...activities, ...resp.data])
-        setLoadable(resp.loadable)
+        const result = await getLogs(index);
+        if (result.data) {
+            setActivities([...activities, ...result.data]);
+            setLoadable(result.loadable);
+        }
         setIsLoading(false)
     }
 
@@ -60,8 +62,9 @@ const ActivityLog = () => {
     }
 
     const handleLoadMore = () => {
-        setActivityIndex((prevIndex) => prevIndex + 1)
-        getLogs(activityIndex + 1)
+        const nextIndex = activityIndex + 1;
+        setActivityIndex(nextIndex);
+        fetchLogs(nextIndex);
     }
 
     const handleCheckboxChange = (bool) => {

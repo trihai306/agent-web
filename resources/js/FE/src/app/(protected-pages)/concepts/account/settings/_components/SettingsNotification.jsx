@@ -1,21 +1,18 @@
 'use client'
+import { useState } from 'react'
 import Checkbox from '@/components/ui/Checkbox'
 import Radio from '@/components/ui/Radio'
 import Switcher from '@/components/ui/Switcher'
-import {
-    apiGetSettings,
-    apiUpdateSettings,
-} from '@/services/SettingService'
-import useSWR, { useSWRConfig } from 'swr'
+import { updateSettingsAction } from '@/server/actions/setting/settingsActions'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbMessageCircleCheck } from 'react-icons/tb'
-import useCurrentSession from '@/utils/hooks/useCurrentSession'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { useTranslations } from 'next-intl'
 
-const SettingsNotification = () => {
+const SettingsNotification = ({ data }) => {
     const t = useTranslations('account.settings.notification')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const emailNotificationOption = [
         {
@@ -58,48 +55,32 @@ const SettingsNotification = () => {
         },
     ]
     
-    const defaultSettings = {
-        email: [],
-        desktop: false,
-        unreadMessageBadge: false,
-        notifymeAbout: '',
-    }
-    const { session } = useCurrentSession()
-    const { mutate: globalMutate } = useSWRConfig()
-    const { data, mutate } = useSWR(
-        session?.accessToken ? '/settings' : null,
-        () =>
-            apiGetSettings(session.accessToken).then((res) => {
-                const settings = res
-                console.log(settings)
-                return { ...defaultSettings, ...settings }
-            }),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false,
-        },
-    )
-
     const updateSettings = async (newData) => {
+        setIsSubmitting(true)
         try {
-            await apiUpdateSettings(newData, session.accessToken)
-            mutate(newData, false) // Optimistic update
-            globalMutate('/settings') // Revalidate
-            toast.push(
-                <Notification type="success">
-                    Settings updated successfully.
-                </Notification>,
-            )
+            const result = await updateSettingsAction(newData)
+
+            if (result.success) {
+                toast.push(
+                    <Notification type="success">
+                        Settings updated successfully.
+                    </Notification>,
+                )
+            } else {
+                throw new Error(result.error)
+            }
         } catch (error) {
+            console.error('Update settings error:', error)
             toast.push(
                 <Notification title="Error" type="danger">
-                    Failed to update settings.
+                    {error.message || 'Failed to update settings.'}
                 </Notification>,
                 {
                     placement: 'top-center',
                 },
             )
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -143,7 +124,11 @@ const SettingsNotification = () => {
         updateSettings(newData)
     }
 
-    const settingsData = data || defaultSettings
+    if (!data) {
+        return <div>Loading...</div>
+    }
+
+    const settingsData = data || {}
 
     return (
         <div>
@@ -158,6 +143,7 @@ const SettingsNotification = () => {
                     </div>
                     <div>
                         <Switcher
+                            isLoading={isSubmitting}
                             checked={settingsData.desktop}
                             onChange={handleDesktopNotificationCheck}
                         />
@@ -172,6 +158,7 @@ const SettingsNotification = () => {
                     </div>
                     <div>
                         <Switcher
+                            isLoading={isSubmitting}
                             checked={settingsData.unreadMessageBadge}
                             onChange={handleUnreadMessagebadgeCheck}
                         />
@@ -214,6 +201,7 @@ const SettingsNotification = () => {
                     </div>
                     <div>
                         <Switcher
+                            isLoading={isSubmitting}
                             checked={
                                 settingsData.email &&
                                 settingsData.email.length > 0

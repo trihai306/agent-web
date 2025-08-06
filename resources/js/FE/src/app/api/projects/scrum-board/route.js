@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import getScrumboardData from '@/server/actions/getScrumboardData'
+import getScrumboardData from '@/server/actions/project/getScrumboardData'
 
 export async function GET() {
     try {

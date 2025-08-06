@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import getProducts from '@/server/actions/getProducts'
+import getProducts from '@/server/actions/project/getProducts'
 
 export async function GET(request) {
     const searchParams = request.nextUrl.searchParams

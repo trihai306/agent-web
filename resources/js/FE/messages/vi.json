@@ -45,6 +45,10 @@
             "transactionManagement": "Quản lý giao dịch",
             "transactionManagementDesc": "Quản lý tất cả các giao dịch"
         },
+        "conceptsAccountTaskManagement": {
+            "accountTaskManagement": "Quản lý tác vụ tài khoản",
+            "accountTaskManagementDesc": "Quản lý tất cả các tác vụ tài khoản"
+        },
         "conceptsProducts": {
             "products": "Sản phẩm",
             "productList": "Danh sách",

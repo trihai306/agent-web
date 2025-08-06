@@ -173,13 +173,14 @@
             }
         },
         "settings": {
-            "menu": {
+                        "menu": {
                 "profile": "Hồ sơ",
                 "security": "Bảo mật",
-                "notification": "Thông báo",
+                "notificationSettings": "Cấu hình thông báo",
+                "notificationList": "Danh sách thông báo",
                 "billing": "Thanh toán",
                 "integration": "Tích hợp",
-"navigation": "Điều hướng"
+                "navigation": "Điều hướng"
             },
             "profile": {
                 "title": "Thông tin cá nhân",

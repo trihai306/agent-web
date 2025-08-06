@@ -1,6 +1,6 @@
 'use client'
 import ResetPassword from '@/components/auth/ResetPassword'
-import { apiResetPassword } from '@/services/AuthService'
+import { apiResetPassword } from '@/services/auth/AuthService'
 import { useSearchParams } from 'next/navigation'
 
 const ResetPasswordClient = () => {

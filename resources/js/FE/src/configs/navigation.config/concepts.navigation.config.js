@@ -90,6 +90,22 @@ const conceptsNavigationConfig = [
                 subMenu: [],
             },
             {
+                key: 'concepts.accountTaskManagement',
+                path: `${CONCEPTS_PREFIX_PATH}/account-task-management`,
+                title: 'Account Task Management',
+                translateKey: 'nav.conceptsAccountTaskManagement.accountTaskManagement',
+                icon: 'task',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [ADMIN],
+                meta: {
+                    description: {
+                        translateKey: 'nav.conceptsAccountTaskManagement.accountTaskManagementDesc',
+                        label: 'Manage all account tasks',
+                    },
+                },
+                subMenu: [],
+            },
+            {
                 key: 'concepts.account',
                 path: '',
                 title: 'Account',

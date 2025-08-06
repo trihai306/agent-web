@@ -20,9 +20,9 @@ const SettingsMenu = ({ onChange }) => {
     const menuList = [
         { label: t('profile'), value: 'profile', icon: <TbUserSquare /> },
         { label: t('security'), value: 'security', icon: <TbLock /> },
-        { label: t('notification'), value: 'notification', icon: <TbBell /> },
+        { label: t('notificationSettings'), value: 'notification', icon: <TbBell /> },
+        { label: t('notificationList'), value: 'notificationList', icon: <TbRefreshDot /> },
         { label: t('billing'), value: 'billing', icon: <TbFileDollar /> },
-
     ]
     const searchParams = useSearchParams()
 

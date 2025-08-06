@@ -2,7 +2,7 @@
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import SignUp from '@/components/auth/SignUp'
-import { apiSignUp } from '@/services/AuthService'
+import { apiSignUp } from '@/services/auth/AuthService'
 import { useRouter } from 'next/navigation'
 
 const SignUpClient = () => {

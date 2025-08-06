@@ -1,5 +1,5 @@
 import { getRequestConfig } from 'next-intl/server'
-import { getLocale } from '@/server/actions/locale'
+import { getLocale } from '@/server/actions/system/locale'
 
 export default getRequestConfig(async () => {
     const locale = await getLocale()
@@ -22,6 +22,9 @@ export default getRequestConfig(async () => {
     const accountMessages = (
         await import(`../../account-messages/${locale}.json`)
     ).default
+    const accountTaskManagementMessages = (
+        await import(`../../account-task-management-messages/${locale}.json`)
+    ).default
 
     const messages = {
         ...mainMessages,
@@ -31,6 +34,7 @@ export default getRequestConfig(async () => {
         ...transactionManagementMessages,
         ...userManagementMessages,
         ...accountMessages,
+        ...accountTaskManagementMessages,
     }
 
     return {

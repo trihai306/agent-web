@@ -5,7 +5,7 @@ import pageMetaConfig from '@/configs/page-meta.config'
 import LocaleProvider from '@/components/template/LocaleProvider'
 import NavigationProvider from '@/components/template/Navigation/NavigationProvider'
 import { getNavigation } from '@/server/actions/navigation/getNavigation'
-import { getTheme } from '@/server/actions/theme'
+import { getTheme } from '@/server/actions/system/theme'
 import { getLocale, getMessages } from 'next-intl/server'
 import '@/assets/styles/app.css'
 

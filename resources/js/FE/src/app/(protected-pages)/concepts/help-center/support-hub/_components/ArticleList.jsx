@@ -3,19 +3,23 @@ import { useEffect } from 'react'
 import Article from './Article'
 import { categoryLabel } from '../utils'
 import { useHelpCenterStore } from '../_store/helpCenterStore'
-import { apiGetSupportHubArticles } from '@/services/HelpCenterService'
+import getSupportHubArticles from '@/server/actions/help/getSupportHubArticles'
 import isLastChild from '@/utils/isLastChild'
 import NoDataFound from '@/assets/svg/NoDataFound'
 import useSWRMutation from 'swr/mutation'
 import { TbArrowNarrowLeft } from 'react-icons/tb'
 
 const Articles = ({ query, topic }) => {
+    const fetcher = async (_, { arg }) => {
+        const result = await getSupportHubArticles(arg);
+        if (result.success) return result.data;
+        throw new Error(result.message);
+    };
     const { trigger, data } = useSWRMutation(
-        [`/api/helps/articles`, { query, topic }],
-        // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetSupportHubArticles(params),
-    )
-
+        [`/api/helps/articles`],
+        fetcher,
+    );
+    
     const setQueryText = useHelpCenterStore((state) => state.setQueryText)
     const setSelectedTopic = useHelpCenterStore(
         (state) => state.setSelectedTopic,
@@ -23,7 +27,7 @@ const Articles = ({ query, topic }) => {
 
     useEffect(() => {
         if (topic || query) {
-            trigger()
+            trigger({ query, topic })
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topic, query])

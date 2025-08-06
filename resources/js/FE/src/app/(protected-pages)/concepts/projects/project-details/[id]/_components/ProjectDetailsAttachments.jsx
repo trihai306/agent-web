@@ -1,6 +1,6 @@
 'use client'
 import useSWR from 'swr'
-import { apiGetFiles } from '@/services/FileService'
+import getFiles from '@/server/actions/file/getFiles'
 import Table from '@/components/ui/Table'
 import Avatar from '@/components/ui/Avatar'
 import Loading from '@/components/shared/Loading'
@@ -28,7 +28,12 @@ const FileSegment = ({ fileType, size, name }) => {
 }
 
 const ProjectDetailsAttachments = () => {
-    const { data, isLoading } = useSWR(['/api/fles'], () => apiGetFiles({}), {
+    const fetcher = async () => {
+        const result = await getFiles({});
+        if (result.success) return result.data;
+        throw new Error(result.message);
+    };
+    const { data, isLoading } = useSWR(['/api/files'], fetcher, {
         revalidateOnFocus: false,
         revalidateIfStale: false,
         revalidateOnReconnect: false,

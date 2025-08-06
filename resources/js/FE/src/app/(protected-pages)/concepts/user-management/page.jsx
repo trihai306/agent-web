@@ -1,10 +1,9 @@
-import getUsers from '@/server/actions/getUsers'
+import getUsers from '@/server/actions/user/getUsers'
 import UserManagementClient from './UserManagementClient'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams
     const data = await getUsers(params)
-    console.log(data)
 
     return (
         <UserManagementClient

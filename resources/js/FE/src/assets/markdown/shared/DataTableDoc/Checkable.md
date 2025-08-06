@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Button from '@/components/ui/Button'
 import DataTable from '@/components/shared/DataTable'
-import { apiGetCustomers } from '@/services/CustomersService'
+import { apiGetCustomers } from '@/services/customer/CustomersService'
 
 const Checkable = () => {
     const [data, setData] = useState([])

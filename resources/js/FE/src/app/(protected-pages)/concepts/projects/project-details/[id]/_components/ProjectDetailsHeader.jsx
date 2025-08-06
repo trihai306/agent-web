@@ -9,7 +9,7 @@ import { Form, FormItem } from '@/components/ui/Form'
 import ToggleDrawer from '@/components/shared/ToggleDrawer'
 import ProjectDetailsNavigation from './ProjectDetailsNavigation'
 import useResponsive from '@/utils/hooks/useResponsive'
-import { apiGetProjectMembers } from '@/services/ProjectService'
+import getProjectMembers from '@/server/actions/project/getProjectMembers'
 import { components } from 'react-select'
 import { TbChecks } from 'react-icons/tb'
 import useSWRMutation from 'swr/mutation'
@@ -70,7 +70,11 @@ const ProjectDetailsHeader = (props) => {
 
     const { trigger } = useSWRMutation(
         ['/api/projects/members'],
-        () => apiGetProjectMembers(),
+        async () => {
+            const result = await getProjectMembers();
+            if (result.success) return result.data;
+            throw new Error(result.message);
+        },
         {
             onSuccess: (data) => {
                 const members = data?.allMembers.map((item) => ({

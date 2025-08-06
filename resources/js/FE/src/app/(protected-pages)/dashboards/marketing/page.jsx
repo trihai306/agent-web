@@ -2,7 +2,7 @@ import KpiSummary from './_components/KpiSummary'
 import RecentCampaign from './_components/RecentCampaign'
 import AdsPerformance from './_components/AdsPerformance'
 import LeadPerformance from './_components/LeadPerformance'
-import getMarketingDashboard from '@/server/actions/getMarketingDashboard'
+import getMarketingDashboard from '@/server/actions/analytic/getMarketingDashboard'
 
 export default async function Page() {
     const data = await getMarketingDashboard()

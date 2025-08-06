@@ -15,7 +15,7 @@ import {
     apiGetNotifications,
     apiMarkNotificationAsRead,
     apiMarkAllNotificationsAsRead,
-} from '@/services/NotificationService'
+} from '@/services/notification/NotificationService'
 import isLastChild from '@/utils/isLastChild'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { useRouter } from 'next/navigation'

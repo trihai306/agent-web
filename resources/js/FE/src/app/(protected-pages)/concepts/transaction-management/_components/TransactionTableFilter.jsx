@@ -10,7 +10,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Select } from '@/components/ui'
-import getUsers from '@/server/actions/getUsers'
+import getUsers from '@/server/actions/user/getUsers'
 import debounce from 'lodash/debounce'
 import { useTranslations } from 'next-intl'
 

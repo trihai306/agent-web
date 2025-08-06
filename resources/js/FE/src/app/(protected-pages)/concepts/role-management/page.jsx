@@ -1,4 +1,4 @@
-import getRoles from '@/server/actions/getRoles'
+import getRoles from '@/server/actions/user/getRoles'
 import RoleManagementClient from './RoleManagementClient'
 
 export default async function Page({ searchParams }) {

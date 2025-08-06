@@ -15,7 +15,7 @@ import {
     lightingOptions,
     cameraOptions,
 } from '../utils'
-import { apiPostImages } from '@/services/AiService'
+import postImages from '@/server/actions/ai/postImages'
 import { LuImage } from 'react-icons/lu'
 
 const GeneratorPrompt = () => {
@@ -48,13 +48,12 @@ const GeneratorPrompt = () => {
                 },
             )
             promptRef.current?.focus()
-
             return
         }
         onGenerateImage()
-        const resp = await apiPostImages({ prompt })
-        if (resp) {
-            setGeneratedImage(resp)
+        const result = await postImages({ prompt })
+        if (result.success && result.data) {
+            setGeneratedImage(result.data)
         }
         onGenerateImageComplete()
     }

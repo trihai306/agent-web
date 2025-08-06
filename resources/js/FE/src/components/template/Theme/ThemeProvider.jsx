@@ -4,7 +4,7 @@ import ThemeContext from './ThemeContext'
 import ConfigProvider from '@/components/ui/ConfigProvider'
 import appConfig from '@/configs/app.config'
 import applyTheme from '@/utils/applyThemeSchema'
-import { setTheme as setThemeCookies } from '@/server/actions/theme'
+import { setTheme as setThemeCookies } from '@/server/actions/system/theme'
 import presetThemeSchemaConfig from '@/configs/preset-theme-schema.config'
 
 const ThemeProvider = ({ children, theme, locale }) => {

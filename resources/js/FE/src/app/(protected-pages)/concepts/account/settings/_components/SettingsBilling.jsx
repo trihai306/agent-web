@@ -7,8 +7,8 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import CreditCardDialog from '@/components/view/CreditCardDialog'
 import BillingHistory from './BillingHistory'
-import { apiGetSettingsBilling } from '@/services/AccontsService'
-import TransactionService from '@/services/TransactionService'
+import getSettingsBilling from '@/server/actions/account/getSettingsBilling'
+import getTransactions from '@/server/actions/transaction/getTransactions' // Assuming an action exists
 import classNames from '@/utils/classNames'
 import isLastChild from '@/utils/isLastChild'
 import sleep from '@/utils/sleep'
@@ -25,7 +25,7 @@ const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ]
 
-const SettingsBilling = () => {
+const SettingsBilling = ({ billingData, transactionData }) => {
     const t = useTranslations('account.settings.billing')
 
     const router = useRouter()
@@ -36,25 +36,6 @@ const SettingsBilling = () => {
         dialogOpen: false,
         cardInfo: {},
     })
-
-    const {
-        data: settingsData,
-        isLoading: isSettingsLoading
-    } = useSWR(session?.accessToken ? '/settings' : null, () => apiGetSettingsBilling(session.accessToken), {
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        revalidateOnReconnect: false,
-    })
-    
-    const { data: transactionData, isLoading: isTransactionLoading } = useSWR(
-        session?.accessToken ? '/my-transactions' : null,
-        () => TransactionService.getUserTransactions({}),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false,
-        }
-    )
 
     const handleEditCreditCard = (card) => {
         setSelectedCard({
@@ -87,10 +68,10 @@ const SettingsBilling = () => {
         router.push('/concepts/account/pricing?subcription=basic&cycle=monthly')
     }
     
-    const currentPlan = settingsData?.billing?.current_plan || {}
-    const paymentMethods = settingsData?.billing?.payment_methods || []
+    const currentPlan = billingData?.billing?.current_plan || {}
+    const paymentMethods = billingData?.billing?.payment_methods || []
 
-    if (isSettingsLoading) {
+    if (!billingData) {
         return (
             <div className="flex justify-center items-center h-full">
                 <Spinner size="lg" />
@@ -242,7 +223,7 @@ const SettingsBilling = () => {
                 <BillingHistory
                     className="mt-4"
                     data={transactionData?.data || []}
-                    loading={isTransactionLoading}
+                    loading={!transactionData}
                 />
             </div>
             <CreditCardDialog

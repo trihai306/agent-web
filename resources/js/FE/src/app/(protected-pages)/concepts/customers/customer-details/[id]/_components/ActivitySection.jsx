@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
-import { apiGetCustomerLog } from '@/services/CustomersService'
+import getCustomerLog from '@/server/actions/customer/getCustomerLog'
 import sleep from '@/utils/sleep'
 import dayjs from 'dayjs'
 import isEmpty from 'lodash/isEmpty'
@@ -88,10 +88,14 @@ const TimeLineContent = (props) => {
 }
 
 const ActivitySection = ({ customerName, id }) => {
+    const fetcher = async (_, { arg }) => {
+        const result = await getCustomerLog(arg);
+        if (result.success) return result.data;
+        throw new Error(result.message);
+    };
     const { data, isLoading } = useSWR(
         ['/api/customers/log', { id: id }],
-        // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetCustomerLog(params),
+        fetcher,
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,

@@ -7,13 +7,14 @@ import ScrollBar from '@/components/ui/ScrollBar'
 import Spinner from '@/components/ui/Spinner'
 import DebouceInput from '@/components/shared/DebouceInput'
 import classNames from '@/utils/classNames'
-import { apiGetContacts } from '@/services/ChatService'
+import getContacts from '@/server/actions/chat/getContacts'
 import { TbSearch, TbCheck } from 'react-icons/tb'
 import useSWRMutation from 'swr/mutation'
 
-async function getContacts() {
-    const data = await apiGetContacts()
-    return data
+async function fetchContacts() {
+    const result = await getContacts();
+    if(result.success) return result.data;
+    throw new Error(result.message);
 }
 
 const NewChat = () => {

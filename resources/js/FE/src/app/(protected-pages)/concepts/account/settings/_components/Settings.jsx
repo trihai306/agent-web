@@ -3,15 +3,14 @@
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import SettingsMenu from './SettingsMenu'
 import SettingMobileMenu from './SettingMobileMenu'
-import Loading from '@/components/shared/Loading'
-import { useSettingsStore } from '../_store/settingsStore'
 import Profile from './SettingsProfile'
 import Security from './SettingsSecurity'
 import Notification from './SettingsNotification'
 import Billing from './SettingsBilling'
+import NotificationList from './SettingsNotificationList'
+import { useSettingsStore } from '../_store/settingsStore'
 
-
-const Settings = () => {
+const Settings = ({ profileData, settingsData, billingData, transactionData, notificationData }) => {
     const { currentView } = useSettingsStore()
 
     return (
@@ -25,11 +24,11 @@ const Settings = () => {
                         <SettingMobileMenu />
                     </div>
                     <div>
-                        {currentView === 'profile' && <Profile />}
+                        {currentView === 'profile' && <Profile data={profileData} />}
                         {currentView === 'security' && <Security />}
-                        {currentView === 'notification' && <Notification />}
-                        {currentView === 'billing' && <Billing />}
-
+                        {currentView === 'notification' && <Notification data={settingsData} />}
+                        {currentView === 'notificationList' && <NotificationList data={notificationData} />}
+                        {currentView === 'billing' && <Billing billingData={billingData} transactionData={transactionData} />}
                     </div>
                 </div>
             </div>

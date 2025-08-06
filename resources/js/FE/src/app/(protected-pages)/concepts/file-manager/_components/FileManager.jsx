@@ -10,16 +10,15 @@ import FileManagerDeleteDialog from './FileManagerDeleteDialog'
 import FileManagerInviteDialog from './FileManagerInviteDialog'
 import FileManagerRenameDialog from './FileManagerRenameDialog'
 import { useFileManagerStore } from '../_store/useFileManagerStore'
-import { apiGetFiles } from '@/services/FileService'
+import getFiles from '@/server/actions/file/getFiles'
 import useSWRMutation from 'swr/mutation'
 
 const { THead, Th, Tr } = Table
 
 async function getFile(_, { arg }) {
-    const data = await apiGetFiles({
-        id: arg,
-    })
-    return data
+    const result = await getFiles({ id: arg });
+    if (result.success) return result.data;
+    throw new Error(result.message);
 }
 
 const FileManager = () => {

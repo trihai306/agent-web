@@ -4,7 +4,7 @@ import Spinner from '@/components/ui/Spinner'
 import ProjectDetailsHeader from './ProjectDetailsHeader'
 import ProjectDetailsNavigation from './ProjectDetailsNavigation'
 import useResponsive from '@/utils/hooks/useResponsive'
-import { apiGetProject } from '@/services/ProjectService'
+import getProject from '@/server/actions/project/getProject'
 import useSWR from 'swr'
 import ProjectDetailsOverview from './ProjectDetailsOverview'
 import ProjectDetailsTask from './ProjectDetailsTask'
@@ -16,9 +16,14 @@ const defaultNavValue = 'overview'
 const settingsNavValue = 'settings'
 
 const ProjectDetails = ({ id }) => {
+    const fetcher = async () => {
+        const result = await getProject(id);
+        if (result.success) return result.data;
+        throw new Error(result.message);
+    };
     const { data, mutate } = useSWR(
-        [`/api/projects/${id}`],
-        () => apiGetProject({ id }),
+        id ? `/api/projects/${id}` : null,
+        fetcher,
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,

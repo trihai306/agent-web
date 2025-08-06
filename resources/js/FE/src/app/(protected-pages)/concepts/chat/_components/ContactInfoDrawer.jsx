@@ -9,7 +9,7 @@ import ImageGallery from '@/components/shared/ImageGallery'
 import FileIcon from '@/components/view/FileIcon'
 import fileSizeUnit from '@/utils/fileSizeUnit'
 import { useChatStore } from '../_store/chatStore'
-import { apiGetContactDetails } from '@/services/ChatService'
+import getContactDetails from '@/server/actions/chat/getContactDetails'
 import useSWRMutation from 'swr/mutation'
 import isEmpty from 'lodash/isEmpty'
 import dayjs from 'dayjs'
@@ -43,13 +43,14 @@ const ContactInfoDrawer = () => {
 
     const [imageGalleryIndex, setImageGalleryIndex] = useState(-1)
 
+    const fetcher = async (_, { arg }) => {
+        const result = await getContactDetails({ id: arg.userId });
+        if (result.success) return result.data;
+        throw new Error(result.message);
+    };
     const { trigger, data } = useSWRMutation(
-        [`/api/chats/contact/${contactInfoDrawer.userId}`, contactInfoDrawer],
-        // eslint-disable-next-line no-unused-vars
-        ([_, params]) =>
-            apiGetContactDetails({
-                id: params.userId,
-            }),
+        [`/api/chats/contact/${contactInfoDrawer.userId}`],
+        fetcher
     )
 
     const handleDrawerClose = () => {
@@ -82,7 +83,7 @@ const ContactInfoDrawer = () => {
 
     useEffect(() => {
         if (contactInfoDrawer.userId) {
-            trigger()
+            trigger(contactInfoDrawer)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [contactInfoDrawer.userId])

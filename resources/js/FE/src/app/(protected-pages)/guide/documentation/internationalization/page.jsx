@@ -177,7 +177,7 @@ export default function HomePage() {
                     tsMarkdown={`\`\`\`tsx
 'use client'
     
-import { setLocale } from '@/server/actions/locale'
+import { setLocale } from '@/server/actions/system/locale'
 
 const Component = () => {
 
@@ -194,7 +194,7 @@ export default Component`}
                     jsMarkdown={`\`\`\`jsx
 'use client'
             
-import { setLocale } from '@/server/actions/locale'
+import { setLocale } from '@/server/actions/system/locale'
 
 const Component = () => {
 

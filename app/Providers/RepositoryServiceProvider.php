@@ -27,6 +27,8 @@ use App\Repositories\AccountTaskRepositoryInterface;
 use App\Repositories\Eloquent\AccountTaskRepository;
 use App\Repositories\DeviceRepositoryInterface;
 use App\Repositories\Eloquent\DeviceRepository;
+use App\Repositories\TiktokAccountRepositoryInterface;
+use App\Repositories\Eloquent\TiktokAccountRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -47,6 +49,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(ScenarioScriptRepositoryInterface::class, ScenarioScriptRepository::class);
         $this->app->bind(AccountTaskRepositoryInterface::class, AccountTaskRepository::class);
         $this->app->bind(DeviceRepositoryInterface::class, DeviceRepository::class);
+        $this->app->bind(TiktokAccountRepositoryInterface::class, TiktokAccountRepository::class);
     }
 
     /**

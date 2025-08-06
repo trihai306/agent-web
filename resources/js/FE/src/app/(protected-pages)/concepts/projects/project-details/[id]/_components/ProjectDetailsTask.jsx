@@ -4,7 +4,7 @@ import Tag from '@/components/ui/Tag'
 import Loading from '@/components/shared/Loading'
 import UsersAvatarGroup from '@/components/shared/UsersAvatarGroup'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { apiGetScrumBoards } from '@/services/ProjectService'
+import getScrumBoards from '@/server/actions/project/getScrumBoards'
 import { TbCircleCheck, TbCircleCheckFilled } from 'react-icons/tb'
 import useSWR from 'swr'
 import dayjs from 'dayjs'
@@ -23,9 +23,14 @@ const { Td, Tr, TBody } = Table
 const ProjectDetailsTask = () => {
     const [selectedTask, setSelectedTask] = useState(null)
 
+    const fetcher = async () => {
+        const result = await getScrumBoards();
+        if (result.success) return result.data;
+        throw new Error(result.message);
+    };
     const { data, isLoading, mutate } = useSWR(
         ['/api/projects/scrum-board'],
-        () => apiGetScrumBoards(),
+        fetcher,
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,

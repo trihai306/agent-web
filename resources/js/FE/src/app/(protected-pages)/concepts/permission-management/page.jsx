@@ -1,4 +1,4 @@
-import getPermissions from '@/server/actions/getPermissions'
+import getPermissions from '@/server/actions/user/getPermissions'
 import PermissionManagementClient from './PermissionManagementClient'
 
 export default async function Page({ searchParams }) {

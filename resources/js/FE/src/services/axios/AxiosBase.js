@@ -5,7 +5,7 @@ import appConfig from '@/configs/app.config'
 
 const AxiosBase = axios.create({
     timeout: 60000,
-    baseURL: appConfig.API_BASE_URL,
+    baseURL: appConfig.API_BASE_URL + appConfig.apiPrefix,
 })
 
 AxiosBase.interceptors.request.use(

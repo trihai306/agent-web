@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Timeline from '@/components/ui/Timeline'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
-import { apiGetLogs } from '@/services/LogService'
+import getLogs from '@/server/actions/log/getLogs'
 import { ActivityAvatar, ActivityEvent } from '@/components/view/Activity'
 import isEmpty from 'lodash/isEmpty'
 import dayjs from 'dayjs'
@@ -14,23 +14,24 @@ const ProjectDetailsActivity = () => {
     const [loadable, seLoadable] = useState(true)
     const [activities, setActivities] = useState([])
 
-    const getLogs = async () => {
-        setIsLoading(true)
-        const resp = await apiGetLogs({ activityIndex })
-        setActivities((prevActivities) => [...prevActivities, ...resp.data])
-        seLoadable(resp.loadable)
-        setIsLoading(false)
-    }
+    const fetchLogs = async () => {
+        setIsLoading(true);
+        const result = await getLogs(activityIndex);
+        if (result.data) {
+            setActivities((prevActivities) => [...prevActivities, ...result.data]);
+            seLoadable(result.loadable);
+        }
+        setIsLoading(false);
+    };
 
     useEffect(() => {
-        getLogs()
+        fetchLogs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [activityIndex]); // Re-fetch when activityIndex changes
 
     const onLoadMore = () => {
-        setActivityIndex((prevIndex) => prevIndex + 1)
-        getLogs()
-    }
+        setActivityIndex((prevIndex) => prevIndex + 1);
+    };
 
     return (
         <Loading loading={isLoading}>

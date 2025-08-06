@@ -1,12 +1,12 @@
 'use client'
-import { useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Button from '@/components/ui/Button'
 import Upload from '@/components/ui/Upload'
 import Input from '@/components/ui/Input'
 import Avatar from '@/components/ui/Avatar'
 import { Form, FormItem } from '@/components/ui/Form'
-import { apiGetProfile } from '@/services/AuthService'
-import useSWR from 'swr'
+import getProfile from '@/server/actions/auth/getProfile'
+import updateProfile from '@/server/actions/auth/updateProfile'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
@@ -28,30 +28,24 @@ const validationSchema = z.object({
     avatar: z.string(),
 })
 
-const SettingsProfile = () => {
+const SettingsProfile = ({ data }) => {
     const t = useTranslations('account.settings.profile')
-    const { session } = useCurrentSession()
 
-    const { data, mutate } = useSWR(
-        session?.accessToken ? '/api/profile' : null,
-        () =>
-            apiGetProfile(session.accessToken).then((data) => {
-                if (typeof data === 'string') {
-                    try {
-                        return JSON.parse(data)
-                    } catch (e) {
-                        console.error('Failed to parse profile data:', e)
-                        return {}
-                    }
-                }
-                return data
-            }),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false,
-        },
-    )
+    const {
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting },
+        control,
+    } = useForm({
+        resolver: zodResolver(validationSchema),
+        defaultValues: data,
+    })
+
+    useEffect(() => {
+        if (data) {
+            reset(data)
+        }
+    }, [data, reset])
 
     const beforeUpload = (files) => {
         let valid = true
@@ -67,26 +61,19 @@ const SettingsProfile = () => {
         return valid
     }
 
-    const {
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting },
-        control,
-    } = useForm({
-        resolver: zodResolver(validationSchema),
-    })
-
-    useEffect(() => {
-        if (data) {
-            reset(data)
-        }
-    }, [data, reset])
-
     const onSubmit = async (values) => {
-        console.log('Updated values:', values)
-        if (data) {
-            mutate({ ...data, ...values }, false)
+        const result = await updateProfile(values);
+        if (result.success) {
+            // Handle success (e.g., show a toast notification)
+            console.log('Profile updated successfully');
+        } else {
+            // Handle error
+            console.error('Failed to update profile:', result.message);
         }
+    }
+    
+    if (!data) {
+        return <div>Loading...</div>
     }
 
     return (

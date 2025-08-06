@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
             NotificationSeeder::class,
             RolePermissionSeeder::class,
             TransactionSeeder::class,
+            TiktokAccountSeeder::class,
+            InteractionScenarioSeeder::class,
+            DeviceSeeder::class,
+            AccountTaskSeeder::class,
         ]);
     }
 }

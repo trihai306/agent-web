@@ -1,11 +1,13 @@
 import AxiosBase from './axios/AxiosBase'
 import appConfig from '@/configs/app.config'
 import { auth } from '@/auth'
+import { UnauthorizedError } from '@/errors'
 
 const ApiService = {
     async fetchData(param) {
         const { url, method, data, params, headers } = param
-        let finalUrl = `${appConfig.API_BASE_URL}${url}`
+        let finalUrl = `${appConfig.API_BASE_URL}${appConfig.apiPrefix}${url}`
+        console.log(finalUrl)
         const session = await auth()
         const token = session.accessToken
         const defaultHeaders = {
@@ -52,14 +54,12 @@ const ApiService = {
 
     async fetchDataWithAxios(param) {
         const session = await auth();
-        const token = session?.user?.token;
-
+        const token = session.accessToken;
         const headers = param.headers || {};
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
         
-        // Ensure the base URL is prepended by Axios
         const finalParam = {
             ...param,
             headers,
@@ -71,6 +71,12 @@ const ApiService = {
                     resolve(response.data)
                 })
                 .catch((errors) => {
+                    // Nếu là lỗi 401, throw lỗi tùy chỉnh
+                    if (errors?.response?.status === 401) {
+                        reject(new UnauthorizedError())
+                        return
+                    }
+                    // Các lỗi khác thì reject như bình thường
                     reject(errors)
                 })
         })

@@ -5,7 +5,7 @@ import Dropdown from '@/components/ui/Dropdown'
 import classNames from 'classnames'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { HiCheck } from 'react-icons/hi'
-import { setLocale } from '@/server/actions/locale'
+import { setLocale } from '@/server/actions/system/locale'
 import { useLocale } from 'next-intl'
 
 const languageList = [

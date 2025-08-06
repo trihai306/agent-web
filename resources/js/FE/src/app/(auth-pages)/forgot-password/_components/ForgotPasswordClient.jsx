@@ -1,5 +1,5 @@
 'use client'
-import { apiForgotPassword } from '@/services/AuthService'
+import { apiForgotPassword } from '@/services/auth/AuthService'
 import ForgotPassword from '@/components/auth/ForgotPassword'
 import { toast } from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'

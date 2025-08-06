@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Button from '@/components/ui/Button'
 import DataTable from '@/components/shared/DataTable'
-import { apiGetCustomers } from '@/services/CustomersService'
+import getCustomers from '@/server/actions/customer/getCustomers'
 
 const Checkable = () => {
     const [data, setData] = useState([])
@@ -98,7 +98,7 @@ const Checkable = () => {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true)
-            const response = await apiGetCustomers(tableData)
+            const response = await getCustomers(tableData)
             if (response.list) {
                 setData(response.list)
                 setLoading(false)

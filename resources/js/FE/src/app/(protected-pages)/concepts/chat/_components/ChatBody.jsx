@@ -6,7 +6,7 @@ import ChatBox from '@/components/view/ChatBox'
 import ChatAction from './ChatAction'
 import StartConverstation from '@/assets/svg/StartConverstation'
 import { useChatStore } from '../_store/chatStore'
-import { apiGetConversation } from '@/services/ChatService'
+import getConversation from '@/server/actions/chat/getConversation'
 import classNames from '@/utils/classNames'
 import useResponsive from '@/utils/hooks/useResponsive'
 import dayjs from 'dayjs'
@@ -149,11 +149,13 @@ const ChatBody = () => {
             if (record) {
                 setConversation(record.conversation)
             } else {
-                const resp = await apiGetConversation({
+                const result = await getConversation({
                     id: selectedChat.id,
-                })
-                setConversation(resp.conversation)
-                pushConversationRecord(resp)
+                });
+                if (result.success && result.data) {
+                    setConversation(result.data.conversation);
+                    pushConversationRecord(result.data);
+                }
             }
 
             setIsFetchingConversation(false)

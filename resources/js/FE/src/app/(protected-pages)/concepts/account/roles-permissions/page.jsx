@@ -6,8 +6,8 @@ import RolesPermissionsUserTable from './_components/RolesPermissionsUserTable'
 import RolesPermissionsUserSelected from './_components/RolesPermissionsUserSelected'
 import RolesPermissionsAccessDialog from './_components/RolesPermissionsAccessDialog'
 import RolesPermissionsProvider from './_components/RolesPermissionsProvider'
-import getRolesPermissionsRoles from '@/server/actions/getRolesPermissionsRoles'
-import getRolesPermissionsUsers from '@/server/actions/getRolesPermissionsUsers'
+import getRolesPermissionsRoles from '@/server/actions/user/getRolesPermissionsRoles'
+import getRolesPermissionsUsers from '@/server/actions/user/getRolesPermissionsUsers'
 import { getTranslations } from 'next-intl/server'
 
 export default async function Page({ searchParams }) {

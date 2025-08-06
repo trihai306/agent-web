@@ -77,7 +77,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('scenario-scripts', ScenarioScriptController::class);
     Route::apiResource('account-tasks', AccountTaskController::class);
     Route::apiResource('devices', DeviceController::class);
-    
+    Route::apiResource('tiktok-accounts', \App\Http\Controllers\Api\TiktokAccountController::class)->only(['index']);
+
     // Analytics
     Route::get('/analytic/transactions', TransactionAnalyticController::class);
 });

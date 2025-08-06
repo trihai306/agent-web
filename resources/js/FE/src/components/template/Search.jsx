@@ -10,7 +10,7 @@ import {
     GUIDE_PREFIX_PATH,
     UI_COMPONENTS_PREFIX_PATH,
 } from '@/constants/route.constant'
-import { apiGetSearchResult } from '@/services/CommonService'
+import { apiGetSearchResult } from '@/services/common/CommonService'
 import debounce from 'lodash/debounce'
 import { HiOutlineSearch, HiChevronRight } from 'react-icons/hi'
 import { PiMagnifyingGlassDuotone } from 'react-icons/pi'

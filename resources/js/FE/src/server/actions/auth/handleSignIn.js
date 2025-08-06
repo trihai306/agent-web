@@ -14,6 +14,7 @@ export const onSignInWithCredentials = async (
             redirectTo: callbackUrl || appConfig.authenticatedEntryPath,
         })
     } catch (error) {
+        console.log(error)
         if (error instanceof AuthError) {
             /** Customize error message based on AuthError */
             switch (error.type) {

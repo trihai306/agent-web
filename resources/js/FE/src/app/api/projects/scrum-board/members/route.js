@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import getSrcumboardMembers from '@/server/actions/getSrcumboardMembers'
+import getSrcumboardMembers from '@/server/actions/project/getSrcumboardMembers'
 
 export async function GET() {
     try {

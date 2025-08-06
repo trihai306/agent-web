@@ -4,7 +4,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import DataTable from '@/components/shared/DataTable'
 import debounce from 'lodash/debounce'
-import { apiGetCustomers } from '@/services/CustomersService'
+import { apiGetCustomers } from '@/services/customer/CustomersService'
 
 const Query = () => {
     const [data, setData] = useState([])

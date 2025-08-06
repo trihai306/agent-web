@@ -173,13 +173,14 @@
             }
         },
         "settings": {
-            "menu": {
+                        "menu": {
                 "profile": "Profile",
                 "security": "Security",
-                "notification": "Notification",
+                "notificationSettings": "Notification Settings",
+                "notificationList": "Notifications",
                 "billing": "Billing",
                 "integration": "Integration",
-"navigation": "Navigation"
+                "navigation": "Navigation"
             },
             "profile": {
                 "title": "Personal information",

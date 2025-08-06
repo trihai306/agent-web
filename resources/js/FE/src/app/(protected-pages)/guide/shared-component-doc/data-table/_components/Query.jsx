@@ -3,7 +3,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import DataTable from '@/components/shared/DataTable'
 import debounce from 'lodash/debounce'
-import { apiGetCustomers } from '@/services/CustomersService'
+import getCustomers from '@/server/actions/customer/getCustomers'
 
 const Query = () => {
     const [data, setData] = useState([])
@@ -77,7 +77,7 @@ const Query = () => {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true)
-            const response = await apiGetCustomers(tableData)
+            const response = await getCustomers(tableData)
             if (response) {
                 setData(response.list)
                 setLoading(false)

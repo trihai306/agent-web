@@ -7,7 +7,7 @@ import { Form, FormItem } from '@/components/ui/Form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
-import { apiChangePassword } from '@/services/AuthService'
+import changePassword from '@/server/actions/auth/changePassword'
 import useCurrentSession from '@/utils/hooks/useCurrentSession'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
@@ -49,34 +49,26 @@ const SettingsSecurity = () => {
 
     const handlePostSubmit = async (values) => {
         setIsSubmitting(true)
-        try {
-            const resp = await apiChangePassword(values, session.accessToken)
-            if (resp.data) {
-                setConfirmationOpen(false)
-                toast.push(
-                    <Notification type="success">
-                        Password updated successfully!
-                    </Notification>,
-                )
-                reset()
-            }
-        } catch (error) {
-            const errors = error.response.data.errors
-            const errorMessages = Object.keys(errors)
-                .map((key) => errors[key].join(', '))
-                .join('\n')
-
+        const result = await changePassword(values)
+        if (result.success) {
+            setConfirmationOpen(false)
+            toast.push(
+                <Notification type="success">
+                    Password updated successfully!
+                </Notification>,
+            )
+            reset()
+        } else {
             toast.push(
                 <Notification title="Error" type="danger">
-                    {errorMessages}
+                    {result.message}
                 </Notification>,
                 {
                     placement: 'top-center',
                 },
             )
-        } finally {
-            setIsSubmitting(false)
         }
+        setIsSubmitting(false)
     }
 
     const onSubmit = async (values) => {

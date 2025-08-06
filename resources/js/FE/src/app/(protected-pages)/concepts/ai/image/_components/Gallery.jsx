@@ -7,7 +7,7 @@ import GalleryImage from './GalleryImage'
 import Masonry from '@/components/shared/Masonry'
 import { useImageGeneratorStore } from '../_store/imageGeneratorStore'
 import useInfiniteScroll from '@/utils/hooks/useInfiniteScroll'
-import { apiGetImages } from '@/services/AiService'
+import getImages from '@/server/actions/ai/getImages'
 
 const Gallery = () => {
     // eslint-disable-next-line no-unused-vars
@@ -25,11 +25,17 @@ const Gallery = () => {
 
     const [imageList, setImageList] = useState([])
 
-    const getImages = async (index) => {
+    const fetchImages = async (params) => {
+        const result = await getImages(params);
+        if (result.success && result.data) {
+            return result.data;
+        }
+        return { data: [], loadable: false }; // Return default on failure
+    };
+
+    const loadMoreImages = async (index) => {
         setIsInitialLoading(true)
-        const resp = await apiGetImages({
-            index,
-        })
+        const resp = await fetchImages({ index });
         setImageList((prevImages) => [...prevImages, ...resp.data])
         setLoadable(resp.loadable)
         setIsInitialLoading(false)
@@ -44,14 +50,14 @@ const Gallery = () => {
         offset: '100px',
         async onLoadMore() {
             if (initialLoadComplete && loadable) {
-                await getImages(index)
+                await loadMoreImages(index)
             }
         },
     })
 
     const initialLoad = async (index) => {
         setIsInitialLoading(true)
-        const resp = await apiGetImages({ index, itemCount: 8 })
+        const resp = await fetchImages({ index, itemCount: 8 })
         setImageList(resp.data)
         setLoadable(resp.loadable)
         setIsInitialLoading(false)

@@ -45,6 +45,10 @@
             "transactionManagement": "Transaction Management",
             "transactionManagementDesc": "Manage all transactions"
         },
+        "conceptsAccountTaskManagement": {
+            "accountTaskManagement": "Account Task Management",
+            "accountTaskManagementDesc": "Manage all account tasks"
+        },
         "conceptsProducts": {
             "products": "Products",
             "productList": "List",
