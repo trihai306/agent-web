@@ -8,13 +8,19 @@ import { useTranslations } from 'next-intl'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import ActionListModal from './ActionListModal'
-import ActionConfigModal from './ActionConfigModal'
-import VideoInteractionModal from './VideoInteractionModal'
-import SpecificVideoInteractionModal from './SpecificVideoInteractionModal'
-import KeywordVideoInteractionModal from './KeywordVideoInteractionModal'
-import UserVideoInteractionModal from './UserVideoInteractionModal'
-import RandomLiveInteractionModal from './RandomLiveInteractionModal'
-import SpecificLiveInteractionModal from './SpecificLiveInteractionModal'
+import {
+    ActionConfigModal,
+    VideoInteractionModal,
+    SpecificVideoInteractionModal,
+    KeywordVideoInteractionModal,
+    UserVideoInteractionModal,
+    RandomLiveInteractionModal,
+    SpecificLiveInteractionModal,
+    FollowUserModal,
+    CreatePostModal,
+    UpdateAvatarModal,
+    ChangeNameModal
+} from './action-modals'
 
 const InteractionConfigModal = ({ isOpen, onClose }) => {
     const t = useTranslations('tiktokAccountManagement.interactionConfigModal')
@@ -51,8 +57,13 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
     const [showUserVideoInteractionModal, setShowUserVideoInteractionModal] = useState(false)
     const [showRandomLiveInteractionModal, setShowRandomLiveInteractionModal] = useState(false)
     const [showSpecificLiveInteractionModal, setShowSpecificLiveInteractionModal] = useState(false)
+    const [showFollowUserModal, setShowFollowUserModal] = useState(false)
+    const [showCreatePostModal, setShowCreatePostModal] = useState(false)
+    const [showUpdateAvatarModal, setShowUpdateAvatarModal] = useState(false)
+    const [showChangeNameModal, setShowChangeNameModal] = useState(false)
     const [showDeleteScenarioDialog, setShowDeleteScenarioDialog] = useState(false)
     const [showDeleteActionDialog, setShowDeleteActionDialog] = useState(false)
+    const [preventActionListClose, setPreventActionListClose] = useState(false)
     const [editingScenario, setEditingScenario] = useState(null)
     const [editingAction, setEditingAction] = useState(null)
     const [configuringAction, setConfiguringAction] = useState(null)
@@ -195,6 +206,10 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         const userVideoActions = ['user_video_interaction']
         const randomLiveActions = ['random_live_interaction']
         const specificLiveActions = ['specific_live_interaction']
+        const followUserActions = ['follow_user']
+        const createPostActions = ['create_post']
+        const updateAvatarActions = ['update_avatar']
+        const changeNameActions = ['change_name']
         
         if (randomVideoActions.includes(actionData.id)) {
             setShowVideoInteractionModal(true)
@@ -208,6 +223,14 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             setShowRandomLiveInteractionModal(true)
         } else if (specificLiveActions.includes(actionData.id)) {
             setShowSpecificLiveInteractionModal(true)
+        } else if (followUserActions.includes(actionData.id)) {
+            setShowFollowUserModal(true)
+        } else if (createPostActions.includes(actionData.id)) {
+            setShowCreatePostModal(true)
+        } else if (updateAvatarActions.includes(actionData.id)) {
+            setShowUpdateAvatarModal(true)
+        } else if (changeNameActions.includes(actionData.id)) {
+            setShowChangeNameModal(true)
         } else {
             setShowActionConfigModal(true)
         }
@@ -223,6 +246,10 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         const userVideoActions = ['user_video_interaction']
         const randomLiveActions = ['random_live_interaction']
         const specificLiveActions = ['specific_live_interaction']
+        const followUserActions = ['follow_user']
+        const createPostActions = ['create_post']
+        const updateAvatarActions = ['update_avatar']
+        const changeNameActions = ['change_name']
         
         if (randomVideoActions.includes(action.actionId)) {
             setShowVideoInteractionModal(true)
@@ -236,6 +263,14 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             setShowRandomLiveInteractionModal(true)
         } else if (specificLiveActions.includes(action.actionId)) {
             setShowSpecificLiveInteractionModal(true)
+        } else if (followUserActions.includes(action.actionId)) {
+            setShowFollowUserModal(true)
+        } else if (createPostActions.includes(action.actionId)) {
+            setShowCreatePostModal(true)
+        } else if (updateAvatarActions.includes(action.actionId)) {
+            setShowUpdateAvatarModal(true)
+        } else if (changeNameActions.includes(action.actionId)) {
+            setShowChangeNameModal(true)
         } else {
             setShowActionConfigModal(true)
         }
@@ -269,7 +304,6 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowActionConfigModal(false)
-        setShowActionListModal(false)
         setConfiguringAction(null)
     }
 
@@ -301,7 +335,6 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowVideoInteractionModal(false)
-        setShowActionListModal(false)
         setConfiguringAction(null)
     }
 
@@ -333,7 +366,6 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowSpecificVideoInteractionModal(false)
-        setShowActionListModal(false)
         setConfiguringAction(null)
     }
 
@@ -361,7 +393,6 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowKeywordVideoInteractionModal(false)
-        setShowActionListModal(false)
         setConfiguringAction(null)
     }
 
@@ -389,7 +420,6 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowUserVideoInteractionModal(false)
-        setShowActionListModal(false)
         setConfiguringAction(null)
     }
 
@@ -417,7 +447,6 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowRandomLiveInteractionModal(false)
-        setShowActionListModal(false)
         setConfiguringAction(null)
     }
 
@@ -445,7 +474,114 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
         
         setShowSpecificLiveInteractionModal(false)
-        setShowActionListModal(false)
+        setConfiguringAction(null)
+    }
+
+    const handleFollowUserSave = (action, config) => {
+        if (action.isNew) {
+            const newAction = { ...action, config: config }
+            delete newAction.isNew
+            setActions(prev => [...prev, newAction])
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    {t('toast.actionAdded')}
+                </Notification>
+            )
+        } else {
+            setActions(prev => prev.map(a => 
+                a.id === action.id ? { ...a, config: config } : a
+            ))
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    Đã lưu cấu hình hành động
+                </Notification>
+            )
+        }
+        
+        setShowFollowUserModal(false)
+        setConfiguringAction(null)
+    }
+
+    const handleCreatePostSave = (action, config) => {
+        if (action.isNew) {
+            const newAction = { ...action, config: config }
+            delete newAction.isNew
+            setActions(prev => [...prev, newAction])
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    {t('toast.actionAdded')}
+                </Notification>
+            )
+        } else {
+            setActions(prev => prev.map(a => 
+                a.id === action.id ? { ...a, config: config } : a
+            ))
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    Đã lưu cấu hình hành động
+                </Notification>
+            )
+        }
+        
+        setShowCreatePostModal(false)
+        setConfiguringAction(null)
+    }
+
+    const handleUpdateAvatarSave = (action, config) => {
+        if (action.isNew) {
+            const newAction = { ...action, config: config }
+            delete newAction.isNew
+            setActions(prev => [...prev, newAction])
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    {t('toast.actionAdded')}
+                </Notification>
+            )
+        } else {
+            setActions(prev => prev.map(a => 
+                a.id === action.id ? { ...a, config: config } : a
+            ))
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    Đã lưu cấu hình hành động
+                </Notification>
+            )
+        }
+        
+        setShowUpdateAvatarModal(false)
+        setConfiguringAction(null)
+    }
+
+    const handleChangeNameSave = (action, config) => {
+        if (action.isNew) {
+            const newAction = { ...action, config: config }
+            delete newAction.isNew
+            setActions(prev => [...prev, newAction])
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    {t('toast.actionAdded')}
+                </Notification>
+            )
+        } else {
+            setActions(prev => prev.map(a => 
+                a.id === action.id ? { ...a, config: config } : a
+            ))
+            
+            toast.push(
+                <Notification title="Thành công" type="success" closable>
+                    Đã lưu cấu hình hành động
+                </Notification>
+            )
+        }
+        
+        setShowChangeNameModal(false)
         setConfiguringAction(null)
     }
     
@@ -506,13 +642,21 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         )
     }
 
+    // Hàm để đóng ActionListModal một cách có chủ ý
+    const handleCloseActionListModal = () => {
+        // Chỉ đóng nếu không có modal con nào đang mở
+        if (!preventActionListClose) {
+            setShowActionListModal(false)
+        }
+    }
+
     return (
         <Dialog
             isOpen={isOpen}
             onClose={onClose}
             onRequestClose={onClose}
             width={1200}
-            className="z-50"
+            className="z-[60]"
         >
             <div className="flex flex-col h-full">
                 {/* Header */}
@@ -616,57 +760,56 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                             </Button>
                                         </div>
 
-                                    {/* Actions Table */}
-                                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 dark:bg-gray-800">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                        {t('actionTable.id')}
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                        {t('actionTable.name')}
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                        {t('actionTable.options')}
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-600">
-                                                {currentActions.length > 0 ? currentActions.map((action) => (
-                                                    <tr key={action.id}>
-                                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                            {action.id}
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                            {action.name}
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                                            <div className="flex gap-2">
+                                    {/* Actions Grid */}
+                                    <div className="space-y-4">
+                                        {currentActions.length > 0 ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {currentActions.map((action) => (
+                                                    <div 
+                                                        key={action.id}
+                                                        className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-900 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-3 mb-2">
+                                                                    <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-semibold">
+                                                                        {action.id}
+                                                                    </span>
+                                                                    <h6 className="font-semibold text-gray-900 dark:text-gray-100">
+                                                                        {action.name}
+                                                                    </h6>
+                                                                </div>
+                                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                    Hành động #{action.id}
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 ml-4">
                                                                 <button 
-                                                                    className="text-blue-500 hover:text-blue-600"
+                                                                    className="p-2 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                                                     onClick={() => handleEditAction(action)}
+                                                                    title="Chỉnh sửa"
                                                                 >
                                                                     <TbEdit size={18} />
                                                                 </button>
                                                                 <button 
-                                                                    className="text-red-500 hover:text-red-600"
+                                                                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                                                     onClick={() => handleDeleteAction(action)}
+                                                                    title="Xóa"
                                                                 >
                                                                     <TbTrash size={18} />
                                                                 </button>
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                )) : (
-                                                    <tr>
-                                                        <td colSpan={3} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                                                            {t('noActions')}
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-8 text-center bg-gray-50 dark:bg-gray-800/50">
+                                                <div className="text-gray-500 dark:text-gray-400">
+                                                    {t('noActions')}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Pagination */}
@@ -715,7 +858,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 onClose={() => setShowScenarioModal(false)}
                 onRequestClose={() => setShowScenarioModal(false)}
                 width={500}
-                className="z-[60]"
+                className="z-[80]"
             >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                     <h5 className="font-bold">
@@ -762,7 +905,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 onClose={() => setShowActionModal(false)}
                 onRequestClose={() => setShowActionModal(false)}
                 width={500}
-                className="z-[60]"
+                className="z-[80]"
             >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                     <h5 className="font-bold">
@@ -806,7 +949,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             {/* Action List Modal */}
             <ActionListModal
                 isOpen={showActionListModal}
-                onClose={() => setShowActionListModal(false)}
+                onClose={handleCloseActionListModal}
                 onSelectAction={handleSelectActionFromList}
                 selectedScenario={selectedScenario}
             />
@@ -888,13 +1031,57 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 onSave={handleSpecificLiveInteractionSave}
             />
 
+            {/* Follow User Modal */}
+            <FollowUserModal
+                isOpen={showFollowUserModal}
+                onClose={() => {
+                    setShowFollowUserModal(false)
+                    setConfiguringAction(null)
+                }}
+                action={configuringAction}
+                onSave={handleFollowUserSave}
+            />
+
+            {/* Create Post Modal */}
+            <CreatePostModal
+                isOpen={showCreatePostModal}
+                onClose={() => {
+                    setShowCreatePostModal(false)
+                    setConfiguringAction(null)
+                }}
+                action={configuringAction}
+                onSave={handleCreatePostSave}
+            />
+
+            {/* Update Avatar Modal */}
+            <UpdateAvatarModal
+                isOpen={showUpdateAvatarModal}
+                onClose={() => {
+                    setShowUpdateAvatarModal(false)
+                    setConfiguringAction(null)
+                }}
+                action={configuringAction}
+                onSave={handleUpdateAvatarSave}
+            />
+
+            {/* Change Name Modal */}
+            <ChangeNameModal
+                isOpen={showChangeNameModal}
+                onClose={() => {
+                    setShowChangeNameModal(false)
+                    setConfiguringAction(null)
+                }}
+                action={configuringAction}
+                onSave={handleChangeNameSave}
+            />
+
             {/* Delete Scenario Confirmation Dialog */}
             <Dialog
                 isOpen={showDeleteScenarioDialog}
                 onClose={() => setShowDeleteScenarioDialog(false)}
                 onRequestClose={() => setShowDeleteScenarioDialog(false)}
                 width={400}
-                className="z-[70]"
+                className="z-[80]"
             >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                     <h5 className="font-bold text-red-600">{t('deleteDialog.scenarioTitle')}</h5>
@@ -936,7 +1123,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 onClose={() => setShowDeleteActionDialog(false)}
                 onRequestClose={() => setShowDeleteActionDialog(false)}
                 width={400}
-                className="z-[70]"
+                className="z-[80]"
             >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                     <h5 className="font-bold text-red-600">{t('deleteDialog.actionTitle')}</h5>

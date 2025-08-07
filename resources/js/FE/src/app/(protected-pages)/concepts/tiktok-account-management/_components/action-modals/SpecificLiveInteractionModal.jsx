@@ -24,19 +24,27 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         },
         emotion: {
             enabled: true,
-            showEmotion: false
+            showEmotion: false,
+            percentage: 100,
+            waitTime: { min: 1, max: 3 }
         },
         follow: {
             enabled: false,
-            autoFollow: false
+            autoFollow: false,
+            percentage: 100,
+            waitTime: { min: 1, max: 3 }
         },
         addToCart: {
             enabled: false,
-            addProduct: false
+            addProduct: false,
+            percentage: 100,
+            waitTime: { min: 1, max: 3 }
         },
         comment: {
             enabled: false,
-            autoComment: false
+            autoComment: false,
+            percentage: 100,
+            waitTime: { min: 1, max: 3 }
         }
     })
 
@@ -108,7 +116,7 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
             isOpen={isOpen}
             onClose={handleClose}
             onRequestClose={handleClose}
-            width={600}
+            width={800}
             className="z-[80]"
         >
             <div className="flex flex-col max-h-[85vh]">
@@ -191,7 +199,7 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                         </h6>
                         
                         {/* Hàng đầu tiên */}
-                        <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             {/* Tương tác liên tục */}
                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
@@ -319,7 +327,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={100}
+                                                value={config.emotion.percentage}
+                                                onChange={(e) => handlePercentageChange('emotion', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -332,14 +341,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={1}
+                                                    value={config.emotion.waitTime.min}
+                                                    onChange={(e) => handleInputChange('emotion', 'waitTime', 'min', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={3}
+                                                    value={config.emotion.waitTime.max}
+                                                    onChange={(e) => handleInputChange('emotion', 'waitTime', 'max', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -350,7 +361,7 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                         </div>
 
                         {/* Hàng thứ hai */}
-                        <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             {/* Theo dõi */}
                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
@@ -387,7 +398,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={100}
+                                                value={config.follow.percentage}
+                                                onChange={(e) => handlePercentageChange('follow', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -400,14 +412,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={1}
+                                                    value={config.follow.waitTime.min}
+                                                    onChange={(e) => handleInputChange('follow', 'waitTime', 'min', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={3}
+                                                    value={config.follow.waitTime.max}
+                                                    onChange={(e) => handleInputChange('follow', 'waitTime', 'max', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -452,7 +466,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={100}
+                                                value={config.addToCart.percentage}
+                                                onChange={(e) => handlePercentageChange('addToCart', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -465,14 +480,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={1}
+                                                    value={config.addToCart.waitTime.min}
+                                                    onChange={(e) => handleInputChange('addToCart', 'waitTime', 'min', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={3}
+                                                    value={config.addToCart.waitTime.max}
+                                                    onChange={(e) => handleInputChange('addToCart', 'waitTime', 'max', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -510,7 +527,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={100}
+                                                value={config.comment.percentage}
+                                                onChange={(e) => handlePercentageChange('comment', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -523,21 +541,23 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={1}
+                                                    value={config.comment.waitTime.min}
+                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'min', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={3}
+                                                    value={config.comment.waitTime.max}
+                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'max', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                                 Ngôn ngữ đánh

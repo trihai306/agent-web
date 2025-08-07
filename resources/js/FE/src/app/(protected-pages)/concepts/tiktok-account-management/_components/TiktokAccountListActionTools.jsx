@@ -6,11 +6,14 @@ import { TbMessageCircle, TbUpload } from 'react-icons/tb'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import ImportAccountsModal from './ImportAccountsModal'
+import InteractionConfigModal from './InteractionConfigModal'
 
 const TiktokAccountListActionTools = () => {
     const router = useRouter()
     const t = useTranslations('tiktokAccountManagement')
     const [showImportModal, setShowImportModal] = useState(false)
+    const [showInteractionConfigModal, setShowInteractionConfigModal] = useState(false)
+    
     const handleImportSuccess = () => {
         // Refresh trang sau khi import thành công
         router.refresh()
@@ -31,9 +34,7 @@ const TiktokAccountListActionTools = () => {
                     variant="solid"
                     color="blue-500"
                     icon={<TbMessageCircle className="text-xl" />}
-                    onClick={() =>
-                        router.push('/concepts/tiktok-account-management/interaction-config')
-                    }
+                    onClick={() => setShowInteractionConfigModal(true)}
                 >
                     {t('configureInteraction')}
                 </Button>
@@ -43,6 +44,11 @@ const TiktokAccountListActionTools = () => {
                 isOpen={showImportModal}
                 onClose={() => setShowImportModal(false)}
                 onSuccess={handleImportSuccess}
+            />
+
+            <InteractionConfigModal
+                isOpen={showInteractionConfigModal}
+                onClose={() => setShowInteractionConfigModal(false)}
             />
         </>
     )

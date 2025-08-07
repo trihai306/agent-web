@@ -76,7 +76,7 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
             isOpen={isOpen}
             onClose={handleClose}
             onRequestClose={handleClose}
-            width={600}
+            width={800}
             className="z-[80]"
         >
             <div className="flex flex-col max-h-[85vh]">
@@ -116,7 +116,7 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
                             Giới hạn & Thời gian
                         </h6>
                         
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     Số lượng thông báo sẽ đọc

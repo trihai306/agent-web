@@ -129,7 +129,7 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
             isOpen={isOpen}
             onClose={handleClose}
             onRequestClose={handleClose}
-            width={600}
+            width={800}
             className="z-[80]"
         >
             <div className="flex flex-col max-h-[85vh]">
@@ -269,7 +269,7 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                         </h6>
                         
                         {/* Hàng đầu tiên */}
-                        <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             {/* Theo dõi */}
                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
@@ -456,7 +456,7 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                                 Ngôn ngữ đánh

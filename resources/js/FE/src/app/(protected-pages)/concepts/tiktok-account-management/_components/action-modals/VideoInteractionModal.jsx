@@ -298,7 +298,7 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                         </h6>
                         
                         {/* Grid layout cho các hành động */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             {/* Theo dõi chủ video */}
                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
                                 <div className="flex items-center justify-between mb-3">

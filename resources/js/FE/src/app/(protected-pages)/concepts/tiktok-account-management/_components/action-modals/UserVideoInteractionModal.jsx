@@ -291,7 +291,7 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                         </h6>
                         
                         {/* Grid layout cho các hành động */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             {/* Theo dõi user */}
                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
                                 <div className="flex items-center justify-between mb-3">
@@ -592,7 +592,7 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                                 Nhóm nội dung
