@@ -77,7 +77,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('scenario-scripts', ScenarioScriptController::class);
     Route::apiResource('account-tasks', AccountTaskController::class);
     Route::apiResource('devices', DeviceController::class);
-    Route::apiResource('tiktok-accounts', \App\Http\Controllers\Api\TiktokAccountController::class)->only(['index']);
+    Route::apiResource('tiktok-accounts', \App\Http\Controllers\Api\TiktokAccountController::class);
+    Route::post('tiktok-accounts/bulk-delete', [\App\Http\Controllers\Api\TiktokAccountController::class, 'bulkDelete']);
+    Route::post('tiktok-accounts/bulk-update-status', [\App\Http\Controllers\Api\TiktokAccountController::class, 'bulkUpdateStatus']);
+    Route::post('tiktok-accounts/import', [\App\Http\Controllers\Api\TiktokAccountController::class, 'import']);
 
     // Analytics
     Route::get('/analytic/transactions', TransactionAnalyticController::class);

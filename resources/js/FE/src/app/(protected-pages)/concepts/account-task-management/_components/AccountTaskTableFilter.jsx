@@ -58,6 +58,15 @@ const AccountTaskTableFilter = () => {
         { value: 'high', label: tPriority('high') },
     ]
 
+    const taskTypeOptions = [
+        { value: 'follow', label: 'Follow' },
+        { value: 'unfollow', label: 'Unfollow' },
+        { value: 'like', label: 'Like' },
+        { value: 'comment', label: 'Comment' },
+        { value: 'share', label: 'Share' },
+        { value: 'view', label: 'View' },
+    ]
+
     const filterData = useAccountTaskListStore((state) => state.filterData)
     const setFilterData = useAccountTaskListStore((state) => state.setFilterData)
 
@@ -78,12 +87,13 @@ const AccountTaskTableFilter = () => {
     }, [isOpen, filterData, reset])
 
     const onSubmit = (values) => {
-        onAppendQueryParams({
-            'filter[task_type]': values.task_type,
-            'filter[status]': values.status,
-            'filter[priority]': values.priority,
-            'filter[tiktok_account_id]': values.tiktok_account_id,
-        })
+        const filterParams = {}
+        if (values.task_type) filterParams['filter[task_type]'] = values.task_type
+        if (values.status) filterParams['filter[status]'] = values.status
+        if (values.priority) filterParams['filter[priority]'] = values.priority
+        if (values.tiktok_account_id) filterParams['filter[tiktok_account_id]'] = values.tiktok_account_id
+        
+        onAppendQueryParams(filterParams)
         setFilterData(values)
         onDrawerClose()
     }
@@ -121,6 +131,20 @@ const AccountTaskTableFilter = () => {
                 }
             >
                 <Form onSubmit={handleSubmit(onSubmit)}>
+                    <FormItem label={tForm('taskType')}>
+                        <Controller
+                            name="task_type"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    placeholder={tForm('selectTaskType')}
+                                    options={taskTypeOptions}
+                                    isClearable
+                                    {...field}
+                                />
+                            )}
+                        />
+                    </FormItem>
                     <FormItem label={tForm('status')}>
                         <Controller
                             name="status"

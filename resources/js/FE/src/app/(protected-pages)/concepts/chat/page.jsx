@@ -3,7 +3,7 @@ import ChatProvider from './_components/ChatProvider'
 import ChatSidebar from './_components/ChatSidebar'
 import ChatBody from './_components/ChatBody'
 import ContactInfoDrawer from './_components/ContactInfoDrawer'
-import getChatList from '@/server/actions/getChatList'
+import getChatList from '@/server/actions/chat/getChatList'
 
 export default async function Page() {
     const data = await getChatList()

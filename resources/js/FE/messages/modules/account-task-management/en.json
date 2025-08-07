@@ -25,6 +25,8 @@
         },
         "filterForm": {
             "title": "Filter Tasks",
+            "taskType": "Task Type",
+            "selectTaskType": "Select task type",
             "status": "Status",
             "selectStatus": "Select status",
             "priority": "Priority",

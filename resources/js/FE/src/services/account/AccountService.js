@@ -1,4 +1,4 @@
-import ApiService from './ApiService'
+import ApiService from '@/services/ApiService'
 
 export async function apiGetSettingsNotification(token) {
     return ApiService.fetchDataWithAxios({

@@ -57,3 +57,11 @@ export async function apiChangePassword(data) {
         
     })
 }
+
+export async function apiUpdateProfile(data) {
+    return ApiService.fetchDataWithAxios({
+        url: '/profile',
+        method: 'put',
+        data,
+    })
+}

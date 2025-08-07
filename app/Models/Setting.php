@@ -15,6 +15,23 @@ class Setting extends Model
         'value',
     ];
 
+    public $searchable = [
+        'key',
+        'value',
+    ];
+
+    public $filterable = [
+        'user_id',
+        'key',
+    ];
+
+    public $sortable = [
+        'id',
+        'key',
+        'created_at',
+        'updated_at',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

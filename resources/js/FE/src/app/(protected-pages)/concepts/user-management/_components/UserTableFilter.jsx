@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import Drawer from '@/components/ui/Drawer'
 import Input from '@/components/ui/Input'
 import { Form, FormItem } from '@/components/ui/Form'
+import Select from '@/components/ui/Select'
 import { useUserListStore } from '../_store/userListStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import { TbFilter } from 'react-icons/tb'
@@ -17,6 +18,7 @@ const validationSchema = z.object({
     first_name: z.string().optional(),
     last_name: z.string().optional(),
     phone_number: z.string().optional(),
+    status: z.string().optional(),
 })
 
 const DrawerFooter = ({ onCancel, onSaveClick }) => {
@@ -57,12 +59,14 @@ const UserTableFilter = () => {
     })
 
     const onSubmit = (values) => {
-        onAppendQueryParams({
-            email: values.email,
-            first_name: values.first_name,
-            last_name: values.last_name,
-            phone_number: values.phone_number,
-        })
+        const filterParams = {}
+        if (values.email) filterParams['filter[email]'] = values.email
+        if (values.first_name) filterParams['filter[first_name]'] = values.first_name
+        if (values.last_name) filterParams['filter[last_name]'] = values.last_name
+        if (values.phone_number) filterParams['filter[phone_number]'] = values.phone_number
+        if (values.status) filterParams['filter[status]'] = values.status
+        
+        onAppendQueryParams(filterParams)
         setFilterData(values)
         onDrawerClose()
     }
@@ -130,6 +134,22 @@ const UserTableFilter = () => {
                                     placeholder={tForm('phoneNumber')}
                                     {...field}
                                 />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label={tForm('status')}>
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    placeholder={tForm('status')}
+                                    {...field}
+                                >
+                                    <Select.Option value="">{tForm('allStatus')}</Select.Option>
+                                    <Select.Option value="active">{tForm('active')}</Select.Option>
+                                    <Select.Option value="locked">{tForm('locked')}</Select.Option>
+                                </Select>
                             )}
                         />
                     </FormItem>

@@ -118,6 +118,8 @@ const UserListTable = ({
                 {
                     header: t('name'),
                     accessorKey: 'full_name',
+                    sortable: true,
+                    sortKey: 'name', // Use name for sorting
                     cell: (props) => {
                         const row = props.row.original
                         return <NameColumn row={row} onViewDetail={() => handleViewDetails(row)} />
@@ -206,8 +208,9 @@ const UserListTable = ({
     }
 
     const handleSort = (sort) => {
+        const sortKey = sort.column?.sortKey || sort.key
         onAppendQueryParams({
-            sort: (sort.order === 'desc' ? '-' : '') + sort.key,
+            sort: (sort.order === 'desc' ? '-' : '') + sortKey,
         })
     }
 

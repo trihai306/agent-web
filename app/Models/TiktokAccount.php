@@ -14,7 +14,9 @@ class TiktokAccount extends Model
     protected $fillable = [
         'user_id',
         'username',
+        'email',
         'password',
+        'phone_number',
         'nickname',
         'avatar_url',
         'follower_count',
@@ -23,6 +25,7 @@ class TiktokAccount extends Model
         'video_count',
         'bio_signature',
         'status',
+        'notes',
         'proxy_id',
         'last_login_at',
         'last_activity_at',
@@ -31,6 +34,36 @@ class TiktokAccount extends Model
     protected $casts = [
         'last_login_at' => 'datetime',
         'last_activity_at' => 'datetime',
+    ];
+
+    public $searchable = [
+        'username',
+        'email',
+        'nickname',
+        'bio_signature',
+        'phone_number',
+    ];
+
+    public $filterable = [
+        'user_id',
+        'status',
+        'proxy_id',
+        'username',
+        'email',
+        'phone_number',
+    ];
+
+    public $sortable = [
+        'id',
+        'username',
+        'email',
+        'follower_count',
+        'following_count',
+        'heart_count',
+        'video_count',
+        'status',
+        'created_at',
+        'updated_at',
     ];
 
     public function user()

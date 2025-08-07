@@ -13,7 +13,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import { FaCheck, FaTimes } from 'react-icons/fa'
 import Dialog from '@/components/ui/Dialog'
 import { useTranslations } from 'next-intl'
-import updateTransactionStatus from '@/server/actions/updateTransactionStatus'
+import updateTransactionStatus from '@/server/actions/transaction/updateTransactionStatus'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 

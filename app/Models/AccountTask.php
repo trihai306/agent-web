@@ -37,6 +37,33 @@ class AccountTask extends Model
         'completed_at' => 'datetime',
     ];
 
+    public $searchable = [
+        'task_type',
+        'error_message',
+        'status',
+        'priority',
+    ];
+
+    public $filterable = [
+        'tiktok_account_id',
+        'interaction_scenario_id',
+        'device_id',
+        'task_type',
+        'status',
+        'priority',
+    ];
+
+    public $sortable = [
+        'id',
+        'priority',
+        'status',
+        'scheduled_at',
+        'started_at',
+        'completed_at',
+        'created_at',
+        'updated_at',
+    ];
+
     public function tiktokAccount(): BelongsTo
     {
         return $this->belongsTo(TiktokAccount::class);

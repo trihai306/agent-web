@@ -3,6 +3,7 @@ import { create } from 'zustand'
 export const initialFilterData = {
     type: '',
     user_id: '',
+    status: '',
 }
 
 const initialState = {

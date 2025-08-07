@@ -1,4 +1,4 @@
-import getTransactions from '@/server/actions/getTransactions'
+import getTransactions from '@/server/actions/transaction/getTransactions'
 import TransactionManagementClient from './_components/TransactionManagementClient'
 
 export default async function Page({ searchParams }) {

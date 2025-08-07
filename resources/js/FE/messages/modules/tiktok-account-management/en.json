@@ -1,0 +1,129 @@
+{
+    "title": "TikTok Account Management",
+    "addNew": "Add New Account",
+    "importAccounts": "Import Accounts",
+    "configureInteraction": "Configure Interaction",
+    "searchPlaceholder": "Search accounts...",
+    "filter": "Filter",
+    "columns": "Columns",
+    "createTitle": "Create New TikTok Account",
+    "editTitle": "Edit TikTok Account",
+    "table": {
+        "username": "Username",
+        "email": "Email",
+        "phone": "Phone",
+        "status": "Status",
+        "notes": "Notes",
+        "createdDate": "Created Date",
+        "edit": "Edit",
+        "view": "View"
+    },
+    "detail": {
+        "title": "TikTok Account Details",
+        "status": "Status",
+        "phone": "Phone Number",
+        "notes": "Notes",
+        "createdDate": "Created Date",
+        "notProvided": "Not provided",
+        "noNotes": "No notes",
+        "edit": "Edit"
+    },
+    "form": {
+        "basicInfo": "Basic Information",
+        "contactInfo": "Contact Information",
+        "additionalInfo": "Additional Information",
+        "username": "Username",
+        "email": "Email",
+        "phoneNumber": "Phone Number",
+        "status": "Status",
+        "notes": "Notes",
+        "notesPlaceholder": "Enter additional notes about this account...",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "passwordInfo": "Leave password fields empty to keep current password",
+        "selectStatus": "Select Status",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "statusSuspended": "Suspended",
+        "back": "Back",
+        "save": "Save",
+        "saving": "Saving...",
+        "delete": "Delete",
+        "suspend": "Suspend"
+    },
+    "filterForm": {
+        "username": "Username",
+        "email": "Email",
+        "phoneNumber": "Phone Number",
+        "status": "Status",
+        "cancel": "Cancel",
+        "apply": "Apply"
+    },
+    "bulkAction": {
+        "selected": "{{count}} account(s) selected",
+        "delete": "Delete",
+        "suspend": "Suspend",
+        "clear": "Clear Selection"
+    },
+    "bulkDeleteConfirm": {
+        "title": "Delete Selected Accounts",
+        "content": "Are you sure you want to delete {{count}} selected TikTok account(s)? This action cannot be undone.",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "confirmText": "Yes, delete them"
+    },
+    "bulkSuspendConfirm": {
+        "title": "Suspend Selected Accounts",
+        "content": "Are you sure you want to suspend {{count}} selected TikTok account(s)?",
+        "cancel": "Cancel",
+        "suspend": "Suspend",
+        "confirmText": "Yes, suspend them"
+    },
+    "deleteConfirm": {
+        "title": "Delete TikTok Account",
+        "content": "Are you sure you want to delete this TikTok account? This action cannot be undone.",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "confirmText": "Yes, delete it"
+    },
+    "suspendConfirm": {
+        "title": "Suspend TikTok Account",
+        "content": "Are you sure you want to suspend this TikTok account?",
+        "cancel": "Cancel",
+        "suspend": "Suspend",
+        "confirmText": "Yes, suspend it"
+    },
+    "interactionConfig": {
+        "title": "TikTok Interaction Configuration",
+        "back": "Back",
+        "autoReply": "Auto Reply",
+        "autoReplyDescription": "Configure automatic reply messages for TikTok interactions",
+        "configureAutoReply": "Configure Auto Reply",
+        "messageTemplates": "Message Templates",
+        "messageTemplatesDescription": "Manage predefined message templates for quick use",
+        "manageTemplates": "Manage Templates",
+        "responseRules": "Response Rules",
+        "responseRulesDescription": "Set up automatic response rules based on keywords",
+        "setRules": "Set Rules",
+        "analytics": "Interaction Analytics",
+        "analyticsDescription": "View statistics and analysis of user interactions",
+        "viewAnalytics": "View Analytics"
+    },
+    "importModal": {
+        "title": "Import Accounts",
+        "accountListLabel": "Enter account list:",
+        "accountListPlaceholder": "user123|password123|2fa_code|email@example.com\nuser456|password456\nuser789|password789|2fa_code",
+        "formatLabel": "Import format:",
+        "formatValue": "UID|PASS|2FA(optional)|EMAIL(optional)",
+        "enableRunningStatus": "Enable running status",
+        "autoAssign": "Auto assign",
+        "selectDevice": "Select device",
+        "selectDevicePlaceholder": "Select device",
+        "selectScenario": "Select scenario",
+        "selectScenarioPlaceholder": "Select scenario",
+        "redo": "Redo",
+        "exit": "Exit",
+        "save": "Save",
+        "saving": "Saving..."
+    }
+} 

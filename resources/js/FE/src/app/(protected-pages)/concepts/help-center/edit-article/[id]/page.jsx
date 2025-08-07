@@ -2,7 +2,7 @@ import EditArticleHeader from './_components/EditArticleHeader'
 import EditArticleBody from './_components/EditArticleBody'
 import EditArticleFooter from './_components/EditArticleFooter'
 import NotFound from '@/components/shared/NotFound'
-import getArticle from '@/server/actions/getArticle'
+import getArticle from '@/server/actions/help/getArticle'
 import isEmpty from 'lodash/isEmpty'
 
 export default async function Page(props) {

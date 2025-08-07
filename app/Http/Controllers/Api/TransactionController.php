@@ -114,10 +114,11 @@ class TransactionController extends Controller
      *
      * @response \Illuminate\Pagination\LengthAwarePaginator<App\Models\Transaction>
      */
-    #[QueryParameter('search', description: 'Search transactions by description.', example: 'Monthly')]
+    #[QueryParameter('search', description: 'Search transactions by description or type.', example: 'Monthly')]
     #[QueryParameter('filter[type]', description: 'Filter transactions by type (`deposit` or `withdrawal`).', example: 'deposit')]
     #[QueryParameter('filter[user_id]', description: 'Filter transactions by user ID.', example: 1)]
-    #[QueryParameter('sort', description: 'Sort by `amount` or `created_at`. Prefix with `-` for descending.', example: '-amount')]
+    #[QueryParameter('filter[status]', description: 'Filter transactions by status (`pending`, `completed`, `failed`).', example: 'pending')]
+    #[QueryParameter('sort', description: 'Sort by `amount`, `created_at`, `status`, or `type`. Prefix with `-` for descending.', example: '-amount')]
     public function index(Request $request)
     {
         $transactions = $this->transactionService->getAllTransactions($request);

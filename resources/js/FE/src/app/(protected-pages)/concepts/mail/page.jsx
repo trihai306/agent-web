@@ -1,8 +1,8 @@
 import MailEditor from './_components/MailEditor'
 import MailProvider from './_components/MailProvider'
 import MailBody from './_components/MailBody'
-import getMail from '@/server/actions/getMail'
-import getMailList from '@/server/actions/getMailList'
+import getMail from '@/server/actions/chat/getMail'
+import getMailList from '@/server/actions/chat/getMailList'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams

@@ -3,7 +3,7 @@ import Settings from './_components/Settings'
 import getProfile from '@/server/actions/auth/getProfile'
 import getSettings from '@/server/actions/setting/getSettings'
 import getSettingsBilling from '@/server/actions/account/getSettingsBilling'
-import getTransactions from '@/server/actions/transaction/getTransactions'
+import getUserTransactions from '@/server/actions/transaction/getUserTransactions'
 import getNotifications from '@/server/actions/notification/getNotifications'
 
 const Page = async () => {
@@ -18,7 +18,7 @@ const Page = async () => {
         getProfile(),
         getSettings(),
         getSettingsBilling(),
-        getTransactions({ page: 1, per_page: 10 }), // Default params
+        getUserTransactions({ page: 1, per_page: 10 }), // Default params
         getNotifications({ page: 1, per_page: 5 }) // Default params
     ]);
 
@@ -29,7 +29,7 @@ const Page = async () => {
             profileData={profileResponse.data}
             settingsData={settingsResponse.data}
             billingData={billingResponse.data}
-            transactionData={transactionResponse.data}
+            transactionData={transactionResponse}
             notificationData={notificationResponse.data}
         />
     )

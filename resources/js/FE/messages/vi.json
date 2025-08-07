@@ -49,6 +49,10 @@
             "accountTaskManagement": "Quản lý tác vụ tài khoản",
             "accountTaskManagementDesc": "Quản lý tất cả các tác vụ tài khoản"
         },
+        "conceptsTiktokAccountManagement": {
+            "tiktokAccountManagement": "Quản lý tài khoản TikTok",
+            "tiktokAccountManagementDesc": "Quản lý tài khoản TikTok"
+        },
         "conceptsProducts": {
             "products": "Sản phẩm",
             "productList": "Danh sách",

@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\Eloquent;
 
 use App\Models\TiktokAccount;
 use App\Repositories\Eloquent\BaseRepository;
+use App\Repositories\TiktokAccountRepositoryInterface;
 
 class TiktokAccountRepository extends BaseRepository implements TiktokAccountRepositoryInterface
 {

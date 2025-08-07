@@ -33,12 +33,13 @@ class UserController extends Controller
      *
      * @response \Illuminate\Pagination\LengthAwarePaginator<App\Models\User>
      */
-    #[QueryParameter('search', description: 'A search term to filter users by name or email.', example: 'john')]
+    #[QueryParameter('search', description: 'A search term to filter users by name, first_name, last_name, email, or phone_number.', example: 'john')]
     #[QueryParameter('filter[email]', description: 'Filter users by a specific email address.', example: 'john.doe@example.com')]
     #[QueryParameter('filter[first_name]', description: 'Filter users by first name.', example: 'John')]
     #[QueryParameter('filter[last_name]', description: 'Filter users by last name.', example: 'Doe')]
     #[QueryParameter('filter[phone_number]', description: 'Filter users by phone number.', example: '0987654321')]
-    #[QueryParameter('sort', description: 'Sort users by `name`, `email`, `created_at`. Prefix with `-` for descending.', example: '-created_at')]
+    #[QueryParameter('filter[status]', description: 'Filter users by status (active or locked).', example: 'active')]
+    #[QueryParameter('sort', description: 'Sort users by `name`, `email`, `first_name`, `last_name`, `phone_number`, `created_at`. Prefix with `-` for descending.', example: '-created_at')]
     #[QueryParameter('page', description: 'The page number for pagination.', example: 2)]
     #[QueryParameter('per_page', description: 'The number of items per page.', example: 25)]
     public function index(Request $request)

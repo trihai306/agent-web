@@ -90,6 +90,7 @@ import {
     PiDotsThreeCircleDuotone,
     PiCircleHalfTiltDuotone,
     PiHouseLineDuotone,
+    PiKanbanDuotone,
 } from 'react-icons/pi'
 
 const navigationIcon = {
@@ -195,6 +196,7 @@ const navigationIcon = {
     sharedComponentDoc: <PiShareNetworkDuotone />,
     utilsDoc: <PiToolboxDuotone />,
     changeLog: <PiCodeDuotone />,
+    task: <PiKanbanDuotone />,
 }
 
 export default navigationIcon

@@ -171,7 +171,7 @@ const UsersListTableTools = ({ columns, selectableColumns, onColumnToggle }) => 
 
     const handleInputChange = (query) => {
         onAppendQueryParams({
-            query,
+            search: query,
         })
     }
 

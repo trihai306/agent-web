@@ -1,6 +1,6 @@
 import ActivityLogProvider from './_components/ActivityLogProvider'
 import ActivityLog from './_components/ActivityLog'
-import getLogs from '@/server/actions/getLogs'
+import getLogs from '@/server/actions/log/getLogs'
 
 export default async function Page() {
     const resp = await getLogs()

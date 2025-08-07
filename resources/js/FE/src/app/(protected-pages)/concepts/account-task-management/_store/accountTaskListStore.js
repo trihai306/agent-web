@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export const initialFilterData = {
-    type: '',
+    task_type: '',
     status: '',
     priority: '',
     tiktok_account_id: '',

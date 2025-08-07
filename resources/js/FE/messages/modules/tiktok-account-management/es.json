@@ -1,0 +1,129 @@
+{
+    "title": "Gestión de Cuentas de TikTok",
+    "addNew": "Agregar Nueva Cuenta",
+    "importAccounts": "Importar Cuentas",
+    "configureInteraction": "Configurar Interacción",
+    "searchPlaceholder": "Buscar cuentas...",
+    "filter": "Filtrar",
+    "columns": "Columnas",
+    "createTitle": "Crear Nueva Cuenta de TikTok",
+    "editTitle": "Editar Cuenta de TikTok",
+    "table": {
+        "username": "Nombre de Usuario",
+        "email": "Correo Electrónico",
+        "phone": "Teléfono",
+        "status": "Estado",
+        "notes": "Notas",
+        "createdDate": "Fecha de Creación",
+        "edit": "Editar",
+        "view": "Ver"
+    },
+    "detail": {
+        "title": "Detalles de Cuenta de TikTok",
+        "status": "Estado",
+        "phone": "Número de Teléfono",
+        "notes": "Notas",
+        "createdDate": "Fecha de Creación",
+        "notProvided": "No proporcionado",
+        "noNotes": "Sin notas",
+        "edit": "Editar"
+    },
+    "form": {
+        "basicInfo": "Información Básica",
+        "contactInfo": "Información de Contacto",
+        "additionalInfo": "Información Adicional",
+        "username": "Nombre de Usuario",
+        "email": "Correo Electrónico",
+        "phoneNumber": "Número de Teléfono",
+        "status": "Estado",
+        "notes": "Notas",
+        "notesPlaceholder": "Ingrese notas adicionales sobre esta cuenta...",
+        "password": "Contraseña",
+        "confirmPassword": "Confirmar Contraseña",
+        "passwordInfo": "Deje los campos de contraseña vacíos para mantener la contraseña actual",
+        "selectStatus": "Seleccionar Estado",
+        "statusActive": "Activo",
+        "statusInactive": "Inactivo",
+        "statusSuspended": "Suspendido",
+        "back": "Atrás",
+        "save": "Guardar",
+        "saving": "Guardando...",
+        "delete": "Eliminar",
+        "suspend": "Suspender"
+    },
+    "filterForm": {
+        "username": "Nombre de Usuario",
+        "email": "Correo Electrónico",
+        "phoneNumber": "Número de Teléfono",
+        "status": "Estado",
+        "cancel": "Cancelar",
+        "apply": "Aplicar"
+    },
+    "bulkAction": {
+        "selected": "{{count}} cuenta(s) seleccionada(s)",
+        "delete": "Eliminar",
+        "suspend": "Suspender",
+        "clear": "Limpiar Selección"
+    },
+    "bulkDeleteConfirm": {
+        "title": "Eliminar Cuentas Seleccionadas",
+        "content": "¿Está seguro de que desea eliminar {{count}} cuenta(s) de TikTok seleccionada(s)? Esta acción no se puede deshacer.",
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "confirmText": "Sí, eliminarlas"
+    },
+    "bulkSuspendConfirm": {
+        "title": "Suspender Cuentas Seleccionadas",
+        "content": "¿Está seguro de que desea suspender {{count}} cuenta(s) de TikTok seleccionada(s)?",
+        "cancel": "Cancelar",
+        "suspend": "Suspender",
+        "confirmText": "Sí, suspenderlas"
+    },
+    "deleteConfirm": {
+        "title": "Eliminar Cuenta de TikTok",
+        "content": "¿Está seguro de que desea eliminar esta cuenta de TikTok? Esta acción no se puede deshacer.",
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "confirmText": "Sí, eliminarla"
+    },
+    "suspendConfirm": {
+        "title": "Suspender Cuenta de TikTok",
+        "content": "¿Está seguro de que desea suspender esta cuenta de TikTok?",
+        "cancel": "Cancelar",
+        "suspend": "Suspender",
+        "confirmText": "Sí, suspenderla"
+    },
+    "interactionConfig": {
+        "title": "Configuración de Interacción de TikTok",
+        "back": "Atrás",
+        "autoReply": "Respuesta Automática",
+        "autoReplyDescription": "Configurar mensajes de respuesta automática para interacciones de TikTok",
+        "configureAutoReply": "Configurar Respuesta Automática",
+        "messageTemplates": "Plantillas de Mensajes",
+        "messageTemplatesDescription": "Gestionar plantillas de mensajes predefinidas para uso rápido",
+        "manageTemplates": "Gestionar Plantillas",
+        "responseRules": "Reglas de Respuesta",
+        "responseRulesDescription": "Configurar reglas de respuesta automática basadas en palabras clave",
+        "setRules": "Establecer Reglas",
+        "analytics": "Análisis de Interacción",
+        "analyticsDescription": "Ver estadísticas y análisis de interacciones con usuarios",
+        "viewAnalytics": "Ver Análisis"
+    },
+    "importModal": {
+        "title": "Importar Cuentas",
+        "accountListLabel": "Ingrese lista de cuentas:",
+        "accountListPlaceholder": "UID1|PASS1|TWO-FA1|MAIL1|...\nUID2|PASS2|TWO-FA2|MAIL2|...",
+        "formatLabel": "Formato de importación:",
+        "formatValue": "UID|PASS|2FA",
+        "enableRunningStatus": "Habilitar estado de ejecución",
+        "autoAssign": "Asignación automática",
+        "selectDevice": "Seleccionar dispositivo",
+        "selectDevicePlaceholder": "Seleccionar dispositivo",
+        "selectScenario": "Seleccionar escenario",
+        "selectScenarioPlaceholder": "Seleccionar escenario",
+        "redo": "Rehacer",
+        "exit": "Salir",
+        "save": "Guardar",
+        "saving": "Guardando..."
+    }
+} 

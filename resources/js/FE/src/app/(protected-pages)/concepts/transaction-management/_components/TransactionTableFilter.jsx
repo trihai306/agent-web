@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl'
 const validationSchema = z.object({
     type: z.string().optional(),
     user_id: z.string().optional(),
+    status: z.string().optional(),
 })
 
 const DrawerFooter = ({ onCancel, onSaveClick }) => {
@@ -36,6 +37,12 @@ const DrawerFooter = ({ onCancel, onSaveClick }) => {
 const transactionTypeOptions = [
     { value: 'deposit', label: 'Deposit' },
     { value: 'withdrawal', label: 'Withdrawal' },
+]
+
+const transactionStatusOptions = [
+    { value: 'pending', label: 'Pending' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'failed', label: 'Failed' },
 ]
 
 const UserTableFilter = () => {
@@ -70,10 +77,12 @@ const UserTableFilter = () => {
     }, [isOpen, filterData, reset])
 
     const onSubmit = (values) => {
-        onAppendQueryParams({
-            'filter[type]': values.type,
-            'filter[user_id]': values.user_id,
-        })
+        const filterParams = {}
+        if (values.type) filterParams['filter[type]'] = values.type
+        if (values.user_id) filterParams['filter[user_id]'] = values.user_id
+        if (values.status) filterParams['filter[status]'] = values.status
+        
+        onAppendQueryParams(filterParams)
         setFilterData(values)
         onDrawerClose()
     }
@@ -136,6 +145,20 @@ const UserTableFilter = () => {
                                     {...field}
                                     value={userData.find(option => option.value === field.value)}
                                     onChange={(option) => field.onChange(option ? option.value : '')}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label={tForm('status')}>
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    placeholder={tForm('selectStatus')}
+                                    options={transactionStatusOptions}
+                                    isClearable
+                                    {...field}
                                 />
                             )}
                         />

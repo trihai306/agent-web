@@ -35,6 +35,28 @@ class InteractionScenario extends Model
         'settings' => 'json',
     ];
 
+    public $filterable = [
+        'user_id',
+        'name',
+        'status',
+        'shuffle_actions',
+        'run_count',
+    ];
+
+    public $searchable = [
+        'name',
+        'description',
+    ];
+
+    public $sortable = [
+        'id',
+        'name',
+        'status',
+        'created_at',
+        'updated_at',
+        'last_executed_at',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

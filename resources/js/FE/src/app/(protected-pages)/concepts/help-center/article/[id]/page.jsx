@@ -2,7 +2,7 @@ import ArticleBody from './_components/ArticleBody'
 import ArticleAction from './_components/ArticleAction'
 import ArticleTableOfContent from './_components/ArticleTableOfContent'
 import NotFound from '@/components/shared/NotFound'
-import getArticle from '@/server/actions/getArticle'
+import getArticle from '@/server/actions/help/getArticle'
 import isEmpty from 'lodash/isEmpty'
 
 export default async function Page(props) {

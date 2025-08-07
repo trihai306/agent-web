@@ -2,8 +2,8 @@ import TasksProvider from './_components/TasksProvider'
 import TasksHeader from './_components/TasksHeader'
 import TaskList from './_components/TaskList'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
-import getTasks from '@/server/actions/getTasks'
-import getSrcumboardMembers from '@/server/actions/getSrcumboardMembers'
+import getTasks from '@/server/actions/project/getTasks'
+import getSrcumboardMembers from '@/server/actions/project/getSrcumboardMembers'
 
 export default async function Page() {
     const data = await getTasks()

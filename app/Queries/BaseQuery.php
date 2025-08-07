@@ -29,6 +29,7 @@ class BaseQuery
             ->applyFilters()
             ->applySorts();
 
+
         return $this->builder;
     }
 
@@ -40,15 +41,20 @@ class BaseQuery
 
     protected function applySearch(): self
     {
-        if ($this->request->has('search') && !empty($this->builder->getModel()->searchable)) {
-            $searchableFields = $this->builder->getModel()->searchable;
+
+
+        if ($this->request->has('search') && !empty($this->request->input('search'))) {
+            $searchableFields = $this->builder->getModel()->searchable ?? [];
             $searchTerm = $this->request->input('search');
 
-            $this->builder->where(function (Builder $query) use ($searchableFields, $searchTerm) {
-                foreach ($searchableFields as $field) {
-                    $query->orWhere($field, 'LIKE', "%{$searchTerm}%");
-                }
-            });
+
+            if (!empty($searchableFields)) {
+                $this->builder->where(function (Builder $query) use ($searchableFields, $searchTerm) {
+                    foreach ($searchableFields as $field) {
+                        $query->orWhere($field, 'LIKE', "%{$searchTerm}%");
+                    }
+                });
+            }
         }
 
         return $this;
@@ -56,12 +62,31 @@ class BaseQuery
 
     protected function applyFilters(): self
     {
+        $filterableFields = $this->builder->getModel()->filterable ?? [];
+        
+        // Apply filters from 'filter' parameter (object format)
         if ($this->request->has('filter') && is_array($this->request->input('filter'))) {
-            $filterableFields = $this->builder->getModel()->filterable ?? [];
             foreach ($this->request->input('filter') as $field => $value) {
                 if (in_array($field, $filterableFields) && !empty($value)) {
                     $this->builder->where($field, $value);
                 }
+            }
+        }
+
+        // Apply filters from 'filter[field_name]' format
+        foreach ($this->request->all() as $field => $value) {
+            if (str_starts_with($field, 'filter[') && !empty($value)) {
+                $actualField = str_replace(['filter[', ']'], '', $field);
+                if (in_array($actualField, $filterableFields)) {
+                    $this->builder->where($actualField, $value);
+                }
+            }
+        }
+
+        // Apply direct filters from request parameters (like user_id)
+        foreach ($this->request->all() as $field => $value) {
+            if (in_array($field, $filterableFields) && !empty($value) && !in_array($field, ['page', 'per_page', 'search', 'sort', 'filter']) && !str_starts_with($field, 'filter[')) {
+                $this->builder->where($field, $value);
             }
         }
 

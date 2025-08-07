@@ -3,7 +3,7 @@ import ManageArticleHeader from './_components/ManageArticleHeader'
 import ArticleListTable from './_components/ArticleListTable'
 import ArticleListSelected from './_components/ArticleListSelected'
 import ManageArticleProvider from './_components/ManageArticleProvider'
-import getManageArticle from '@/server/actions/getManageArticle'
+import getManageArticle from '@/server/actions/help/getManageArticle'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams

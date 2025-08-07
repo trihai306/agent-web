@@ -1,6 +1,6 @@
 import CustomerDetails from './_components/CustomerDetails'
 import NoUserFound from '@/assets/svg/NoUserFound'
-import getCustomer from '@/server/actions/getCustomer'
+import getCustomer from '@/server/actions/customer/getCustomer'
 import isEmpty from 'lodash/isEmpty'
 
 export default async function Page(props) {

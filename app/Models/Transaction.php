@@ -14,7 +14,7 @@ class Transaction extends Model
      *
      * @var array
      */
-    public $searchable = ['description'];
+    public $searchable = ['description', 'type'];
 
     /**
      * The fields that are filterable.
@@ -28,7 +28,7 @@ class Transaction extends Model
      *
      * @var array
      */
-    public $sortable = ['amount', 'created_at', 'status'];
+    public $sortable = ['amount', 'created_at', 'status', 'type'];
 
     protected $fillable = [
         'user_id',

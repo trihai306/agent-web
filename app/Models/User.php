@@ -19,7 +19,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    public $searchable = ['name', 'email'];
+    public $searchable = ['name', 'first_name', 'last_name', 'email', 'phone_number'];
 
     /**
      * The fields that are filterable.
@@ -33,7 +33,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    public $sortable = ['name', 'email', 'created_at'];
+    public $sortable = ['name', 'email', 'first_name', 'last_name', 'phone_number', 'created_at'];
 
     /**
      * The attributes that are mass assignable.

@@ -25,6 +25,8 @@
         },
         "filterForm": {
             "title": "Lọc Tác vụ",
+            "taskType": "Loại tác vụ",
+            "selectTaskType": "Chọn loại tác vụ",
             "status": "Trạng thái",
             "selectStatus": "Chọn trạng thái",
             "priority": "Ưu tiên",

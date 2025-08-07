@@ -1,6 +1,6 @@
 import CalendarProvider from './_components/CalendarProvider'
 import Calendar from './_components/Calendar'
-import getCalendar from '@/server/actions/getCalendar'
+import getCalendar from '@/server/actions/common/getCalendar'
 
 export default async function Page() {
     const data = await getCalendar()

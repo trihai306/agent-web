@@ -5,7 +5,7 @@ import CustomerListTable from './_components/CustomerListTable'
 import CustomerListActionTools from './_components/CustomerListActionTools'
 import CustomersListTableTools from './_components/CustomersListTableTools'
 import CustomerListSelected from './_components/CustomerListSelected'
-import getCustomers from '@/server/actions/getCustomers'
+import getCustomers from '@/server/actions/customer/getCustomers'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams

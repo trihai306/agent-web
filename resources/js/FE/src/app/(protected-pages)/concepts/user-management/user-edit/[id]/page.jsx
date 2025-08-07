@@ -1,6 +1,6 @@
 import UserForm from '../../_components/UserForm'
 import Container from '@/components/shared/Container'
-import getUser from '@/server/actions/getUser'
+import getUser from '@/server/actions/user/getUser'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import { getTranslations } from 'next-intl/server'
 

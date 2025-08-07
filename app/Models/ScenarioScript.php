@@ -22,6 +22,23 @@ class ScenarioScript extends Model
         'script' => 'json',
     ];
 
+    public $searchable = [
+        // ScenarioScript 通常不需要搜索功能
+    ];
+
+    public $filterable = [
+        'scenario_id',
+        'order',
+    ];
+
+    public $sortable = [
+        'id',
+        'scenario_id',
+        'order',
+        'created_at',
+        'updated_at',
+    ];
+
     public function scenario(): BelongsTo
     {
         return $this->belongsTo(InteractionScenario::class, 'scenario_id');

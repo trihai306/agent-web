@@ -46,4 +46,21 @@ interface BaseRepositoryInterface
      * @return Model
      */
     public function getModel(): Model;
+
+    /**
+     * Delete multiple records by IDs
+     *
+     * @param array $ids
+     * @return int
+     */
+    public function deleteMultiple(array $ids): int;
+
+    /**
+     * Update status for multiple records
+     *
+     * @param array $ids
+     * @param string $status
+     * @return int
+     */
+    public function updateStatusMultiple(array $ids, string $status): int;
 }

@@ -1,0 +1,190 @@
+{
+    "title": "Quản lý tài khoản TikTok",
+    "addNew": "Thêm tài khoản mới",
+    "importAccounts": "Nhập tài khoản",
+    "configureInteraction": "Cấu hình Tương tác",
+    "searchPlaceholder": "Tìm kiếm tài khoản...",
+    "filter": "Lọc",
+    "columns": "Cột",
+    "createTitle": "Tạo tài khoản TikTok mới",
+    "editTitle": "Chỉnh sửa tài khoản TikTok",
+    "table": {
+        "username": "Tên đăng nhập",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "status": "Trạng thái",
+        "notes": "Ghi chú",
+        "createdDate": "Ngày tạo",
+        "edit": "Chỉnh sửa",
+        "view": "Xem"
+    },
+    "detail": {
+        "title": "Chi tiết tài khoản TikTok",
+        "status": "Trạng thái",
+        "phone": "Số điện thoại",
+        "notes": "Ghi chú",
+        "createdDate": "Ngày tạo",
+        "notProvided": "Chưa cung cấp",
+        "noNotes": "Không có ghi chú",
+        "edit": "Chỉnh sửa"
+    },
+    "form": {
+        "basicInfo": "Thông tin cơ bản",
+        "contactInfo": "Thông tin liên hệ",
+        "additionalInfo": "Thông tin bổ sung",
+        "username": "Tên đăng nhập",
+        "email": "Email",
+        "phoneNumber": "Số điện thoại",
+        "status": "Trạng thái",
+        "notes": "Ghi chú",
+        "notesPlaceholder": "Nhập ghi chú bổ sung về tài khoản này...",
+        "password": "Mật khẩu",
+        "confirmPassword": "Xác nhận mật khẩu",
+        "passwordInfo": "Để trống các trường mật khẩu để giữ mật khẩu hiện tại",
+        "selectStatus": "Chọn trạng thái",
+        "statusActive": "Hoạt động",
+        "statusInactive": "Không hoạt động",
+        "statusSuspended": "Tạm khóa",
+        "back": "Quay lại",
+        "save": "Lưu",
+        "saving": "Đang lưu...",
+        "delete": "Xóa",
+        "suspend": "Tạm khóa"
+    },
+    "filterForm": {
+        "username": "Tên đăng nhập",
+        "email": "Email",
+        "phoneNumber": "Số điện thoại",
+        "status": "Trạng thái",
+        "cancel": "Hủy",
+        "apply": "Áp dụng"
+    },
+    "bulkAction": {
+        "selected": "Đã chọn {{count}} tài khoản",
+        "delete": "Xóa",
+        "suspend": "Tạm khóa",
+        "clear": "Bỏ chọn"
+    },
+    "bulkDeleteConfirm": {
+        "title": "Xóa tài khoản đã chọn",
+        "content": "Bạn có chắc chắn muốn xóa {{count}} tài khoản TikTok đã chọn? Hành động này không thể hoàn tác.",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "confirmText": "Có, xóa chúng"
+    },
+    "bulkSuspendConfirm": {
+        "title": "Tạm khóa tài khoản đã chọn",
+        "content": "Bạn có chắc chắn muốn tạm khóa {{count}} tài khoản TikTok đã chọn?",
+        "cancel": "Hủy",
+        "suspend": "Tạm khóa",
+        "confirmText": "Có, tạm khóa chúng"
+    },
+    "deleteConfirm": {
+        "title": "Xóa tài khoản TikTok",
+        "content": "Bạn có chắc chắn muốn xóa tài khoản TikTok này? Hành động này không thể hoàn tác.",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "confirmText": "Có, xóa nó"
+    },
+    "suspendConfirm": {
+        "title": "Tạm khóa tài khoản TikTok",
+        "content": "Bạn có chắc chắn muốn tạm khóa tài khoản TikTok này?",
+        "cancel": "Hủy",
+        "suspend": "Tạm khóa",
+        "confirmText": "Có, tạm khóa nó"
+    },
+    "interactionConfig": {
+        "title": "Cấu hình Tương tác TikTok",
+        "back": "Quay lại",
+        "autoReply": "Tự động trả lời",
+        "autoReplyDescription": "Cấu hình tin nhắn tự động trả lời cho các tương tác trên TikTok",
+        "configureAutoReply": "Cấu hình Tự động trả lời",
+        "messageTemplates": "Mẫu tin nhắn",
+        "messageTemplatesDescription": "Quản lý các mẫu tin nhắn có sẵn để sử dụng nhanh",
+        "manageTemplates": "Quản lý Mẫu tin nhắn",
+        "responseRules": "Quy tắc phản hồi",
+        "responseRulesDescription": "Thiết lập các quy tắc tự động phản hồi dựa trên từ khóa",
+        "setRules": "Thiết lập Quy tắc",
+        "analytics": "Phân tích tương tác",
+        "analyticsDescription": "Xem thống kê và phân tích các tương tác với người dùng",
+        "viewAnalytics": "Xem Phân tích"
+    },
+    "interactionConfigModal": {
+        "title": "Cấu hình Tương tác TikTok",
+        "scenarios": "Kịch Bản",
+        "addScenario": "Thêm",
+        "searchPlaceholder": "Tìm kiếm ...",
+        "scenarioDetails": "Kịch bản: {{name}}",
+        "totalActions": "Tổng số hành động: {{count}}",
+        "runTimes": "Đã chạy: {{count}} lần",
+        "addAction": "Thêm Hành Động",
+        "actionTable": {
+            "id": "ID",
+            "name": "TÊN HÀNH ĐỘNG",
+            "options": "TÙY CHỌN"
+        },
+        "noActions": "Chưa có hành động nào",
+        "selectScenario": "Chọn một kịch bản để xem chi tiết",
+        "close": "Đóng",
+        "scenarioForm": {
+            "add": "Thêm Kịch Bản Mới",
+            "edit": "Sửa Kịch Bản",
+            "nameLabel": "Tên kịch bản",
+            "namePlaceholder": "Nhập tên kịch bản...",
+            "cancel": "Hủy",
+            "save": "Thêm",
+            "update": "Cập Nhật"
+        },
+        "actionForm": {
+            "add": "Thêm Hành Động Mới",
+            "edit": "Sửa Hành Động",
+            "nameLabel": "Tên hành động",
+            "namePlaceholder": "Nhập tên hành động...",
+            "cancel": "Hủy",
+            "save": "Thêm",
+            "update": "Cập Nhật"
+        },
+        "confirmDelete": {
+            "scenario": "Bạn có chắc chắn muốn xóa kịch bản này?",
+            "action": "Bạn có chắc chắn muốn xóa hành động này?"
+        },
+        "deleteDialog": {
+            "scenarioTitle": "Xác nhận xóa kịch bản",
+            "actionTitle": "Xác nhận xóa hành động",
+            "scenarioContent": "Bạn có chắc chắn muốn xóa kịch bản",
+            "actionContent": "Bạn có chắc chắn muốn xóa hành động",
+            "scenarioWarning": "Tất cả hành động trong kịch bản này cũng sẽ bị xóa. Hành động này không thể hoàn tác.",
+            "actionWarning": "Hành động này không thể hoàn tác.",
+            "cancel": "Hủy",
+            "deleteScenario": "Xóa kịch bản",
+            "deleteAction": "Xóa hành động"
+        },
+        "toast": {
+            "scenarioDeleted": "Đã xóa kịch bản thành công",
+            "actionDeleted": "Đã xóa hành động thành công",
+            "scenarioAdded": "Đã thêm kịch bản mới",
+            "scenarioUpdated": "Đã cập nhật kịch bản",
+            "actionAdded": "Đã thêm hành động mới",
+            "actionUpdated": "Đã cập nhật hành động",
+            "nameRequired": "Tên không được để trống",
+            "selectScenarioFirst": "Vui lòng chọn một kịch bản trước"
+        }
+    },
+    "importModal": {
+        "title": "Nhập tài khoản",
+        "accountListLabel": "Nhập danh sách tài khoản:",
+        "accountListPlaceholder": "UID1|PASS1|TWO-FA1|MAIL1|...\nUID2|PASS2|TWO-FA2|MAIL2|...",
+        "formatLabel": "Định dạng nhập:",
+        "formatValue": "UID|PASS|2FA",
+        "enableRunningStatus": "Bật trạng thái chạy",
+        "autoAssign": "Tự động gán",
+        "selectDevice": "Chọn thiết bị",
+        "selectDevicePlaceholder": "Chọn thiết bị",
+        "selectScenario": "Chọn kịch bản",
+        "selectScenarioPlaceholder": "Chọn kịch bản",
+        "redo": "Làm lại",
+        "exit": "Thoát",
+        "save": "Lưu",
+        "saving": "Đang lưu..."
+    }
+} 

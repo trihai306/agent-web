@@ -49,6 +49,10 @@
             "accountTaskManagement": "Account Task Management",
             "accountTaskManagementDesc": "Manage all account tasks"
         },
+        "conceptsTiktokAccountManagement": {
+            "tiktokAccountManagement": "TikTok Account Management",
+            "tiktokAccountManagementDesc": "Manage TikTok accounts"
+        },
         "conceptsProducts": {
             "products": "Products",
             "productList": "List",

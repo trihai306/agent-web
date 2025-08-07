@@ -106,6 +106,22 @@ const conceptsNavigationConfig = [
                 subMenu: [],
             },
             {
+                key: 'concepts.tiktokAccountManagement',
+                path: `${CONCEPTS_PREFIX_PATH}/tiktok-account-management`,
+                title: 'TikTok Account Management',
+                translateKey: 'nav.conceptsTiktokAccountManagement.tiktokAccountManagement',
+                icon: 'userManagement',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [ADMIN],
+                meta: {
+                    description: {
+                        translateKey: 'nav.conceptsTiktokAccountManagement.tiktokAccountManagementDesc',
+                        label: 'Manage TikTok accounts',
+                    },
+                },
+                subMenu: [],
+            },
+            {
                 key: 'concepts.account',
                 path: '',
                 title: 'Account',

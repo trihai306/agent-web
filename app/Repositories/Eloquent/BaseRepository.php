@@ -84,4 +84,27 @@ class BaseRepository implements BaseRepositoryInterface
     {
         return $this->model;
     }
+
+    /**
+     * Delete multiple records by IDs
+     *
+     * @param array $ids
+     * @return int
+     */
+    public function deleteMultiple(array $ids): int
+    {
+        return $this->model->whereIn('id', $ids)->delete();
+    }
+
+    /**
+     * Update status for multiple records
+     *
+     * @param array $ids
+     * @param string $status
+     * @return int
+     */
+    public function updateStatusMultiple(array $ids, string $status): int
+    {
+        return $this->model->whereIn('id', $ids)->update(['status' => $status]);
+    }
 }

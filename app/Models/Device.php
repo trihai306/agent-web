@@ -39,6 +39,33 @@ class Device extends Model
         'push_tokens' => 'json',
     ];
 
+    public $filterable = [
+        'user_id',
+        'device_name',
+        'device_id',
+        'status',
+        'is_online',
+        'device_type',
+        'platform',
+    ];
+
+    public $searchable = [
+        'device_name',
+        'device_id',
+        'serial',
+        'note',
+    ];
+
+    public $sortable = [
+        'id',
+        'device_name',
+        'device_id',
+        'status',
+        'is_online',
+        'created_at',
+        'updated_at',
+    ];
+
     /**
      * Get the user that owns the device.
      */

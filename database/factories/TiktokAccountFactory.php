@@ -20,14 +20,17 @@ class TiktokAccountFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()->id,
             'username' => $this->faker->userName,
+            'email' => $this->faker->email,
             'password' => 'password', // or use a hashed password
+            'phone_number' => $this->faker->phoneNumber,
             'nickname' => $this->faker->name,
             'avatar_url' => $this->faker->imageUrl,
             'follower_count' => $this->faker->numberBetween(0, 1000000),
             'following_count' => $this->faker->numberBetween(0, 10000),
             'heart_count' => $this->faker->numberBetween(0, 10000000),
             'video_count' => $this->faker->numberBetween(0, 1000),
-            'status' => 'active',
+            'status' => $this->faker->randomElement(['active', 'inactive', 'suspended']),
+            'notes' => $this->faker->optional()->sentence,
             'last_login_at' => now(),
         ];
     }
