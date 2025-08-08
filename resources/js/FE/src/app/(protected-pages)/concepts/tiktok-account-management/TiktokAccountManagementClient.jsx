@@ -11,7 +11,6 @@ import InteractionConfigModal from './_components/InteractionConfigModal'
 import { DashboardStats } from './_components/stats'
 import { useTiktokAccountListStore } from './_store/tiktokAccountListStore'
 import updateTiktokAccountStatus from '@/server/actions/tiktok-account/updateTiktokAccountStatus'
-import deleteTiktokAccounts from '@/server/actions/tiktok-account/deleteTiktokAccounts'
 import { useTranslations } from 'next-intl'
 
 const TiktokAccountManagementClient = ({ data, params }) => {

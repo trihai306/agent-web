@@ -102,6 +102,18 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:account-tasks.view');
     Route::apiResource('devices', DeviceController::class)
         ->middleware('permission:devices.view');
+    
+    // Additional device routes
+    Route::post('devices/bulk-delete', [DeviceController::class, 'bulkDelete'])
+        ->middleware('permission:devices.delete');
+    Route::post('devices/bulk-update-status', [DeviceController::class, 'bulkUpdateStatus'])
+        ->middleware('permission:devices.edit');
+    Route::get('devices/stats', [DeviceController::class, 'stats'])
+        ->middleware('permission:devices.view');
+    Route::get('devices/recent-activities', [DeviceController::class, 'recentActivities'])
+        ->middleware('permission:devices.view');
+    Route::post('devices/import', [DeviceController::class, 'import'])
+        ->middleware('permission:devices.create');
     Route::get('tiktok-accounts/stats', [\App\Http\Controllers\Api\TiktokAccountController::class, 'stats'])
         ->middleware('permission:tiktok-accounts.view');
     Route::get('tiktok-accounts/recent-activities', [\App\Http\Controllers\Api\TiktokAccountController::class, 'recentActivities'])

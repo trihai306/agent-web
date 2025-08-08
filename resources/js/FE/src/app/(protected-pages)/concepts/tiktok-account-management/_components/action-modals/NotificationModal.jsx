@@ -39,7 +39,12 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'notification',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 

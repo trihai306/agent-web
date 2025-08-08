@@ -17,6 +17,7 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         limit_time_to: 60,
         view_from: 3,
         view_to: 5,
+        stop_condition: "live_count",
         actions: {
             follow: {
                 enable: false,
@@ -35,7 +36,9 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         comment_rate: 100,
         comment_gap_from: 1,
         comment_gap_to: 3,
-        comment_contents: []
+        comment_contents: [],
+        content_group: "",
+        content_topic: ""
     })
 
     // Dropdown options
@@ -124,7 +127,12 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'random_live_interaction',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -191,8 +199,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                             type="radio"
                                             name="stopCondition"
                                             value="live_count"
-                                            checked={config.stopCondition === 'live_count'}
-                                            onChange={(e) => handleSelectChange('stopCondition', e.target.value)}
+                                            checked={config.stop_condition === 'live_count'}
+                                            onChange={(e) => handleSelectChange('stop_condition', e.target.value)}
                                             className="w-4 h-4 text-blue-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -204,8 +212,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                             type="radio"
                                             name="stopCondition"
                                             value="time_limit"
-                                            checked={config.stopCondition === 'time_limit'}
-                                            onChange={(e) => handleSelectChange('stopCondition', e.target.value)}
+                                            checked={config.stop_condition === 'time_limit'}
+                                            onChange={(e) => handleSelectChange('stop_condition', e.target.value)}
                                             className="w-4 h-4 text-blue-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -218,12 +226,12 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.stopCondition === 'live_count' ? config.liveCount.min : config.timeLimit.min}
+                                        value={config.stop_condition === 'live_count' ? config.limit_video_from : config.limit_time_from}
                                         onChange={(e) => {
-                                            if (config.stopCondition === 'live_count') {
-                                                handleInputChange('liveCount', 'liveCount', 'min', e.target.value)
+                                            if (config.stop_condition === 'live_count') {
+                                                handleInputChange('limit_video_from', e.target.value)
                                             } else {
-                                                handleInputChange('timeLimit', 'timeLimit', 'min', e.target.value)
+                                                handleInputChange('limit_time_from', e.target.value)
                                             }
                                         }}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
@@ -232,12 +240,12 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.stopCondition === 'live_count' ? config.liveCount.max : config.timeLimit.max}
+                                        value={config.stop_condition === 'live_count' ? config.limit_video_to : config.limit_time_to}
                                         onChange={(e) => {
-                                            if (config.stopCondition === 'live_count') {
-                                                handleInputChange('liveCount', 'liveCount', 'max', e.target.value)
+                                            if (config.stop_condition === 'live_count') {
+                                                handleInputChange('limit_video_to', e.target.value)
                                             } else {
-                                                handleInputChange('timeLimit', 'timeLimit', 'max', e.target.value)
+                                                handleInputChange('limit_time_to', e.target.value)
                                             }
                                         }}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
@@ -255,16 +263,16 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                 <Input
                                     type="number"
                                     min="1"
-                                    value={config.watchDuration.min}
-                                    onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'min', e.target.value)}
+                                    value={config.view_from}
+                                    onChange={(e) => handleInputChange('view_from', e.target.value)}
                                     className="w-20 text-center border-gray-300 dark:border-gray-600"
                                 />
                                 <span className="text-gray-500 font-medium">-</span>
                                 <Input
                                     type="number"
                                     min="1"
-                                    value={config.watchDuration.max}
-                                    onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'max', e.target.value)}
+                                    value={config.view_to}
+                                    onChange={(e) => handleInputChange('view_to', e.target.value)}
                                     className="w-20 text-center border-gray-300 dark:border-gray-600"
                                 />
                             </div>
@@ -295,12 +303,12 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </p>
                                     </div>
                                     <Switcher
-                                        checked={config.follow.enabled}
-                                        onChange={(checked) => handleSwitchChange('follow', 'enabled', checked)}
+                                        checked={config.actions.follow.enable}
+                                        onChange={(checked) => handleSwitchChange('actions.follow.enable', checked)}
                                     />
                                 </div>
                                 
-                                {config.follow.enabled && (
+                                {config.actions.follow.enable && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -310,8 +318,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.follow.percentage}
-                                                onChange={(e) => handlePercentageChange('follow', e.target.value)}
+                                                value={config.actions.follow.rate}
+                                                onChange={(e) => handleInputChange('actions.follow.rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -324,16 +332,16 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.follow.waitTime.min}
-                                                    onChange={(e) => handleInputChange('follow', 'waitTime', 'min', e.target.value)}
+                                                    value={config.actions.follow.gap_from}
+                                                    onChange={(e) => handleInputChange('actions.follow.gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.follow.waitTime.max}
-                                                    onChange={(e) => handleInputChange('follow', 'waitTime', 'max', e.target.value)}
+                                                    value={config.actions.follow.gap_to}
+                                                    onChange={(e) => handleInputChange('actions.follow.gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -357,12 +365,12 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </p>
                                     </div>
                                     <Switcher
-                                        checked={config.emotion.enabled}
-                                        onChange={(checked) => handleSwitchChange('emotion', 'enabled', checked)}
+                                        checked={config.actions.emotion.enable}
+                                        onChange={(checked) => handleSwitchChange('actions.emotion.enable', checked)}
                                     />
                                 </div>
                                 
-                                {config.emotion.enabled && (
+                                {config.actions.emotion.enable && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -372,8 +380,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.emotion.percentage}
-                                                onChange={(e) => handlePercentageChange('emotion', e.target.value)}
+                                                value={config.actions.emotion.rate}
+                                                onChange={(e) => handleInputChange('actions.emotion.rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -386,16 +394,16 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.emotion.waitTime.min}
-                                                    onChange={(e) => handleInputChange('emotion', 'waitTime', 'min', e.target.value)}
+                                                    value={config.actions.emotion.gap_from}
+                                                    onChange={(e) => handleInputChange('actions.emotion.gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.emotion.waitTime.max}
-                                                    onChange={(e) => handleInputChange('emotion', 'waitTime', 'max', e.target.value)}
+                                                    value={config.actions.emotion.gap_to}
+                                                    onChange={(e) => handleInputChange('actions.emotion.gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -420,12 +428,12 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     </p>
                                 </div>
                                 <Switcher
-                                    checked={config.comment.enabled}
-                                    onChange={(checked) => handleSwitchChange('comment', 'enabled', checked)}
+                                    checked={config.enable_comment}
+                                    onChange={(checked) => handleSwitchChange('enable_comment', checked)}
                                 />
                             </div>
                             
-                            {config.comment.enabled && (
+                            {config.enable_comment && (
                                 <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
@@ -436,8 +444,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.comment.percentage}
-                                                onChange={(e) => handlePercentageChange('comment', e.target.value)}
+                                                value={config.comment_rate}
+                                                onChange={(e) => handleInputChange('comment_rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -450,16 +458,16 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.comment.waitTime.min}
-                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'min', e.target.value)}
+                                                    value={config.comment_gap_from}
+                                                    onChange={(e) => handleInputChange('comment_gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.comment.waitTime.max}
-                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'max', e.target.value)}
+                                                    value={config.comment_gap_to}
+                                                    onChange={(e) => handleInputChange('comment_gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -472,8 +480,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 Ngôn ngữ đánh
                                             </label>
                                             <select
-                                                value={config.comment.contentGroup}
-                                                onChange={(e) => handleDropdownChange('comment', 'contentGroup', e.target.value)}
+                                                value={config.content_group}
+                                                onChange={(e) => handleSelectChange('content_group', e.target.value)}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                             >
                                                 {contentGroupOptions.map(option => (
@@ -489,8 +497,8 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 Chủ đề nội dung (9 hình tròn)
                                             </label>
                                             <select
-                                                value={config.comment.contentTopic}
-                                                onChange={(e) => handleDropdownChange('comment', 'contentTopic', e.target.value)}
+                                                value={config.content_topic}
+                                                onChange={(e) => handleSelectChange('content_topic', e.target.value)}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                             >
                                                 {contentTopicOptions.map(option => (

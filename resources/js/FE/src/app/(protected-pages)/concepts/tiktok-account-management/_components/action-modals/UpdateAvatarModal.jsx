@@ -38,7 +38,12 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'update_avatar',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -70,8 +75,8 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
                             <span className="text-red-500">*</span> Tên hành động
                         </label>
                         <Input
-                            value={config.actionName}
-                            onChange={(e) => handleInputChange('actionName', e.target.value)}
+                            value={config.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
                             className="border-gray-300 dark:border-gray-600"
                         />
                     </div>
@@ -84,8 +89,8 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
                                 <select 
-                                    value={config.imageSource}
-                                    onChange={(e) => handleInputChange('imageSource', e.target.value)}
+                                    value={config.image_source}
+                                    onChange={(e) => handleInputChange('image_source', e.target.value)}
                                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                 >
                                     <option value="random">Chọn nguồn ảnh</option>
@@ -107,8 +112,8 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
                             
                             <div>
                                 <Checkbox
-                                    checked={config.removeUsedImage}
-                                    onChange={(checked) => handleCheckboxChange('removeUsedImage', checked)}
+                                    checked={config.delete_used_images}
+                                    onChange={(checked) => handleCheckboxChange('delete_used_images', checked)}
                                 >
                                     Xóa ảnh đã sử dụng
                                 </Checkbox>

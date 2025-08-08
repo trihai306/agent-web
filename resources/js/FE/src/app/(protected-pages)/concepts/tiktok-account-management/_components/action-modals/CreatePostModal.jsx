@@ -56,7 +56,12 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'create_post',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -91,8 +96,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                     <span className="text-red-500">*</span> Tên hành động
                                 </label>
                                 <Input
-                                    value={config.actionName}
-                                    onChange={(e) => handleInputChange('actionName', e.target.value)}
+                                    value={config.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
                                     className="border-gray-300 dark:border-gray-600"
                                 />
                             </div>
@@ -106,16 +111,16 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.loadVideoTime.min}
-                                        onChange={(e) => handleTimeInputChange('loadVideoTime', 'min', e.target.value)}
+                                        value={config.load_time_from}
+                                        onChange={(e) => handleInputChange('load_time_from', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                     <span className="text-gray-500 font-medium">-</span>
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.loadVideoTime.max}
-                                        onChange={(e) => handleTimeInputChange('loadVideoTime', 'max', e.target.value)}
+                                        value={config.load_time_to}
+                                        onChange={(e) => handleInputChange('load_time_to', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                     <span className="text-sm text-gray-500">giây</span>
@@ -125,8 +130,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                             {/* Đăng video theo tên file */}
                             <div>
                                 <Checkbox
-                                    checked={config.uploadByFileName}
-                                    onChange={(checked) => handleCheckboxChange('uploadByFileName', checked)}
+                                    checked={config.post_by_filename}
+                                    onChange={(checked) => handleCheckboxChange('post_by_filename', checked)}
                                 >
                                     Đăng video theo tên file
                                 </Checkbox>
@@ -169,8 +174,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                 </label>
                                 <div className="space-y-3">
                                     <select 
-                                        value={config.imageSource}
-                                        onChange={(e) => handleRadioChange('imageSource', e.target.value)}
+                                        value={config.image_source}
+                                        onChange={(e) => handleRadioChange('image_source', e.target.value)}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                     >
                                         <option value="random">Chọn nguồn ảnh</option>
@@ -192,16 +197,16 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                     
                                     <div className="space-y-2">
                                         <Checkbox
-                                            checked={config.removeWatermark}
-                                            onChange={(checked) => handleCheckboxChange('removeWatermark', checked)}
+                                            checked={config.delete_used_images}
+                                            onChange={(checked) => handleCheckboxChange('delete_used_images', checked)}
                                         >
                                             Xóa ảnh đã sử dụng
                                         </Checkbox>
                                         
                                         <div className="flex items-center gap-2">
                                             <Checkbox
-                                                checked={config.autoCut}
-                                                onChange={(checked) => handleCheckboxChange('autoCut', checked)}
+                                                checked={config.auto_cut}
+                                                onChange={(checked) => handleCheckboxChange('auto_cut', checked)}
                                             >
                                                 AutoCut
                                             </Checkbox>
@@ -223,8 +228,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="radio"
                                                 name="filterType"
                                                 value="random"
-                                                checked={config.filterType === 'random'}
-                                                onChange={(e) => handleRadioChange('filterType', e.target.value)}
+                                                checked={config.filter_type === 'random'}
+                                                onChange={(e) => handleRadioChange('filter_type', e.target.value)}
                                                 className="mr-2 text-blue-500"
                                             />
                                             <span className="text-sm text-gray-700 dark:text-gray-300">Random</span>
@@ -235,8 +240,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="radio"
                                                 name="filterType"
                                                 value="custom"
-                                                checked={config.filterType === 'custom'}
-                                                onChange={(e) => handleRadioChange('filterType', e.target.value)}
+                                                checked={config.filter_type === 'custom'}
+                                                onChange={(e) => handleRadioChange('filter_type', e.target.value)}
                                                 className="mr-2 text-blue-500"
                                             />
                                             <span className="text-sm text-gray-700 dark:text-gray-300">Custom (List Filter)</span>
@@ -246,8 +251,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                                     
                                     <div className="mt-3">
                                         <Checkbox
-                                            checked={config.addTrendingMusic}
-                                            onChange={(checked) => handleCheckboxChange('addTrendingMusic', checked)}
+                                            checked={config.add_trending_music}
+                                            onChange={(checked) => handleCheckboxChange('add_trending_music', checked)}
                                         >
                                             Thêm nhạc trend
                                         </Checkbox>

@@ -22,60 +22,6 @@ const conceptsNavigationConfig = [
             },
         },
         subMenu: [
-
-
-
-            {
-                key: 'concepts.userManagement',
-                path: `${CONCEPTS_PREFIX_PATH}/user-management`,
-                title: 'User Management',
-                translateKey: 'nav.conceptsUserManagement.userManagement',
-                icon: 'userManagement',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN],
-                permissions: ['users.view'],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsUserManagement.userManagementDesc',
-                        label: 'Manage users and permissions',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.permissionManagement',
-                path: `${CONCEPTS_PREFIX_PATH}/permission-management`,
-                title: 'Permission Management',
-                translateKey: 'nav.conceptsPermissionManagement.permissionManagement',
-                icon: 'permission',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN],
-                permissions: ['permissions.view'],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsPermissionManagement.permissionManagementDesc',
-                        label: 'Manage permissions',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.roleManagement',
-                path: `${CONCEPTS_PREFIX_PATH}/role-management`,
-                title: 'Role Management',
-                translateKey: 'nav.conceptsRoleManagement.roleManagement',
-                icon: 'accountRoleAndPermission',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN],
-                permissions: ['roles.view'],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsRoleManagement.roleManagementDesc',
-                        label: 'Manage roles and permissions',
-                    },
-                },
-                subMenu: [],
-            },
             {
                 key: 'concepts.transactionManagement',
                 path: `${CONCEPTS_PREFIX_PATH}/transaction-management`,
@@ -123,6 +69,23 @@ const conceptsNavigationConfig = [
                     description: {
                         translateKey: 'nav.conceptsTiktokAccountManagement.tiktokAccountManagementDesc',
                         label: 'Manage TikTok accounts',
+                    },
+                },
+                subMenu: [],
+            },
+            {
+                key: 'concepts.deviceManagement',
+                path: `${CONCEPTS_PREFIX_PATH}/device-management`,
+                title: 'Device Management',
+                translateKey: 'nav.conceptsDeviceManagement.deviceManagement',
+                icon: 'deviceManagement',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [ADMIN, USER],
+                permissions: ['devices.view'],
+                meta: {
+                    description: {
+                        translateKey: 'nav.conceptsDeviceManagement.deviceManagementDesc',
+                        label: 'Manage devices and monitor status',
                     },
                 },
                 subMenu: [],

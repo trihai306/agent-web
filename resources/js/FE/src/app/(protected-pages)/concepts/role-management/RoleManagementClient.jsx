@@ -143,6 +143,7 @@ const RoleManagementClient = ({ data, params }) => {
                     isOpen={isFormOpen}
                     onClose={closeForm}
                     onRequestClose={closeForm}
+                    width={900}
                 >
                     <RoleForm 
                         mode={formMode} 

@@ -79,7 +79,12 @@ const KeywordVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'keyword_video_interaction',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 

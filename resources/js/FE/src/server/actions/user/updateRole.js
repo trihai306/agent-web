@@ -19,9 +19,21 @@ export default async function updateRole(id, data) {
             }
         } catch (error) {
             console.error("Error updating role:", error)
+            
+            // Handle validation errors
+            if (error.response?.status === 422) {
+                const validationErrors = error.response.data?.errors || {}
+                const errorMessages = Object.values(validationErrors).flat()
+                return {
+                    success: false,
+                    message: errorMessages.length > 0 ? errorMessages.join(', ') : 'Validation failed',
+                    errors: validationErrors
+                }
+            }
+            
             return {
                 success: false,
-                message: "An unexpected error occurred while updating role.",
+                message: error.response?.data?.message || "An unexpected error occurred while updating role.",
             }
         }
     })

@@ -1,24 +1,19 @@
-// resources/js/FE/src/server/actions/createRole.js
 'use server'
 
-import { apiCreateRole } from '@/services/user/RolesService'
+import { apiUpdateDevice } from '@/services/device/DeviceService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
 
-/**
- * Server Action to create a role.
- * The core logic is wrapped with `withAuthCheck` to handle authentication errors centrally.
- */
-export default async function createRole(data) {
+export default async function updateDevice(id, data) {
     return withAuthCheck(async () => {
         try {
-            const response = await apiCreateRole(data)
+            const response = await apiUpdateDevice(id, data)
             return {
                 success: true,
-                message: 'Role created successfully',
-                data: response.data,
+                message: 'Device updated successfully',
+                data: response,
             }
         } catch (error) {
-            console.error("Error creating role:", error)
+            console.error("Error updating device:", error)
             
             // Handle validation errors
             if (error.response?.status === 422) {
@@ -33,7 +28,7 @@ export default async function createRole(data) {
             
             return {
                 success: false,
-                message: error.response?.data?.message || "An unexpected error occurred while creating role.",
+                message: error.response?.data?.message || "An unexpected error occurred while updating device.",
             }
         }
     })

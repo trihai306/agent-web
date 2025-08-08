@@ -20,23 +20,23 @@ class RolePermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // create permissions
-        Permission::create(['name' => 'create users']);
-        Permission::create(['name' => 'read users']);
-        Permission::create(['name' => 'update users']);
-        Permission::create(['name' => 'delete users']);
+        Permission::create(['name' => 'create users', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'read users', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'update users', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'delete users', 'guard_name' => 'sanctum']);
 
-        Permission::create(['name' => 'create roles']);
-        Permission::create(['name' => 'read roles']);
-        Permission::create(['name' => 'update roles']);
-        Permission::create(['name' => 'delete roles']);
+        Permission::create(['name' => 'create roles', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'read roles', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'update roles', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'delete roles', 'guard_name' => 'sanctum']);
 
-        Permission::create(['name' => 'create permissions']);
-        Permission::create(['name' => 'read permissions']);
+        Permission::create(['name' => 'create permissions', 'guard_name' => 'sanctum']);
+        Permission::create(['name' => 'read permissions', 'guard_name' => 'sanctum']);
 
         // create roles and assign created permissions
-        $userRole = Role::create(['name' => 'user']);
+        $userRole = Role::create(['name' => 'user', 'guard_name' => 'sanctum']);
         
-        $adminRole = Role::create(['name' => 'admin']);
+        $adminRole = Role::create(['name' => 'admin', 'guard_name' => 'sanctum']);
         $adminRole->givePermissionTo(Permission::all());
 
         // assign roles to existing users

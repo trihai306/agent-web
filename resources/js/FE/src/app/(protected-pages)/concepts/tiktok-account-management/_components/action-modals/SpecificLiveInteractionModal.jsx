@@ -20,7 +20,10 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         continuous_like_count_from: 10,
         continuous_like_count_to: 20,
         continuous_comment_enable: false,
+        continuous_emotion_cycle: false,
+        continuous_percentage: 100,
         enable_comment: false,
+        enable_add_to_cart: false,
         comment_rate: 100,
         comment_gap_from: 1,
         comment_gap_to: 3,
@@ -30,13 +33,22 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                 enable: false,
                 rate: 100,
                 gap_from: 1,
-                gap_to: 3
+                gap_to: 3,
+                show_emotion: false
             },
             follow: {
                 enable: false,
                 rate: 100,
                 gap_from: 1,
-                gap_to: 3
+                gap_to: 3,
+                auto_follow: false
+            },
+            addToCart: {
+                enable: false,
+                rate: 100,
+                gap_from: 1,
+                gap_to: 3,
+                add_product: false
             }
         }
     })
@@ -98,7 +110,12 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'specific_live_interaction',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -172,16 +189,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                 <Input
                                     type="number"
                                     min="1"
-                                    value={config.watchDuration.min}
-                                    onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'min', e.target.value)}
+                                    value={config.view_from}
+                                    onChange={(e) => handleInputChange('view_from', e.target.value)}
                                     className="w-20 text-center border-gray-300 dark:border-gray-600"
                                 />
                                 <span className="text-gray-500 font-medium">-</span>
                                 <Input
                                     type="number"
                                     min="1"
-                                    value={config.watchDuration.max}
-                                    onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'max', e.target.value)}
+                                    value={config.view_to}
+                                    onChange={(e) => handleInputChange('view_to', e.target.value)}
                                     className="w-20 text-center border-gray-300 dark:border-gray-600"
                                 />
                             </div>
@@ -209,17 +226,17 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </p>
                                     </div>
                                     <Switcher
-                                        checked={config.continuousInteraction.enabled}
-                                        onChange={(checked) => handleSwitchChange('continuousInteraction', 'enabled', checked)}
+                                        checked={config.enable_continuous}
+                                        onChange={(checked) => handleSwitchChange('enable_continuous', checked)}
                                     />
                                 </div>
                                 
-                                {config.continuousInteraction.enabled && (
+                                {config.enable_continuous && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                         <div>
                                             <Checkbox
-                                                checked={config.continuousInteraction.emotionCycle}
-                                                onChange={(checked) => handleCheckboxChange('continuousInteraction', 'emotionCycle', checked)}
+                                                checked={config.continuous_emotion_cycle}
+                                                onChange={(checked) => handleSwitchChange('continuous_emotion_cycle', checked)}
                                             >
                                                 Bật lô cảm xúc theo chu kỳ
                                             </Checkbox>
@@ -233,16 +250,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.continuousInteraction.cycleDuration.min}
-                                                    onChange={(e) => handleInputChange('continuousInteraction', 'cycleDuration', 'min', e.target.value)}
+                                                    value={config.continuous_gap_from}
+                                                    onChange={(e) => handleInputChange('continuous_gap_from', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.continuousInteraction.cycleDuration.max}
-                                                    onChange={(e) => handleInputChange('continuousInteraction', 'cycleDuration', 'max', e.target.value)}
+                                                    value={config.continuous_gap_to}
+                                                    onChange={(e) => handleInputChange('continuous_gap_to', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -256,8 +273,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.continuousInteraction.percentage}
-                                                onChange={(e) => handlePercentageChange('continuousInteraction', e.target.value)}
+                                                value={config.continuous_percentage}
+                                                onChange={(e) => handleInputChange('continuous_percentage', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -270,16 +287,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.continuousInteraction.waitTime.min}
-                                                    onChange={(e) => handleInputChange('continuousInteraction', 'waitTime', 'min', e.target.value)}
+                                                    value={config.continuous_like_count_from}
+                                                    onChange={(e) => handleInputChange('continuous_like_count_from', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.continuousInteraction.waitTime.max}
-                                                    onChange={(e) => handleInputChange('continuousInteraction', 'waitTime', 'max', e.target.value)}
+                                                    value={config.continuous_like_count_to}
+                                                    onChange={(e) => handleInputChange('continuous_like_count_to', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -300,17 +317,17 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </p>
                                     </div>
                                     <Switcher
-                                        checked={config.emotion.enabled}
-                                        onChange={(checked) => handleSwitchChange('emotion', 'enabled', checked)}
+                                        checked={config.actions.emotion.enable}
+                                        onChange={(checked) => handleSwitchChange('actions.emotion.enable', checked)}
                                     />
                                 </div>
                                 
-                                {config.emotion.enabled && (
+                                {config.actions.emotion.enable && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                         <div>
                                             <Checkbox
-                                                checked={config.emotion.showEmotion}
-                                                onChange={(checked) => handleCheckboxChange('emotion', 'showEmotion', checked)}
+                                                checked={config.actions.emotion.show_emotion}
+                                                onChange={(checked) => handleSwitchChange('actions.emotion.show_emotion', checked)}
                                             >
                                                 Bày tỏ cảm xúc trong live stream
                                             </Checkbox>
@@ -324,8 +341,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.emotion.percentage}
-                                                onChange={(e) => handlePercentageChange('emotion', e.target.value)}
+                                                value={config.actions.emotion.rate}
+                                                onChange={(e) => handleInputChange('actions.emotion.rate', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -338,16 +355,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.emotion.waitTime.min}
-                                                    onChange={(e) => handleInputChange('emotion', 'waitTime', 'min', e.target.value)}
+                                                    value={config.actions.emotion.gap_from}
+                                                    onChange={(e) => handleInputChange('actions.emotion.gap_from', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.emotion.waitTime.max}
-                                                    onChange={(e) => handleInputChange('emotion', 'waitTime', 'max', e.target.value)}
+                                                    value={config.actions.emotion.gap_to}
+                                                    onChange={(e) => handleInputChange('actions.emotion.gap_to', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -371,17 +388,17 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </p>
                                     </div>
                                     <Switcher
-                                        checked={config.follow.enabled}
-                                        onChange={(checked) => handleSwitchChange('follow', 'enabled', checked)}
+                                        checked={config.actions.follow.enable}
+                                        onChange={(checked) => handleSwitchChange('actions.follow.enable', checked)}
                                     />
                                 </div>
                                 
-                                {config.follow.enabled && (
+                                {config.actions.follow.enable && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                         <div>
                                             <Checkbox
-                                                checked={config.follow.autoFollow}
-                                                onChange={(checked) => handleCheckboxChange('follow', 'autoFollow', checked)}
+                                                checked={config.actions.follow.auto_follow}
+                                                onChange={(checked) => handleSwitchChange('actions.follow.auto_follow', checked)}
                                             >
                                                 Tự động follow người phát sóng live
                                             </Checkbox>
@@ -395,8 +412,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.follow.percentage}
-                                                onChange={(e) => handlePercentageChange('follow', e.target.value)}
+                                                value={config.actions.follow.rate}
+                                                onChange={(e) => handleInputChange('actions.follow.rate', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -409,16 +426,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.follow.waitTime.min}
-                                                    onChange={(e) => handleInputChange('follow', 'waitTime', 'min', e.target.value)}
+                                                    value={config.actions.follow.gap_from}
+                                                    onChange={(e) => handleInputChange('actions.follow.gap_from', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.follow.waitTime.max}
-                                                    onChange={(e) => handleInputChange('follow', 'waitTime', 'max', e.target.value)}
+                                                    value={config.actions.follow.gap_to}
+                                                    onChange={(e) => handleInputChange('actions.follow.gap_to', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -439,17 +456,17 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </p>
                                     </div>
                                     <Switcher
-                                        checked={config.addToCart.enabled}
-                                        onChange={(checked) => handleSwitchChange('addToCart', 'enabled', checked)}
+                                        checked={config.enable_add_to_cart || false}
+                                        onChange={(checked) => handleSwitchChange('enable_add_to_cart', checked)}
                                     />
                                 </div>
                                 
-                                {config.addToCart.enabled && (
+                                {config.enable_add_to_cart && (
                                     <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                         <div>
                                             <Checkbox
-                                                checked={config.addToCart.addProduct}
-                                                onChange={(checked) => handleCheckboxChange('addToCart', 'addProduct', checked)}
+                                                checked={config.actions.addToCart.add_product}
+                                                onChange={(checked) => handleSwitchChange('actions.addToCart.add_product', checked)}
                                             >
                                                 Thêm sản phẩm từ live vào giỏ hàng
                                             </Checkbox>
@@ -463,8 +480,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.addToCart.percentage}
-                                                onChange={(e) => handlePercentageChange('addToCart', e.target.value)}
+                                                value={config.actions.addToCart.rate}
+                                                onChange={(e) => handleInputChange('actions.addToCart.rate', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -477,16 +494,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.addToCart.waitTime.min}
-                                                    onChange={(e) => handleInputChange('addToCart', 'waitTime', 'min', e.target.value)}
+                                                    value={config.actions.addToCart.gap_from}
+                                                    onChange={(e) => handleInputChange('actions.addToCart.gap_from', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.addToCart.waitTime.max}
-                                                    onChange={(e) => handleInputChange('addToCart', 'waitTime', 'max', e.target.value)}
+                                                    value={config.actions.addToCart.gap_to}
+                                                    onChange={(e) => handleInputChange('actions.addToCart.gap_to', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>
@@ -508,12 +525,12 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     </p>
                                 </div>
                                 <Switcher
-                                    checked={config.comment.enabled}
-                                    onChange={(checked) => handleSwitchChange('comment', 'enabled', checked)}
+                                    checked={config.enable_comment}
+                                    onChange={(checked) => handleSwitchChange('enable_comment', checked)}
                                 />
                             </div>
                             
-                            {config.comment.enabled && (
+                            {config.enable_comment && (
                                 <div className="border-t border-gray-200 dark:border-gray-600 pt-3 space-y-3">
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
@@ -524,8 +541,8 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.comment.percentage}
-                                                onChange={(e) => handlePercentageChange('comment', e.target.value)}
+                                                value={config.comment_rate}
+                                                onChange={(e) => handleInputChange('comment_rate', e.target.value)}
                                                 className="w-16 text-center text-sm"
                                             />
                                         </div>
@@ -538,16 +555,16 @@ const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.comment.waitTime.min}
-                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'min', e.target.value)}
+                                                    value={config.comment_gap_from}
+                                                    onChange={(e) => handleInputChange('comment_gap_from', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.comment.waitTime.max}
-                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'max', e.target.value)}
+                                                    value={config.comment_gap_to}
+                                                    onChange={(e) => handleInputChange('comment_gap_to', e.target.value)}
                                                     className="w-12 text-center text-sm"
                                                 />
                                             </div>

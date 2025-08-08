@@ -133,7 +133,7 @@ class DetailedPermissionSeeder extends Seeder
         foreach ($permissions as $name => $description) {
             Permission::firstOrCreate(
                 ['name' => $name],
-                ['guard_name' => 'web']
+                ['guard_name' => 'sanctum']
             );
         }
 
@@ -229,7 +229,7 @@ class DetailedPermissionSeeder extends Seeder
         foreach ($roles as $roleName => $roleData) {
             $role = Role::firstOrCreate(
                 ['name' => $roleName],
-                ['guard_name' => 'web']
+                ['guard_name' => 'sanctum']
             );
 
             // Assign permissions to role

@@ -6,29 +6,35 @@ import Input from '@/components/ui/Input'
 
 const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        actionName: action?.name || 'Theo dõi lại',
+        // Cấu hình cơ bản - chuyển sang flat structure
+        name: action?.name || 'Theo dõi lại',
         
         // Số lượng user
-        userCount: { min: 1, max: 1 },
+        user_count_from: 1,
+        user_count_to: 1,
         
         // Giãn cách thời gian
-        interval: { min: 3, max: 5 }
+        interval_from: 3,
+        interval_to: 5
     })
 
-    const handleInputChange = (section, type, value) => {
+    const handleInputChange = (field, value) => {
         setConfig(prev => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                [type]: parseInt(value) || 0
-            }
+            [field]: field.includes('_from') || field.includes('_to') || field.includes('_count')
+                ? parseInt(value) || 0 
+                : value
         }))
     }
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'follow_back',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -60,7 +66,7 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                             Tên hành động
                         </label>
                         <Input
-                            value={config.actionName}
+                            value={config.name}
                             disabled
                             className="bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                         />
@@ -75,16 +81,16 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.userCount.min}
-                                onChange={(e) => handleInputChange('userCount', 'min', e.target.value)}
+                                value={config.user_count_from}
+                                onChange={(e) => handleInputChange('user_count_from', e.target.value)}
                                 className="w-16 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-gray-500 font-medium">-</span>
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.userCount.max}
-                                onChange={(e) => handleInputChange('userCount', 'max', e.target.value)}
+                                value={config.user_count_to}
+                                onChange={(e) => handleInputChange('user_count_to', e.target.value)}
                                 className="w-16 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-sm text-gray-500">user</span>
@@ -100,16 +106,16 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.interval.min}
-                                onChange={(e) => handleInputChange('interval', 'min', e.target.value)}
+                                value={config.interval_from}
+                                onChange={(e) => handleInputChange('interval_from', e.target.value)}
                                 className="w-16 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-gray-500 font-medium">-</span>
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.interval.max}
-                                onChange={(e) => handleInputChange('interval', 'max', e.target.value)}
+                                value={config.interval_to}
+                                onChange={(e) => handleInputChange('interval_to', e.target.value)}
                                 className="w-16 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-sm text-gray-500">giây</span>

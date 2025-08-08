@@ -28,7 +28,12 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'change_name',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -60,8 +65,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
                             <span className="text-red-500">*</span> Tên hành động
                         </label>
                         <Input
-                            value={config.actionName}
-                            onChange={(e) => handleInputChange('actionName', e.target.value)}
+                            value={config.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
                             className="border-gray-300 dark:border-gray-600"
                         />
                     </div>
@@ -72,8 +77,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
                             Lựa chọn
                         </label>
                         <select 
-                            value={config.nameSource}
-                            onChange={(e) => handleInputChange('nameSource', e.target.value)}
+                            value={config.selection_type}
+                            onChange={(e) => handleInputChange('selection_type', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         >
                             <option value="random">Ngẫu nhiên</option>
@@ -91,8 +96,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
                                     type="radio"
                                     name="nameType"
                                     value="vietnamese"
-                                    checked={config.nameType === 'vietnamese'}
-                                    onChange={(e) => handleRadioChange('nameType', e.target.value)}
+                                    checked={config.name_type === 'vietnamese'}
+                                    onChange={(e) => handleRadioChange('name_type', e.target.value)}
                                     className="mr-3 text-blue-500"
                                 />
                                 <span className="text-sm text-gray-700 dark:text-gray-300">Theo tên Việt</span>
@@ -103,8 +108,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
                                     type="radio"
                                     name="nameType"
                                     value="international"
-                                    checked={config.nameType === 'international'}
-                                    onChange={(e) => handleRadioChange('nameType', e.target.value)}
+                                    checked={config.name_type === 'international'}
+                                    onChange={(e) => handleRadioChange('name_type', e.target.value)}
                                     className="mr-3 text-blue-500"
                                 />
                                 <span className="text-sm text-gray-700 dark:text-gray-300">Theo tên Quốc Tế</span>

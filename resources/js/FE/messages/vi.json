@@ -9,6 +9,7 @@
             "transactionAnalytic": "Phân tích giao dịch"
         },
         "concepts": "Khái niệm",
+        "management": "Quản lý",
         "conceptsAi": {
             "ai": "Trí tuệ nhân tạo",
             "chat": "Trò chuyện",
@@ -41,6 +42,18 @@
             "roleManagement": "Quản lý vai trò",
             "roleManagementDesc": "Quản lý vai trò và quyền"
         },
+        "managementUserManagement": {
+            "userManagement": "Quản lý người dùng",
+            "userManagementDesc": "Quản lý người dùng và quyền"
+        },
+        "managementPermissionManagement": {
+            "permissionManagement": "Quản lý quyền",
+            "permissionManagementDesc": "Quản lý quyền"
+        },
+        "managementRoleManagement": {
+            "roleManagement": "Quản lý vai trò",
+            "roleManagementDesc": "Quản lý vai trò và quyền"
+        },
         "conceptsTransactionManagement": {
             "transactionManagement": "Quản lý giao dịch",
             "transactionManagementDesc": "Quản lý tất cả các giao dịch"
@@ -52,6 +65,10 @@
         "conceptsTiktokAccountManagement": {
             "tiktokAccountManagement": "Quản lý tài khoản TikTok",
             "tiktokAccountManagementDesc": "Quản lý tài khoản TikTok"
+        },
+        "conceptsDeviceManagement": {
+            "deviceManagement": "Quản lý thiết bị",
+            "deviceManagementDesc": "Quản lý thiết bị và theo dõi trạng thái"
         },
         "conceptsContentManagement": {
             "contentManagement": "Quản lý nội dung",
@@ -268,6 +285,78 @@
             "sharedComponentDoc": "Thành phần được chia sẻ",
             "utilsDoc": "Tiện ích",
             "changeLog": "Nhật ký thay đổi"
+        }
+    },
+    "deviceManagement": {
+        "title": "Quản lý thiết bị",
+        "subtitle": "Theo dõi và quản lý tất cả thiết bị của bạn một cách hiệu quả",
+        "deviceList": "Danh sách thiết bị",
+        "deviceListDesc": "Quản lý và theo dõi trạng thái của {count} thiết bị",
+        "addDevice": "Thêm thiết bị",
+        "importDevices": "Import thiết bị",
+        "quickActions": "Thao tác nhanh",
+        "recentActivities": "Hoạt động gần đây",
+        "noDevicesSelected": "Chọn thiết bị để thực hiện thao tác nhanh",
+        "noActivities": "Chưa có hoạt động nào",
+        "deviceDetails": "Chi tiết thiết bị",
+        "overview": "Tổng quan",
+        "specifications": "Thông số",
+        "activity": "Hoạt động",
+        "security": "Bảo mật",
+        "deviceInfo": "Thông tin thiết bị",
+        "quickStats": "Thống kê nhanh",
+        "deviceName": "Tên thiết bị",
+        "deviceId": "ID thiết bị",
+        "user": "Người dùng",
+        "status": "Trạng thái",
+        "online": "Trực tuyến",
+        "offline": "Ngoại tuyến",
+        "deviceType": "Loại thiết bị",
+        "platform": "Nền tảng",
+        "lastActive": "Hoạt động cuối",
+        "createdAt": "Ngày tạo",
+        "actions": "Thao tác",
+        "activate": "Kích hoạt",
+        "pause": "Tạm dừng",
+        "block": "Chặn",
+        "edit": "Chỉnh sửa",
+        "delete": "Xóa",
+        "view": "Xem",
+        "refresh": "Làm mới",
+        "settings": "Cài đặt",
+        "totalDevices": "Tổng thiết bị",
+        "onlineDevices": "Đang online",
+        "activeDevices": "Hoạt động",
+        "performance": "Hiệu suất",
+        "onlineRate": "Tỷ lệ online",
+        "servicePlan": "Gói dịch vụ",
+        "osVersion": "Phiên bản OS",
+        "appVersion": "Phiên bản ứng dụng",
+        "ipAddress": "Địa chỉ IP",
+        "userAgent": "User Agent",
+        "serial": "Số serial",
+        "firstLogin": "Đăng nhập đầu",
+        "note": "Ghi chú",
+        "notes": "Ghi chú",
+        "searchPlaceholder": "Tìm kiếm thiết bị...",
+        "filter": "Bộ lọc",
+        "devicesSelected": "thiết bị đã chọn",
+        "clearSelection": "Bỏ chọn",
+        "confirmDelete": "Xác nhận xóa",
+        "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa {count} thiết bị đã chọn?",
+        "confirmSuspend": "Xác nhận tạm dừng",
+        "confirmSuspendMessage": "Bạn có chắc chắn muốn tạm dừng {count} thiết bị đã chọn?",
+        "filterForm": {
+            "deviceName": "Tên thiết bị",
+            "deviceId": "ID thiết bị",
+            "userId": "ID người dùng",
+            "status": "Trạng thái",
+            "deviceType": "Loại thiết bị",
+            "platform": "Nền tảng",
+            "onlineStatus": "Trạng thái online",
+            "clear": "Xóa bộ lọc",
+            "cancel": "Hủy",
+            "apply": "Áp dụng"
         }
     }
 }

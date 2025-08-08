@@ -46,7 +46,12 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
 
     const handleSave = () => {
         if (onSave) {
-            onSave(action, config)
+            const saveData = {
+                action_type: action?.type || 'follow_user',
+                name: config.name,
+                config: config
+            }
+            onSave(action, saveData)
         }
     }
 
@@ -78,8 +83,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                             Tên hành động
                         </label>
                         <Input
-                            value={config.actionName}
-                            onChange={(e) => handleInputChange('actionName', e.target.value)}
+                            value={config.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
                             className="border-gray-300 dark:border-gray-600"
                         />
                     </div>
@@ -92,8 +97,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                                     type="radio"
                                     name="followType"
                                     value="list"
-                                    checked={config.followType === 'list'}
-                                    onChange={(e) => handleRadioChange('followType', e.target.value)}
+                                    checked={config.follow_type === 'list'}
+                                    onChange={(e) => handleRadioChange('follow_type', e.target.value)}
                                     className="mr-2 text-blue-500"
                                 />
                                 <span className="text-sm text-gray-700 dark:text-gray-300">Theo dõi theo danh sách</span>
@@ -104,8 +109,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                                     type="radio"
                                     name="followType"
                                     value="keyword"
-                                    checked={config.followType === 'keyword'}
-                                    onChange={(e) => handleRadioChange('followType', e.target.value)}
+                                    checked={config.follow_type === 'keyword'}
+                                    onChange={(e) => handleRadioChange('follow_type', e.target.value)}
                                     className="mr-2 text-blue-500"
                                 />
                                 <span className="text-sm text-gray-700 dark:text-gray-300">Theo dõi theo từ khóa</span>
@@ -119,8 +124,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                             Danh sách người dùng
                         </label>
                         <textarea
-                            value={config.userList}
-                            onChange={(e) => handleInputChange('userList', e.target.value)}
+                            value={config.user_list}
+                            onChange={(e) => handleInputChange('user_list', e.target.value)}
                             placeholder="uid1&#10;uid2"
                             rows={6}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
@@ -136,16 +141,16 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.userCount.min}
-                                onChange={(e) => handleTimeInputChange('userCount', 'min', e.target.value)}
+                                value={config.count_from}
+                                onChange={(e) => handleInputChange('count_from', e.target.value)}
                                 className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-gray-500 font-medium">-</span>
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.userCount.max}
-                                onChange={(e) => handleTimeInputChange('userCount', 'max', e.target.value)}
+                                value={config.count_to}
+                                onChange={(e) => handleInputChange('count_to', e.target.value)}
                                 className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-sm text-gray-500">user</span>
@@ -161,16 +166,16 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.interval.min}
-                                onChange={(e) => handleTimeInputChange('interval', 'min', e.target.value)}
+                                value={config.gap_from}
+                                onChange={(e) => handleInputChange('gap_from', e.target.value)}
                                 className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-gray-500 font-medium">-</span>
                             <Input
                                 type="number"
                                 min="1"
-                                value={config.interval.max}
-                                onChange={(e) => handleTimeInputChange('interval', 'max', e.target.value)}
+                                value={config.gap_to}
+                                onChange={(e) => handleInputChange('gap_to', e.target.value)}
                                 className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-sm text-gray-500">giây</span>
@@ -181,18 +186,18 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <Checkbox
-                                checked={config.exitOnFollowFail}
-                                onChange={(checked) => handleCheckboxChange('exitOnFollowFail', checked)}
+                                checked={config.exit_on_fail}
+                                onChange={(checked) => handleCheckboxChange('exit_on_fail', checked)}
                             >
                                 Thoát khi follow fail
                             </Checkbox>
-                            {config.exitOnFollowFail && (
+                            {config.exit_on_fail && (
                                 <>
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.followFailLimit}
-                                        onChange={(e) => handleInputChange('followFailLimit', parseInt(e.target.value) || 5)}
+                                        value={config.exit_fail_count}
+                                        onChange={(e) => handleInputChange('exit_fail_count', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                     <span className="text-sm text-gray-500">lượt</span>
@@ -204,8 +209,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                     {/* Mở link bằng tìm kiếm */}
                     <div>
                         <Checkbox
-                            checked={config.openLinkBySearch}
-                            onChange={(checked) => handleCheckboxChange('openLinkBySearch', checked)}
+                            checked={config.open_link_search}
+                            onChange={(checked) => handleCheckboxChange('open_link_search', checked)}
                         >
                             Mở link bằng tìm kiếm
                         </Checkbox>
