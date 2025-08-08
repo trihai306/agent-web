@@ -6,12 +6,13 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Checkbox from '@/components/ui/Checkbox'
 import Select from '@/components/ui/Select'
-import { useTranslations } from 'next-intl'
+
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import importTiktokAccounts from '@/server/actions/tiktok-account/importTiktokAccounts'
 import getDevices from '@/server/actions/device/getDevices'
 import getInteractionScenarios from '@/server/actions/interaction-scenario/getInteractionScenarios'
+import { useTranslations } from 'next-intl'
 
 const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
     const t = useTranslations('tiktokAccountManagement.importModal')

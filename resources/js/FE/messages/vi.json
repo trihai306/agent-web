@@ -53,6 +53,10 @@
             "tiktokAccountManagement": "Quản lý tài khoản TikTok",
             "tiktokAccountManagementDesc": "Quản lý tài khoản TikTok"
         },
+        "conceptsContentManagement": {
+            "contentManagement": "Quản lý nội dung",
+            "contentManagementDesc": "Quản lý nhóm nội dung và nội dung"
+        },
         "conceptsProducts": {
             "products": "Sản phẩm",
             "productList": "Danh sách",

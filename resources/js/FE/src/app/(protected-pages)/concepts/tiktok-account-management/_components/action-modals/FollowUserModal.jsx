@@ -6,44 +6,27 @@ import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 
 const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Follow User Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        actionName: action?.name || 'Theo dõi User',
-        
-        // Loại theo dõi
-        followType: 'list', // 'list' hoặc 'keyword'
-        
-        // Danh sách người dùng
-        userList: 'uid1\\nuid2',
-        
-        // Số lượng user
-        userCount: { min: 1, max: 2 },
-        
-        // Giãn cách
-        interval: { min: 3, max: 5 },
-        
-        // Thoát khi follow fail
-        exitOnFollowFail: false,
-        followFailLimit: 5,
-        
-        // Mở link bằng tìm kiếm
-        openLinkBySearch: false
+        name: "Theo dõi User",
+        follow_type: "list",
+        user_list: "",
+        keyword_list: "",
+        count_from: 1,
+        count_to: 2,
+        gap_from: 3,
+        gap_to: 5,
+        exit_on_fail: false,
+        exit_fail_count: 5,
+        open_link_search: false
     })
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
             ...prev,
-            [field]: value
-        }))
-    }
-
-    const handleTimeInputChange = (section, type, value) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [type]: parseInt(value) || 0
-            }
+            [field]: field.includes('_from') || field.includes('_to') || field.includes('_count')
+                ? parseInt(value) || 0 
+                : value
         }))
     }
 

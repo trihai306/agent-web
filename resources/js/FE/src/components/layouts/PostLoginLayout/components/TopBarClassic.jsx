@@ -9,6 +9,7 @@ import Search from '@/components/template/Search'
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
 import LayoutBase from '@/components//template/LayoutBase'
+import RealtimeStatus from '@/components/template/RealtimeStatus'
 import { LAYOUT_TOP_BAR_CLASSIC } from '@/constants/theme.constant'
 import useCurrentSession from '@/utils/hooks/useCurrentSession'
 import Balance from '@/components/template/Balance'
@@ -38,6 +39,7 @@ const TopBarClassic = ({ children }) => {
                                 <Balance balance={session?.balance} />
                                 <Search />
                                 <LanguageSelector />
+                                <RealtimeStatus />
                                 <Notification />
                                 <SidePanel />
                                 <UserProfileDropdown hoverable={false} />

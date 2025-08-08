@@ -3,6 +3,7 @@
 
 import { apiGetSettings } from '@/services/setting/SettingService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 /**
  * Server Action to fetch settings.
@@ -13,8 +14,7 @@ export default async function getSettings() {
             const resp = await apiGetSettings()
             return { success: true, data: resp }
         } catch (error) {
-            console.error("Error fetching settings:", error)
-            return { success: false, message: "An unexpected error occurred." }
+            return handleServerActionError(error, "Failed to fetch settings.")
         }
     })
 }

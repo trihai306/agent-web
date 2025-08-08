@@ -36,6 +36,29 @@ const validateCredential = async (values) => {
                 }
             }
 
+            // Fetch user permissions after successful login
+            try {
+                const permissionsResponse = await fetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/profile/permissions`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${data.token}`,
+                    },
+                })
+
+                if (permissionsResponse.ok) {
+                    const permissionsData = await permissionsResponse.json()
+                    userObject.permissions = permissionsData.permissions
+                } else {
+                    console.warn('Failed to fetch user permissions')
+                    userObject.permissions = { roles: [], permissions: [], permission_groups: {} }
+                }
+            } catch (error) {
+                console.error('Failed to fetch permissions:', error)
+                userObject.permissions = { roles: [], permissions: [], permission_groups: {} }
+            }
+
             return {
                 ...userObject,
                 token: data.token,

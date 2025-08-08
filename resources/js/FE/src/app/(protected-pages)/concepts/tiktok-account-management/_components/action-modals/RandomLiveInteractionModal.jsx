@@ -7,31 +7,35 @@ import Switcher from '@/components/ui/Switcher'
 import Select from '@/components/ui/Select'
 
 const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Random Live Form
     const [config, setConfig] = useState({
-        // Giới hạn & Thời gian
-        stopCondition: 'live_count', // 'live_count' hoặc 'time_limit'
-        liveCount: { min: 1, max: 2 },
-        timeLimit: { min: 1, max: 3 },
-        watchDuration: { min: 3, max: 5 },
-        
-        // Hành động tùy chọn
-        follow: {
-            enabled: true,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
+        name: "Tương tác live ngẫu nhiên",
+        limit_mode: "video",
+        limit_video_from: 1,
+        limit_video_to: 2,
+        limit_time_from: 30,
+        limit_time_to: 60,
+        view_from: 3,
+        view_to: 5,
+        actions: {
+            follow: {
+                enable: false,
+                rate: 100,
+                gap_from: 1,
+                gap_to: 3
+            },
+            emotion: {
+                enable: false,
+                rate: 100,
+                gap_from: 1,
+                gap_to: 3
+            }
         },
-        emotion: {
-            enabled: true,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        comment: {
-            enabled: true,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 },
-            contentGroup: '',
-            contentTopic: ''
-        }
+        enable_comment: false,
+        comment_rate: 100,
+        comment_gap_from: 1,
+        comment_gap_to: 3,
+        comment_contents: []
     })
 
     // Dropdown options
@@ -61,56 +65,62 @@ const RandomLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         setConfig(prev => ({ ...prev, [field]: value }))
     }
 
-    const handleInputChange = (section, field, type, value) => {
-        if (typeof section === 'string' && field && type) {
+    const handleInputChange = (field, value) => {
+        if (field.startsWith('actions.')) {
+            const [, actionType, actionField] = field.split('.')
             setConfig(prev => ({
                 ...prev,
-                [section]: {
-                    ...prev[section],
-                    [field]: {
-                        ...prev[section][field],
-                        [type]: parseInt(value) || 0
+                actions: {
+                    ...prev.actions,
+                    [actionType]: {
+                        ...prev.actions[actionType],
+                        [actionField]: actionField.includes('_from') || actionField.includes('_to') || actionField === 'rate'
+                            ? parseInt(value) || 0
+                            : value
                     }
                 }
             }))
         } else {
-            // Simple field
             setConfig(prev => ({
                 ...prev,
-                [section]: parseInt(value) || 0
+                [field]: field.includes('_from') || field.includes('_to') || field.includes('_rate') 
+                    ? parseInt(value) || 0 
+                    : value
             }))
         }
     }
 
-    const handleSwitchChange = (section, field, checked) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
+    const handleSwitchChange = (field, checked) => {
+        if (field.startsWith('actions.')) {
+            const [, actionType, actionField] = field.split('.')
+            setConfig(prev => ({
+                ...prev,
+                actions: {
+                    ...prev.actions,
+                    [actionType]: {
+                        ...prev.actions[actionType],
+                        [actionField]: checked
+                    }
+                }
+            }))
+        } else {
+            setConfig(prev => ({
+                ...prev,
                 [field]: checked
-            }
+            }))
+        }
+    }
+
+    const handleCommentContentChange = (contents) => {
+        setConfig(prev => ({
+            ...prev,
+            comment_contents: contents
         }))
     }
 
-    const handlePercentageChange = (section, value) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                percentage: parseInt(value) || 0
-            }
-        }))
-    }
 
-    const handleDropdownChange = (section, field, value) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: value
-            }
-        }))
-    }
+
+
 
     const handleSave = () => {
         if (onSave) {

@@ -68,6 +68,10 @@
             "firstName": "First Name",
             "lastName": "Last Name",
             "phoneNumber": "Phone Number",
+            "status": "Status",
+            "allStatus": "All Status",
+            "active": "Active",
+            "locked": "Locked",
             "cancel": "Cancel",
             "apply": "Apply"
         },

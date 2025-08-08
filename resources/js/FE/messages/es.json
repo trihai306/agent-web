@@ -40,6 +40,18 @@
             "transactionManagement": "Gestión de Transacciones",
             "transactionManagementDesc": "Gestionar todas las transacciones"
         },
+        "conceptsAccountTaskManagement": {
+            "accountTaskManagement": "Gestión de Tareas de Cuenta",
+            "accountTaskManagementDesc": "Gestionar todas las tareas de cuenta"
+        },
+        "conceptsTiktokAccountManagement": {
+            "tiktokAccountManagement": "Gestión de Cuentas TikTok",
+            "tiktokAccountManagementDesc": "Gestionar cuentas de TikTok"
+        },
+        "conceptsContentManagement": {
+            "contentManagement": "Gestión de Contenido",
+            "contentManagementDesc": "Gestionar grupos de contenido y contenidos"
+        },
         "conceptsProducts": {
             "products": "Productos",
             "productList": "Lista",

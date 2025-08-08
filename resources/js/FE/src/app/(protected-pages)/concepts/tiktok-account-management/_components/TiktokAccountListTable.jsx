@@ -8,12 +8,13 @@ import { useTiktokAccountListStore } from '../_store/tiktokAccountListStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
-import { TbEye } from 'react-icons/tb'
+import { TbEye, TbEdit, TbTrash, TbPlayerStop, TbListCheck } from 'react-icons/tb'
 import TiktokAccountListTableTools from './TiktokAccountListTableTools'
 import dayjs from 'dayjs'
 import Dialog from '@/components/ui/Dialog'
 import TiktokAccountDetail from './TiktokAccountDetail'
 import { useTranslations } from 'next-intl'
+
 
 const statusColor = {
     active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
@@ -37,17 +38,63 @@ const UsernameColumn = ({ row, onViewDetail }) => {
     )
 }
 
-const ActionColumn = ({ onViewDetail }) => {
+const ActionColumn = ({ row, onViewDetail, onStopRunning, onViewTasks, onEdit, onDelete }) => {
     const t = useTranslations('tiktokAccountManagement.table')
+    
     return (
         <div className="flex items-center gap-3">
+            {/* Dừng chạy */}
+            <Tooltip title={t('stopRunning')}>
+                <div
+                    className="text-xl cursor-pointer select-none font-semibold"
+                    role="button"
+                    onClick={() => onStopRunning(row)}
+                >
+                    <TbPlayerStop />
+                </div>
+            </Tooltip>
+
+            {/* Xem */}
             <Tooltip title={t('view')}>
                 <div
-                    className={`text-xl cursor-pointer select-none font-semibold`}
+                    className="text-xl cursor-pointer select-none font-semibold"
                     role="button"
-                    onClick={onViewDetail}
+                    onClick={() => onViewDetail(row)}
                 >
                     <TbEye />
+                </div>
+            </Tooltip>
+
+            {/* Tasks */}
+            <Tooltip title={t('tasks')}>
+                <div
+                    className="text-xl cursor-pointer select-none font-semibold"
+                    role="button"
+                    onClick={() => onViewTasks(row)}
+                >
+                    <TbListCheck />
+                </div>
+            </Tooltip>
+
+            {/* Sửa */}
+            <Tooltip title={t('edit')}>
+                <div
+                    className="text-xl cursor-pointer select-none font-semibold"
+                    role="button"
+                    onClick={() => onEdit(row)}
+                >
+                    <TbEdit />
+                </div>
+            </Tooltip>
+
+            {/* Xóa */}
+            <Tooltip title={t('delete')}>
+                <div
+                    className="text-xl cursor-pointer select-none font-semibold"
+                    role="button"
+                    onClick={() => onDelete(row)}
+                >
+                    <TbTrash />
                 </div>
             </Tooltip>
         </div>
@@ -91,6 +138,33 @@ const TiktokAccountListTable = ({
     const handleCloseDetailView = () => {
         setIsDetailViewOpen(false)
         setSelectedTiktokAccountForDetail(null)
+    }
+
+    const handleStopRunning = (tiktokAccount) => {
+        // TODO: Implement stop running logic
+        console.log('Stop running for account:', tiktokAccount)
+        // Có thể gọi API để dừng các hoạt động đang chạy
+    }
+
+    const handleViewTasks = (tiktokAccount) => {
+        // TODO: Implement view tasks logic
+        console.log('View tasks for account:', tiktokAccount)
+        // Có thể mở modal hoặc navigate đến trang tasks
+    }
+
+    const handleEdit = (tiktokAccount) => {
+        // TODO: Implement edit logic
+        console.log('Edit account:', tiktokAccount)
+        // Có thể mở modal edit hoặc navigate đến trang edit
+    }
+
+    const handleDelete = (tiktokAccount) => {
+        // TODO: Implement delete logic
+        console.log('Delete account:', tiktokAccount)
+        // Có thể hiển thị confirmation dialog trước khi xóa
+        if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${tiktokAccount.username}?`)) {
+            // Gọi API xóa
+        }
     }
 
     const onColumnToggle = (accessorKey) => {
@@ -160,16 +234,19 @@ const TiktokAccountListTable = ({
                 id: 'action',
                 cell: (props) => (
                     <ActionColumn
-                        onViewDetail={() =>
-                            handleViewDetails(props.row.original)
-                        }
+                        row={props.row.original}
+                        onViewDetail={() => handleViewDetails(props.row.original)}
+                        onStopRunning={() => handleStopRunning(props.row.original)}
+                        onViewTasks={() => handleViewTasks(props.row.original)}
+                        onEdit={() => handleEdit(props.row.original)}
+                        onDelete={() => handleDelete(props.row.original)}
                     />
                 ),
             }
 
             return [...baseColumns.filter(col => visibleColumns.includes(col.accessorKey)), actionColumn]
         }, 
-        [visibleColumns],
+        [visibleColumns, handleViewDetails, handleStopRunning, handleViewTasks, handleEdit, handleDelete],
     )
 
     const handlePaginationChange = (page) => {

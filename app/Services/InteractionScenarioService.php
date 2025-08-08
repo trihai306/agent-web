@@ -20,6 +20,12 @@ class InteractionScenarioService
     public function getAll(Request $request): LengthAwarePaginator
     {
         $query = $this->interactionScenarioRepository->getModel()->query();
+        
+        // Sắp xếp theo thứ tự mới nhất nếu không có sort parameter
+        if (!$request->has('sort')) {
+            $query->latest();
+        }
+        
         return BaseQuery::for($query, $request)->paginate();
     }
 

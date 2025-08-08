@@ -15,8 +15,11 @@
         "status": "Trạng thái",
         "notes": "Ghi chú",
         "createdDate": "Ngày tạo",
-        "edit": "Chỉnh sửa",
-        "view": "Xem"
+        "edit": "Sửa",
+        "view": "Xem",
+        "stopRunning": "Dừng chạy",
+        "tasks": "Tasks",
+        "delete": "Xóa"
     },
     "detail": {
         "title": "Chi tiết tài khoản TikTok",
@@ -60,21 +63,21 @@
         "apply": "Áp dụng"
     },
     "bulkAction": {
-        "selected": "Đã chọn {{count}} tài khoản",
+        "selected": "Đã chọn {count} tài khoản",
         "delete": "Xóa",
         "suspend": "Tạm khóa",
         "clear": "Bỏ chọn"
     },
     "bulkDeleteConfirm": {
         "title": "Xóa tài khoản đã chọn",
-        "content": "Bạn có chắc chắn muốn xóa {{count}} tài khoản TikTok đã chọn? Hành động này không thể hoàn tác.",
+        "content": "Bạn có chắc chắn muốn xóa {count} tài khoản TikTok đã chọn? Hành động này không thể hoàn tác.",
         "cancel": "Hủy",
         "delete": "Xóa",
         "confirmText": "Có, xóa chúng"
     },
     "bulkSuspendConfirm": {
         "title": "Tạm khóa tài khoản đã chọn",
-        "content": "Bạn có chắc chắn muốn tạm khóa {{count}} tài khoản TikTok đã chọn?",
+        "content": "Bạn có chắc chắn muốn tạm khóa {count} tài khoản TikTok đã chọn?",
         "cancel": "Hủy",
         "suspend": "Tạm khóa",
         "confirmText": "Có, tạm khóa chúng"
@@ -114,9 +117,9 @@
         "scenarios": "Kịch Bản",
         "addScenario": "Thêm",
         "searchPlaceholder": "Tìm kiếm ...",
-        "scenarioDetails": "Kịch bản: {{name}}",
-        "totalActions": "Tổng số hành động: {{count}}",
-        "runTimes": "Đã chạy: {{count}} lần",
+        "scenarioDetails": "Kịch bản: {name}",
+        "totalActions": "Tổng số hành động: {count}",
+        "runTimes": "Đã chạy: {count} lần",
         "addAction": "Thêm Hành Động",
         "actionTable": {
             "id": "ID",

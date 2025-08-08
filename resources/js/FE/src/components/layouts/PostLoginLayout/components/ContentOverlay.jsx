@@ -9,6 +9,7 @@ import Search from '@/components/template/Search'
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
 import LayoutBase from '@/components//template/LayoutBase'
+import RealtimeStatus from '@/components/template/RealtimeStatus'
 import classNames from '@/utils/classNames'
 import useScrollTop from '@/utils/hooks/useScrollTop'
 import { LAYOUT_CONTENT_OVERLAY } from '@/constants/theme.constant'
@@ -111,6 +112,7 @@ const ContentOverlay = ({ children }) => {
                             <>
                                 <Search />
                                 <LanguageSelector />
+                                <RealtimeStatus />
                                 <Notification />
                                 <SidePanel />
                                 <UserProfileDropdown hoverable={false} />

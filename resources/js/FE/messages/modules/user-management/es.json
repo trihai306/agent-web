@@ -68,6 +68,10 @@
             "firstName": "Nombre",
             "lastName": "Apellido",
             "phoneNumber": "Número de teléfono",
+            "status": "Estado",
+            "allStatus": "Todos los estados",
+            "active": "Activo",
+            "locked": "Bloqueado",
             "cancel": "Cancelar",
             "apply": "Aplicar"
         },

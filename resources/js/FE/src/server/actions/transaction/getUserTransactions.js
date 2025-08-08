@@ -3,6 +3,7 @@
 
 import TransactionService from '@/services/transaction/TransactionService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 /**
  * Server Action to fetch user's transactions for billing/settings page.
@@ -19,10 +20,9 @@ export default async function getUserTransactions(params) {
                 meta: resp.meta || {},
             }
         } catch (errors) {
-            console.error("Error fetching user transactions:", errors)
+            const errorResult = handleServerActionError(errors, "Failed to fetch user transactions.")
             return {
-                success: false,
-                message: "An unexpected error occurred while fetching transactions.",
+                ...errorResult,
                 data: [],
                 total: 0,
                 meta: {},

@@ -6,102 +6,60 @@ import Input from '@/components/ui/Input'
 import Switcher from '@/components/ui/Switcher'
 
 const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for User Video Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        usernames: '',
-        
-        // Giới hạn & Thời gian
-        stopCondition: 'video_count', // 'video_count' hoặc 'time_limit'
-        videoCount: { min: 1, max: 5 },
-        timeLimit: { min: 1, max: 3 },
-        watchDuration: { min: 3, max: 10 },
-        
-        // Hành động tùy chọn
-        followUser: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        addToFavorite: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        repost: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        like: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        comment: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 },
-            contentGroup: '',
-            contentTopic: ''
-        }
+        name: "Tương tác video theo User",
+        link_list: "",
+        limit_mode: "video",
+        limit_video_from: 1,
+        limit_video_to: 5,
+        limit_time_from: 30,
+        limit_time_to: 60,
+        view_from: 3,
+        view_to: 10,
+        enable_follow: false,
+        follow_rate: 100,
+        follow_gap_from: 1,
+        follow_gap_to: 3,
+        enable_favorite: false,
+        favorite_rate: 100,
+        favorite_gap_from: 1,
+        favorite_gap_to: 3,
+        enable_repost: false,
+        repost_rate: 100,
+        repost_gap_from: 1,
+        repost_gap_to: 3,
+        enable_emotion: false,
+        emotion_rate: 100,
+        emotion_gap_from: 1,
+        emotion_gap_to: 3,
+        enable_comment: false,
+        comment_rate: 100,
+        comment_gap_from: 1,
+        comment_gap_to: 3,
+        comment_contents: []
     })
 
-    const contentGroupOptions = [
-        { value: '', label: '-- Chọn nhóm nội dung --' },
-        { value: 'entertainment', label: 'Giải trí' },
-        { value: 'education', label: 'Giáo dục' },
-        { value: 'lifestyle', label: 'Lối sống' }
-    ]
-
-    const contentTopicOptions = [
-        { value: '', label: '-- Chọn chủ đề --' },
-        { value: 'music', label: 'Âm nhạc' },
-        { value: 'dance', label: 'Nhảy múa' },
-        { value: 'comedy', label: 'Hài hước' }
-    ]
-
-    const handleSelectChange = (field, value) => {
-        setConfig(prev => ({ ...prev, [field]: value }))
-    }
-
-    const handleInputChange = (section, field, type, value) => {
-        if (typeof section === 'string' && field && type) {
-            setConfig(prev => ({
-                ...prev,
-                [section]: {
-                    ...prev[section],
-                    [field]: {
-                        ...prev[section][field],
-                        [type]: parseInt(value) || 0
-                    }
-                }
-            }))
-        } else {
-            // Simple field
-            setConfig(prev => ({
-                ...prev,
-                [section]: value
-            }))
-        }
-    }
-
-    const handlePercentageChange = (section, value) => {
+    const handleInputChange = (field, value) => {
         setConfig(prev => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                percentage: parseInt(value) || 0
-            }
+            [field]: field.includes('_from') || field.includes('_to') || field.includes('_rate') 
+                ? parseInt(value) || 0 
+                : value
         }))
     }
 
-    const handleSwitchChange = (section, field, checked) => {
+    const handleSwitchChange = (field, checked) => {
         setConfig(prev => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: checked
-            }
+            [field]: checked
+        }))
+    }
+
+    const handleCommentContentChange = (contents) => {
+        setConfig(prev => ({
+            ...prev,
+            comment_contents: contents
         }))
     }
 
@@ -160,8 +118,8 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     Danh sách User
                                 </label>
                                 <textarea
-                                    value={config.usernames}
-                                    onChange={(e) => handleInputChange('usernames', null, null, e.target.value)}
+                                    value={config.link_list}
+                                    onChange={(e) => handleInputChange('link_list', e.target.value)}
                                     placeholder="username1&#10;username2&#10;username3..."
                                     className="w-full h-24 p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
                                 />
@@ -189,10 +147,10 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="radio"
-                                            name="stopCondition"
-                                            value="video_count"
-                                            checked={config.stopCondition === 'video_count'}
-                                            onChange={(e) => handleSelectChange('stopCondition', e.target.value)}
+                                            name="limit_mode"
+                                            value="video"
+                                            checked={config.limit_mode === 'video'}
+                                            onChange={(e) => handleInputChange('limit_mode', e.target.value)}
                                             className="w-4 h-4 text-blue-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -202,10 +160,10 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="radio"
-                                            name="stopCondition"
-                                            value="time_limit"
-                                            checked={config.stopCondition === 'time_limit'}
-                                            onChange={(e) => handleSelectChange('stopCondition', e.target.value)}
+                                            name="limit_mode"
+                                            value="time"
+                                            checked={config.limit_mode === 'time'}
+                                            onChange={(e) => handleInputChange('limit_mode', e.target.value)}
                                             className="w-4 h-4 text-blue-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -219,19 +177,19 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         <Input
                                             type="number"
                                             min="1"
-                                            value={config.videoCount.min}
-                                            onChange={(e) => handleInputChange('videoCount', 'videoCount', 'min', e.target.value)}
+                                            value={config.limit_video_from}
+                                            onChange={(e) => handleInputChange('limit_video_from', e.target.value)}
                                             className="w-20 text-center border-gray-300 dark:border-gray-600"
-                                            disabled={config.stopCondition !== 'video_count'}
+                                            disabled={config.limit_mode !== 'video'}
                                         />
                                         <span className="text-gray-500 font-medium">-</span>
                                         <Input
                                             type="number"
                                             min="1"
-                                            value={config.videoCount.max}
-                                            onChange={(e) => handleInputChange('videoCount', 'videoCount', 'max', e.target.value)}
+                                            value={config.limit_video_to}
+                                            onChange={(e) => handleInputChange('limit_video_to', e.target.value)}
                                             className="w-20 text-center border-gray-300 dark:border-gray-600"
-                                            disabled={config.stopCondition !== 'video_count'}
+                                            disabled={config.limit_mode !== 'video'}
                                         />
                                     </div>
                                     
@@ -239,19 +197,19 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         <Input
                                             type="number"
                                             min="1"
-                                            value={config.timeLimit.min}
-                                            onChange={(e) => handleInputChange('timeLimit', 'timeLimit', 'min', e.target.value)}
+                                            value={config.limit_time_from}
+                                            onChange={(e) => handleInputChange('limit_time_from', e.target.value)}
                                             className="w-20 text-center border-gray-300 dark:border-gray-600"
-                                            disabled={config.stopCondition !== 'time_limit'}
+                                            disabled={config.limit_mode !== 'time'}
                                         />
                                         <span className="text-gray-500 font-medium">-</span>
                                         <Input
                                             type="number"
                                             min="1"
-                                            value={config.timeLimit.max}
-                                            onChange={(e) => handleInputChange('timeLimit', 'timeLimit', 'max', e.target.value)}
+                                            value={config.limit_time_to}
+                                            onChange={(e) => handleInputChange('limit_time_to', e.target.value)}
                                             className="w-20 text-center border-gray-300 dark:border-gray-600"
-                                            disabled={config.stopCondition !== 'time_limit'}
+                                            disabled={config.limit_mode !== 'time'}
                                         />
                                     </div>
                                 </div>
@@ -267,16 +225,16 @@ const UserVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                 <Input
                                     type="number"
                                     min="1"
-                                    value={config.watchDuration.min}
-                                    onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'min', e.target.value)}
+                                    value={config.view_from}
+                                    onChange={(e) => handleInputChange('view_from', e.target.value)}
                                     className="w-20 text-center border-gray-300 dark:border-gray-600"
                                 />
                                 <span className="text-gray-500 font-medium">-</span>
                                 <Input
                                     type="number"
                                     min="1"
-                                    value={config.watchDuration.max}
-                                    onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'max', e.target.value)}
+                                    value={config.view_to}
+                                    onChange={(e) => handleInputChange('view_to', e.target.value)}
                                     className="w-20 text-center border-gray-300 dark:border-gray-600"
                                 />
                             </div>

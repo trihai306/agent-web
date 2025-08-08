@@ -6,96 +6,74 @@ import Input from '@/components/ui/Input'
 import Switcher from '@/components/ui/Switcher'
 
 const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Specific Video Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        videoLinks: '',
-        
-        // Giới hạn & Thời gian
-        videoCount: { min: 1, max: 5 },
-        watchDuration: { min: 3, max: 10 },
-        
-        // Hành động tùy chọn
-        followChannel: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        addToFavorite: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        repost: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        like: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        comment: {
-            enabled: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 },
-            contentGroup: '',
-            contentTopic: ''
-        }
+        name: "Tương tác video chỉ định",
+        link_list: "",
+        limit_video_from: 1,
+        limit_video_to: 5,
+        view_from: 3,
+        view_to: 10,
+        enable_follow: false,
+        follow_rate: 100,
+        follow_gap_from: 1,
+        follow_gap_to: 3,
+        enable_favorite: false,
+        favorite_rate: 100,
+        favorite_gap_from: 1,
+        favorite_gap_to: 3,
+        enable_repost: false,
+        repost_rate: 100,
+        repost_gap_from: 1,
+        repost_gap_to: 3,
+        enable_emotion: false,
+        emotion_rate: 100,
+        emotion_gap_from: 1,
+        emotion_gap_to: 3,
+        enable_comment: false,
+        comment_rate: 100,
+        comment_gap_from: 1,
+        comment_gap_to: 3,
+        comment_contents: []
     })
 
+    // Options for comment dropdowns
     const contentGroupOptions = [
-        { value: '', label: '-- Chọn nhóm nội dung --' },
+        { value: '', label: 'Chọn nhóm nội dung' },
+        { value: 'general', label: 'Chung' },
         { value: 'entertainment', label: 'Giải trí' },
-        { value: 'education', label: 'Giáo dục' },
-        { value: 'lifestyle', label: 'Lối sống' }
+        { value: 'lifestyle', label: 'Lối sống' },
+        { value: 'education', label: 'Giáo dục' }
     ]
 
     const contentTopicOptions = [
-        { value: '', label: '-- Chọn chủ đề --' },
-        { value: 'music', label: 'Âm nhạc' },
-        { value: 'dance', label: 'Nhảy múa' },
-        { value: 'comedy', label: 'Hài hước' }
+        { value: '', label: 'Chọn chủ đề' },
+        { value: 'funny', label: 'Hài hước' },
+        { value: 'motivational', label: 'Động lực' },
+        { value: 'informative', label: 'Thông tin' },
+        { value: 'trending', label: 'Xu hướng' }
     ]
 
-    const handleInputChange = (section, field, type, value) => {
-        if (typeof section === 'string' && field && type) {
-            setConfig(prev => ({
-                ...prev,
-                [section]: {
-                    ...prev[section],
-                    [field]: {
-                        ...prev[section][field],
-                        [type]: parseInt(value) || 0
-                    }
-                }
-            }))
-        } else {
-            // Simple field
-            setConfig(prev => ({
-                ...prev,
-                [section]: value
-            }))
-        }
-    }
-
-    const handlePercentageChange = (section, value) => {
+    const handleInputChange = (field, value) => {
         setConfig(prev => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                percentage: parseInt(value) || 0
-            }
+            [field]: field.includes('_from') || field.includes('_to') || field.includes('_rate') 
+                ? parseInt(value) || 0 
+                : value
         }))
     }
 
-    const handleSwitchChange = (section, field, checked) => {
+    const handleSwitchChange = (field, checked) => {
         setConfig(prev => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: checked
-            }
+            [field]: checked
+        }))
+    }
+
+    const handleCommentContentChange = (contents) => {
+        setConfig(prev => ({
+            ...prev,
+            comment_contents: contents
         }))
     }
 
@@ -154,8 +132,8 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     Danh sách link video
                                 </label>
                                 <textarea
-                                    value={config.videoLinks}
-                                    onChange={(e) => handleInputChange('videoLinks', null, null, e.target.value)}
+                                    value={config.link_list}
+                                    onChange={(e) => handleInputChange('link_list', e.target.value)}
                                     placeholder="https://www.tiktok.com/user/video/123&#10;https://www.tiktok.com/user/video/456&#10;https://www.tiktok.com/user/video/789"
                                     className="w-full h-24 p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
                                 />
@@ -182,16 +160,16 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.videoCount.min}
-                                        onChange={(e) => handleInputChange('videoCount', 'videoCount', 'min', e.target.value)}
+                                        value={config.limit_video_from}
+                                        onChange={(e) => handleInputChange('limit_video_from', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                     <span className="text-gray-500 font-medium">-</span>
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.videoCount.max}
-                                        onChange={(e) => handleInputChange('videoCount', 'videoCount', 'max', e.target.value)}
+                                        value={config.limit_video_to}
+                                        onChange={(e) => handleInputChange('limit_video_to', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                 </div>
@@ -205,16 +183,16 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.watchDuration.min}
-                                        onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'min', e.target.value)}
+                                        value={config.view_from}
+                                        onChange={(e) => handleInputChange('view_from', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                     <span className="text-gray-500 font-medium">-</span>
                                     <Input
                                         type="number"
                                         min="1"
-                                        value={config.watchDuration.max}
-                                        onChange={(e) => handleInputChange('watchDuration', 'watchDuration', 'max', e.target.value)}
+                                        value={config.view_to}
+                                        onChange={(e) => handleInputChange('view_to', e.target.value)}
                                         className="w-20 text-center border-gray-300 dark:border-gray-600"
                                     />
                                 </div>
@@ -241,15 +219,15 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </h6>
                                     </div>
                                     <Switcher
-                                        checked={config.followChannel.enabled}
-                                        onChange={(checked) => handleSwitchChange('followChannel', 'enabled', checked)}
+                                        checked={config.enable_follow}
+                                        onChange={(checked) => handleSwitchChange('enable_follow', checked)}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                                     Tự động follow kênh đăng video.
                                 </p>
                                 
-                                {config.followChannel.enabled && (
+                                {config.enable_follow && (
                                     <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -259,8 +237,8 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.followChannel.percentage}
-                                                onChange={(e) => handlePercentageChange('followChannel', e.target.value)}
+                                                value={config.follow_rate}
+                                                onChange={(e) => handleInputChange('follow_rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -273,16 +251,16 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.followChannel.waitTime.min}
-                                                    onChange={(e) => handleInputChange('followChannel', 'waitTime', 'min', e.target.value)}
+                                                    value={config.follow_gap_from}
+                                                    onChange={(e) => handleInputChange('follow_gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.followChannel.waitTime.max}
-                                                    onChange={(e) => handleInputChange('followChannel', 'waitTime', 'max', e.target.value)}
+                                                    value={config.follow_gap_to}
+                                                    onChange={(e) => handleInputChange('follow_gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -301,15 +279,15 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </h6>
                                     </div>
                                     <Switcher
-                                        checked={config.addToFavorite.enabled}
-                                        onChange={(checked) => handleSwitchChange('addToFavorite', 'enabled', checked)}
+                                        checked={config.enable_favorite}
+                                        onChange={(checked) => handleSwitchChange('enable_favorite', checked)}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                                     Lưu video vào danh sách yêu thích.
                                 </p>
                                 
-                                {config.addToFavorite.enabled && (
+                                {config.enable_favorite && (
                                     <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -319,8 +297,8 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.addToFavorite.percentage}
-                                                onChange={(e) => handlePercentageChange('addToFavorite', e.target.value)}
+                                                value={config.favorite_rate}
+                                                onChange={(e) => handleInputChange('favorite_rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -333,16 +311,16 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.addToFavorite.waitTime.min}
-                                                    onChange={(e) => handleInputChange('addToFavorite', 'waitTime', 'min', e.target.value)}
+                                                    value={config.favorite_gap_from}
+                                                    onChange={(e) => handleInputChange('favorite_gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.addToFavorite.waitTime.max}
-                                                    onChange={(e) => handleInputChange('addToFavorite', 'waitTime', 'max', e.target.value)}
+                                                    value={config.favorite_gap_to}
+                                                    onChange={(e) => handleInputChange('favorite_gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -361,15 +339,15 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </h6>
                                     </div>
                                     <Switcher
-                                        checked={config.repost.enabled}
-                                        onChange={(checked) => handleSwitchChange('repost', 'enabled', checked)}
+                                        checked={config.enable_repost}
+                                        onChange={(checked) => handleSwitchChange('enable_repost', checked)}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                                     Chia sẻ lại video lên trang cá nhân của bạn.
                                 </p>
                                 
-                                {config.repost.enabled && (
+                                {config.enable_repost && (
                                     <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -379,8 +357,8 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.repost.percentage}
-                                                onChange={(e) => handlePercentageChange('repost', e.target.value)}
+                                                value={config.repost_rate}
+                                                onChange={(e) => handleInputChange('repost_rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -393,16 +371,16 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.repost.waitTime.min}
-                                                    onChange={(e) => handleInputChange('repost', 'waitTime', 'min', e.target.value)}
+                                                    value={config.repost_gap_from}
+                                                    onChange={(e) => handleInputChange('repost_gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.repost.waitTime.max}
-                                                    onChange={(e) => handleInputChange('repost', 'waitTime', 'max', e.target.value)}
+                                                    value={config.repost_gap_to}
+                                                    onChange={(e) => handleInputChange('repost_gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -421,15 +399,15 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </h6>
                                     </div>
                                     <Switcher
-                                        checked={config.like.enabled}
-                                        onChange={(checked) => handleSwitchChange('like', 'enabled', checked)}
+                                        checked={config.enable_emotion}
+                                        onChange={(checked) => handleSwitchChange('enable_emotion', checked)}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                                     Bấy tỏ cảm xúc bằng cách thả tim video.
                                 </p>
                                 
-                                {config.like.enabled && (
+                                {config.enable_emotion && (
                                     <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -439,8 +417,8 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.like.percentage}
-                                                onChange={(e) => handlePercentageChange('like', e.target.value)}
+                                                value={config.emotion_rate}
+                                                onChange={(e) => handleInputChange('emotion_rate', e.target.value)}
                                                 className="w-20 text-center text-sm"
                                             />
                                         </div>
@@ -453,16 +431,16 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.like.waitTime.min}
-                                                    onChange={(e) => handleInputChange('like', 'waitTime', 'min', e.target.value)}
+                                                    value={config.emotion_gap_from}
+                                                    onChange={(e) => handleInputChange('emotion_gap_from', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.like.waitTime.max}
-                                                    onChange={(e) => handleInputChange('like', 'waitTime', 'max', e.target.value)}
+                                                    value={config.emotion_gap_to}
+                                                    onChange={(e) => handleInputChange('emotion_gap_to', e.target.value)}
                                                     className="w-16 text-center text-sm"
                                                 />
                                             </div>
@@ -482,15 +460,15 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     </h6>
                                 </div>
                                 <Switcher
-                                    checked={config.comment.enabled}
-                                    onChange={(checked) => handleSwitchChange('comment', 'enabled', checked)}
+                                    checked={config.enable_comment}
+                                    onChange={(checked) => handleSwitchChange('enable_comment', checked)}
                                 />
                             </div>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                                 Tự động bình luận video với nội dung soạn sẵn.
                             </p>
                             
-                            {config.comment.enabled && (
+                            {config.enable_comment && (
                                 <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
                                     <div className="grid grid-cols-3 gap-4 mb-4">
                                         <div>
@@ -501,8 +479,8 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={config.comment.percentage}
-                                                onChange={(e) => handlePercentageChange('comment', e.target.value)}
+                                                value={config.comment_rate}
+                                                onChange={(e) => handleInputChange('comment_rate', e.target.value)}
                                                 className="text-center text-sm"
                                             />
                                         </div>
@@ -515,56 +493,35 @@ const SpecificVideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.comment.waitTime.min}
-                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'min', e.target.value)}
+                                                    value={config.comment_gap_from}
+                                                    onChange={(e) => handleInputChange('comment_gap_from', e.target.value)}
                                                     className="w-full text-center text-sm"
                                                 />
                                                 <span className="text-xs text-gray-500">-</span>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={config.comment.waitTime.max}
-                                                    onChange={(e) => handleInputChange('comment', 'waitTime', 'max', e.target.value)}
+                                                    value={config.comment_gap_to}
+                                                    onChange={(e) => handleInputChange('comment_gap_to', e.target.value)}
                                                     className="w-full text-center text-sm"
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Nhóm nội dung
-                                            </label>
-                                            <select
-                                                value={config.comment.contentGroup}
-                                                onChange={(e) => handleSwitchChange('comment', 'contentGroup', e.target.value)}
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                            >
-                                                {contentGroupOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Chủ đề nội dung (0 bình luận)
-                                            </label>
-                                            <select
-                                                value={config.comment.contentTopic}
-                                                onChange={(e) => handleSwitchChange('comment', 'contentTopic', e.target.value)}
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                            >
-                                                {contentTopicOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Nội dung bình luận ({config.comment_contents.length} bình luận)
+                                        </label>
+                                        <textarea
+                                            value={config.comment_contents.join('\n')}
+                                            onChange={(e) => handleCommentContentChange(e.target.value.split('\n').filter(line => line.trim()))}
+                                            placeholder="Nhập nội dung bình luận, mỗi dòng một bình luận&#10;Ví dụ:&#10;Video hay quá!&#10;Cảm ơn bạn đã chia sẻ&#10;Rất bổ ích"
+                                            className="w-full h-24 p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+                                        />
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            Mỗi dòng một nội dung bình luận. Hệ thống sẽ chọn ngẫu nhiên từ danh sách này.
+                                        </p>
                                     </div>
                                 </div>
                             )}

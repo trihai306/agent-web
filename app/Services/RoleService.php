@@ -96,4 +96,21 @@ class RoleService
         }
         return $this->roleRepository->deleteByIds($ids);
     }
+
+    public function getStatistics(): array
+    {
+        $totalRoles = Role::count();
+        $totalPermissions = Role::with('permissions')->get()->sum(function ($role) {
+            return $role->permissions->count();
+        });
+        $usersWithRoles = \App\Models\User::whereHas('roles')->count();
+        $recentlyCreated = Role::where('created_at', '>=', now()->subDays(7))->count();
+
+        return [
+            'totalRoles' => $totalRoles,
+            'totalPermissions' => $totalPermissions,
+            'usersWithRoles' => $usersWithRoles,
+            'recentlyCreated' => $recentlyCreated,
+        ];
+    }
 }

@@ -7,97 +7,94 @@ import Switcher from '@/components/ui/Switcher'
 import Checkbox from '@/components/ui/Checkbox'
 
 const SpecificLiveInteractionModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Specific Live Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        liveUrl: '',
-        
-        // Thời gian xem
-        watchDuration: { min: 3, max: 5 },
-        
-        // Hành động tùy chọn
-        continuousInteraction: {
-            enabled: true,
-            emotionCycle: true,
-            cycleDuration: { min: 5, max: 10 },
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        emotion: {
-            enabled: true,
-            showEmotion: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        follow: {
-            enabled: false,
-            autoFollow: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        addToCart: {
-            enabled: false,
-            addProduct: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
-        },
-        comment: {
-            enabled: false,
-            autoComment: false,
-            percentage: 100,
-            waitTime: { min: 1, max: 3 }
+        name: "Tương tác live chỉ định",
+        live_url: "",
+        view_from: 3,
+        view_to: 5,
+        enable_continuous: false,
+        continuous_gap_from: 5,
+        continuous_gap_to: 10,
+        continuous_like_enable: false,
+        continuous_like_count_from: 10,
+        continuous_like_count_to: 20,
+        continuous_comment_enable: false,
+        enable_comment: false,
+        comment_rate: 100,
+        comment_gap_from: 1,
+        comment_gap_to: 3,
+        comment_contents: [],
+        actions: {
+            emotion: {
+                enable: false,
+                rate: 100,
+                gap_from: 1,
+                gap_to: 3
+            },
+            follow: {
+                enable: false,
+                rate: 100,
+                gap_from: 1,
+                gap_to: 3
+            }
         }
     })
 
-    const handleInputChange = (section, field, type, value) => {
-        if (typeof section === 'string' && field && type) {
+    const handleInputChange = (field, value) => {
+        if (field.startsWith('actions.')) {
+            const [, actionType, actionField] = field.split('.')
             setConfig(prev => ({
                 ...prev,
-                [section]: {
-                    ...prev[section],
-                    [field]: {
-                        ...prev[section][field],
-                        [type]: parseInt(value) || 0
+                actions: {
+                    ...prev.actions,
+                    [actionType]: {
+                        ...prev.actions[actionType],
+                        [actionField]: actionField.includes('_from') || actionField.includes('_to') || actionField === 'rate'
+                            ? parseInt(value) || 0
+                            : value
                     }
                 }
             }))
         } else {
-            // Simple field
             setConfig(prev => ({
                 ...prev,
-                [section]: value
+                [field]: field.includes('_from') || field.includes('_to') || field.includes('_rate') || field.includes('_count')
+                    ? parseInt(value) || 0 
+                    : value
             }))
         }
     }
 
-    const handleSwitchChange = (section, field, checked) => {
+    const handleSwitchChange = (field, checked) => {
+        if (field.startsWith('actions.')) {
+            const [, actionType, actionField] = field.split('.')
+            setConfig(prev => ({
+                ...prev,
+                actions: {
+                    ...prev.actions,
+                    [actionType]: {
+                        ...prev.actions[actionType],
+                        [actionField]: checked
+                    }
+                }
+            }))
+        } else {
+            setConfig(prev => ({
+                ...prev,
+                [field]: checked
+            }))
+        }
+    }
+
+    const handleCommentContentChange = (contents) => {
         setConfig(prev => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: checked
-            }
+            comment_contents: contents
         }))
     }
 
-    const handleCheckboxChange = (section, field, checked) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: checked
-            }
-        }))
-    }
 
-    const handlePercentageChange = (section, value) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                percentage: parseInt(value) || 0
-            }
-        }))
-    }
 
     const handleSave = () => {
         if (onSave) {

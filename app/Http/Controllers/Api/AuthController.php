@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
+use App\Helpers\PermissionHelper;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
@@ -173,5 +174,21 @@ class AuthController extends Controller
         $status = $this->authService->resetPassword($request->all());
         // The password has been successfully reset.
         return response()->json(['message' => $status]);
+    }
+
+    /**
+     * Get user permissions
+     *
+     * Returns the current user's roles and permissions.
+     * @authenticated
+     */
+    public function getUserPermissions()
+    {
+        $permissions = PermissionHelper::getFormattedUserPermissions();
+        
+        return response()->json([
+            'user' => auth()->user()->only(['id', 'name', 'email', 'first_name', 'last_name']),
+            'permissions' => $permissions
+        ]);
     }
 }

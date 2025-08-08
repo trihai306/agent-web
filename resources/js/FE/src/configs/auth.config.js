@@ -35,8 +35,8 @@ export default {
                 token.accessToken = user.token
                 token.first_name = user.first_name
                 token.last_name = user.last_name
-                token.roles = user.roles
-                token.permissions = user.permissions
+                token.roles = user.roles || []
+                token.permissions = user.permissions || { roles: [], permissions: [], permission_groups: {} }
                 // Set a long expiration time for simplicity, as we don't have refresh tokens yet
                 token.accessTokenExpires = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
             }
@@ -59,8 +59,9 @@ export default {
                 session.accessToken = token.accessToken
                 session.user.first_name = token.first_name
                 session.user.last_name = token.last_name
-                session.user.roles = token.roles?.map((role) => role.name) || []
-                session.user.permissions = token.permissions?.map((p) => p.name) || []
+                session.user.roles = token.permissions?.roles || []
+                session.user.permissions = token.permissions?.permissions || []
+                session.user.permission_groups = token.permissions?.permission_groups || {}
             }
             return session
         },

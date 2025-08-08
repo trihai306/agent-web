@@ -236,4 +236,38 @@ class TiktokAccountController extends Controller
 
         return response()->json($result);
     }
+
+    /**
+     * Get TikTok account statistics
+     *
+     * Retrieves statistical data about TikTok accounts including totals, 
+     * active/inactive counts, running tasks, and percentage changes.
+     * 
+     * @response {
+     *   "data": {
+     *     "totalAccounts": 156,
+     *     "activeAccounts": 142,
+     *     "inactiveAccounts": 14,
+     *     "runningTasks": 23,
+     *     "totalAccountsChange": "+12%",
+     *     "totalAccountsChangeType": "increase",
+     *     "activeAccountsChange": "+5%",
+     *     "activeAccountsChangeType": "increase",
+     *     "inactiveAccountsChange": "-8%",
+     *     "inactiveAccountsChangeType": "decrease",
+     *     "runningTasksChange": "+15%",
+     *     "runningTasksChangeType": "increase"
+     *   }
+     * }
+     */
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+        
+        $stats = $this->tiktokAccountService->getStatistics($user);
+        
+        return response()->json([
+            'data' => $stats
+        ]);
+    }
 }

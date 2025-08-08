@@ -3,6 +3,7 @@
 
 import { apiGetSettingsBilling } from '@/services/account/AccountService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 /**
  * Server Action to fetch billing settings.
@@ -13,8 +14,7 @@ export default async function getSettingsBilling() {
             const resp = await apiGetSettingsBilling()
             return { success: true, data: resp }
         } catch (error) {
-            console.error("Error fetching billing settings:", error)
-            return { success: false, message: "An unexpected error occurred." }
+            return handleServerActionError(error, "Failed to fetch billing settings.")
         }
     })
 }

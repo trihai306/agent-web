@@ -16,7 +16,10 @@
         "notes": "Notes",
         "createdDate": "Created Date",
         "edit": "Edit",
-        "view": "View"
+        "view": "View",
+        "stopRunning": "Stop Running",
+        "tasks": "Tasks",
+        "delete": "Delete"
     },
     "detail": {
         "title": "TikTok Account Details",
@@ -108,6 +111,24 @@
         "analytics": "Interaction Analytics",
         "analyticsDescription": "View statistics and analysis of user interactions",
         "viewAnalytics": "View Analytics"
+    },
+    "interactionConfigModal": {
+        "title": "TikTok Interaction Configuration",
+        "createScenario": "Create New Scenario",
+        "editScenario": "Edit Scenario",
+        "deleteDialog": {
+            "scenarioTitle": "Delete Scenario",
+            "scenarioContent": "Are you sure you want to delete scenario",
+            "scenarioWarning": "This action cannot be undone.",
+            "actionTitle": "Delete Action",
+            "actionContent": "Are you sure you want to delete action",
+            "actionWarning": "This action cannot be undone.",
+            "cancel": "Cancel",
+            "confirm": "Delete"
+        },
+        "save": "Save",
+        "cancel": "Cancel",
+        "close": "Close"
     },
     "importModal": {
         "title": "Import Accounts",

@@ -6,15 +6,13 @@ import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 
 const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Update Avatar Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        actionName: action?.name || 'Cập nhật Ảnh đại diện',
-        
-        // Ảnh
-        imageSource: 'random', // 'random', 'gallery', 'camera', 'url'
-        
-        // Xóa ảnh đã sử dụng
-        removeUsedImage: false
+        name: "Cập nhật Ảnh đại diện",
+        image_source: "",
+        delete_used_images: false,
+        image_paths: [],
+        image_urls: []
     })
 
     const handleInputChange = (field, value) => {
@@ -28,6 +26,13 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
         setConfig(prev => ({
             ...prev,
             [field]: checked
+        }))
+    }
+
+    const handleArrayChange = (field, values) => {
+        setConfig(prev => ({
+            ...prev,
+            [field]: values
         }))
     }
 

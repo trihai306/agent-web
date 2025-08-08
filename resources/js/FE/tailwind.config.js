@@ -55,6 +55,23 @@ const config = {
 			'2xl': '1536px',
 		},
 		extend: {
+			scale: {
+				'102': '1.02',
+			},
+			animation: {
+				'fade-in': 'fadeIn 0.5s ease-in-out',
+				'slide-in-right': 'slideInRight 0.5s ease-in-out',
+			},
+			keyframes: {
+				fadeIn: {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' },
+				},
+				slideInRight: {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(0)' },
+				},
+			},
 			colors: {
 				'primary': 'var(--primary)',
 				'primary-deep': 'var(--primary-deep)',

@@ -22,7 +22,7 @@ class UserController extends Controller
     public function __construct(UserService $userService)
     {
         $this->userService = $userService;
-        // $this->middleware('role:admin'); // Uncomment to restrict access to admins
+        // Permission middleware is now handled in routes
     }
 
     /**
@@ -56,6 +56,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        // Check permission for creating users
+        if (!auth()->user()->can('users.create')) {
+            return response()->json(['message' => 'Forbidden. You do not have permission to create users.'], 403);
+        }
+
         $validated = $request->validate([
             /**
              * The name of the user.
@@ -118,6 +123,11 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        // Check permission for editing users
+        if (!auth()->user()->can('users.edit')) {
+            return response()->json(['message' => 'Forbidden. You do not have permission to edit users.'], 403);
+        }
+
         $validated = $request->validate([
             /**
              * The new name of the user.
@@ -168,6 +178,11 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        // Check permission for deleting users
+        if (!auth()->user()->can('users.delete')) {
+            return response()->json(['message' => 'Forbidden. You do not have permission to delete users.'], 403);
+        }
+
         $this->userService->deleteUser($user);
 
         return response()->json(null, 204);
@@ -232,5 +247,31 @@ class UserController extends Controller
         $count = $this->userService->updateStatusMultiple($validated['ids'], $validated['status']);
 
         return response()->json(['message' => "Successfully updated {$count} users to status '{$validated['status']}'."]);
+    }
+
+    /**
+     * Get user statistics
+     *
+     * Retrieves statistical data about users including totals, active/locked counts, 
+     * recent registrations, total balance, and users with roles.
+     * 
+     * @response {
+     *   "data": {
+     *     "totalUsers": 1250,
+     *     "activeUsers": 1180,
+     *     "lockedUsers": 70,
+     *     "recentUsers": 25,
+     *     "totalBalance": 125000.50,
+     *     "usersWithRoles": 890
+     *   }
+     * }
+     */
+    public function stats(Request $request)
+    {
+        $stats = $this->userService->getStatistics();
+        
+        return response()->json([
+            'data' => $stats
+        ]);
     }
 }

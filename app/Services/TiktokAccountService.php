@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\TiktokAccount;
+use App\Models\AccountTask;
 use App\Queries\BaseQuery;
 use App\Repositories\TiktokAccountRepositoryInterface;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class TiktokAccountService
 {
@@ -154,5 +156,211 @@ class TiktokAccountService
             'processed_accounts' => $processedAccounts,
             'message' => "Đã nhập thành công {$importedCount} tài khoản" . (count($errors) > 0 ? " với " . count($errors) . " lỗi" : "")
         ];
+    }
+
+    /**
+     * Get TikTok account statistics
+     *
+     * @param \App\Models\User $user
+     * @return array
+     */
+    public function getStatistics($user)
+    {
+        $query = TiktokAccount::query();
+        
+        // Nếu không phải admin, chỉ lấy tài khoản của user hiện tại
+        if (!$user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        // Lấy thống kê hiện tại
+        $totalAccounts = $query->count();
+        $activeAccounts = (clone $query)->where('status', 'active')->count();
+        $inactiveAccounts = (clone $query)->where('status', 'inactive')->count();
+        $suspendedAccounts = (clone $query)->where('status', 'suspended')->count();
+
+        // Tính toán running tasks (giả sử có bảng account_tasks hoặc tương tự)
+        // Tạm thời sử dụng active accounts làm running tasks
+        $runningTasks = $activeAccounts;
+
+        // Lấy thống kê tháng trước để tính % thay đổi
+        $lastMonth = now()->subMonth();
+        $lastMonthQuery = TiktokAccount::query()
+            ->where('created_at', '<=', $lastMonth->endOfMonth());
+            
+        if (!$user->hasRole('admin')) {
+            $lastMonthQuery->where('user_id', $user->id);
+        }
+
+        $lastMonthTotal = $lastMonthQuery->count();
+        $lastMonthActive = (clone $lastMonthQuery)->where('status', 'active')->count();
+        $lastMonthInactive = (clone $lastMonthQuery)->where('status', 'inactive')->count();
+        $lastMonthRunning = $lastMonthActive; // Tạm thời
+
+        // Tính % thay đổi
+        $totalChange = $this->calculatePercentageChange($lastMonthTotal, $totalAccounts);
+        $activeChange = $this->calculatePercentageChange($lastMonthActive, $activeAccounts);
+        $inactiveChange = $this->calculatePercentageChange($lastMonthInactive, $inactiveAccounts);
+        $runningChange = $this->calculatePercentageChange($lastMonthRunning, $runningTasks);
+
+        return [
+            'totalAccounts' => $totalAccounts,
+            'activeAccounts' => $activeAccounts,
+            'inactiveAccounts' => $inactiveAccounts,
+            'suspendedAccounts' => $suspendedAccounts,
+            'runningTasks' => $runningTasks,
+            
+            // Change data
+            'totalAccountsChange' => $totalChange['percentage'],
+            'totalAccountsChangeType' => $totalChange['type'],
+            'activeAccountsChange' => $activeChange['percentage'],
+            'activeAccountsChangeType' => $activeChange['type'],
+            'inactiveAccountsChange' => $inactiveChange['percentage'],
+            'inactiveAccountsChangeType' => $inactiveChange['type'],
+            'runningTasksChange' => $runningChange['percentage'],
+            'runningTasksChangeType' => $runningChange['type'],
+        ];
+    }
+
+    /**
+     * Calculate percentage change between two values
+     *
+     * @param int $oldValue
+     * @param int $newValue
+     * @return array
+     */
+    private function calculatePercentageChange($oldValue, $newValue)
+    {
+        if ($oldValue == 0) {
+            if ($newValue > 0) {
+                return ['percentage' => '+100%', 'type' => 'increase'];
+            }
+            return ['percentage' => null, 'type' => 'neutral'];
+        }
+
+        $change = (($newValue - $oldValue) / $oldValue) * 100;
+        $changeRounded = round($change);
+
+        if ($changeRounded > 0) {
+            return ['percentage' => "+{$changeRounded}%", 'type' => 'increase'];
+        } elseif ($changeRounded < 0) {
+            return ['percentage' => "{$changeRounded}%", 'type' => 'decrease'];
+        } else {
+            return ['percentage' => "0%", 'type' => 'neutral'];
+        }
+    }
+
+    /**
+     * Get recent activities for user's TikTok accounts
+     *
+     * @param \App\Models\User $user
+     * @return array
+     */
+    public function getRecentActivities($user)
+    {
+        // Get user's TikTok account IDs
+        $accountIds = TiktokAccount::where('user_id', $user->id)->pluck('id');
+
+        // Get recent account tasks
+        $recentTasks = AccountTask::with(['tiktokAccount', 'interactionScenario'])
+            ->whereIn('tiktok_account_id', $accountIds)
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        $activities = [];
+        
+        foreach ($recentTasks as $task) {
+            $timeAgo = $this->getTimeAgo($task->updated_at);
+            $action = $this->getActionDescription($task);
+            $status = $this->getStatusType($task->status);
+
+            $activities[] = [
+                'id' => $task->id,
+                'username' => '@' . ($task->tiktokAccount->username ?? 'unknown'),
+                'action' => $action,
+                'status' => $status,
+                'time' => $timeAgo,
+                'scenario_name' => $task->interactionScenario->name ?? null,
+                'task_type' => $task->task_type,
+                'task_status' => $task->status
+            ];
+        }
+
+        return $activities;
+    }
+
+    /**
+     * Get human readable action description
+     *
+     * @param AccountTask $task
+     * @return string
+     */
+    private function getActionDescription($task)
+    {
+        $scenarioName = $task->interactionScenario->name ?? 'Kịch bản';
+        
+        switch ($task->status) {
+            case 'pending':
+                return "Chờ thực hiện {$scenarioName}";
+            case 'running':
+                return "Đang thực hiện {$scenarioName}";
+            case 'completed':
+                return "Hoàn thành {$scenarioName}";
+            case 'failed':
+                return "Lỗi khi thực hiện {$scenarioName}";
+            case 'cancelled':
+                return "Đã hủy {$scenarioName}";
+            default:
+                return "Thực hiện {$scenarioName}";
+        }
+    }
+
+    /**
+     * Get status type for UI
+     *
+     * @param string $status
+     * @return string
+     */
+    private function getStatusType($status)
+    {
+        switch ($status) {
+            case 'completed':
+                return 'success';
+            case 'failed':
+                return 'error';
+            case 'running':
+                return 'running';
+            case 'pending':
+                return 'pending';
+            case 'cancelled':
+                return 'cancelled';
+            default:
+                return 'unknown';
+        }
+    }
+
+    /**
+     * Get time ago string
+     *
+     * @param Carbon $datetime
+     * @return string
+     */
+    private function getTimeAgo($datetime)
+    {
+        $now = Carbon::now();
+        $diff = $datetime->diffInMinutes($now);
+
+        if ($diff < 1) {
+            return 'Vừa xong';
+        } elseif ($diff < 60) {
+            return $diff . ' phút trước';
+        } elseif ($diff < 1440) { // 24 hours
+            $hours = floor($diff / 60);
+            return $hours . ' giờ trước';
+        } else {
+            $days = floor($diff / 1440);
+            return $days . ' ngày trước';
+        }
     }
 }

@@ -14,8 +14,18 @@ export async function withAuthCheck(actionLogic) {
         // Execute the actual logic
         return await actionLogic()
     } catch (error) {
+        // Log the error for debugging
+        console.log('withAuthCheck caught error:', {
+            name: error.name,
+            message: error.message,
+            isUnauthorizedError: error instanceof UnauthorizedError,
+            status: error?.response?.status,
+            isAxiosError: error.name === 'AxiosError'
+        })
+        
         // If it's the specific error we're looking for, redirect.
         if (error instanceof UnauthorizedError) {
+            console.log('Redirecting to /force-logout due to UnauthorizedError')
             redirect('/force-logout')
         }
         

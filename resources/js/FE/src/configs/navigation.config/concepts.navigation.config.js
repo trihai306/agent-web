@@ -33,6 +33,7 @@ const conceptsNavigationConfig = [
                 icon: 'userManagement',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [ADMIN],
+                permissions: ['users.view'],
                 meta: {
                     description: {
                         translateKey: 'nav.conceptsUserManagement.userManagementDesc',
@@ -49,6 +50,7 @@ const conceptsNavigationConfig = [
                 icon: 'permission',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [ADMIN],
+                permissions: ['permissions.view'],
                 meta: {
                     description: {
                         translateKey: 'nav.conceptsPermissionManagement.permissionManagementDesc',
@@ -65,6 +67,7 @@ const conceptsNavigationConfig = [
                 icon: 'accountRoleAndPermission',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [ADMIN],
+                permissions: ['roles.view'],
                 meta: {
                     description: {
                         translateKey: 'nav.conceptsRoleManagement.roleManagementDesc',
@@ -81,6 +84,7 @@ const conceptsNavigationConfig = [
                 icon: 'accountActivityLogs',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [ADMIN],
+                permissions: ['transactions.view'],
                 meta: {
                     description: {
                         translateKey: 'nav.conceptsTransactionManagement.transactionManagementDesc',
@@ -97,6 +101,7 @@ const conceptsNavigationConfig = [
                 icon: 'task',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [ADMIN],
+                permissions: ['account-tasks.view'],
                 meta: {
                     description: {
                         translateKey: 'nav.conceptsAccountTaskManagement.accountTaskManagementDesc',
@@ -113,10 +118,29 @@ const conceptsNavigationConfig = [
                 icon: 'userManagement',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [ADMIN],
+                permissions: ['tiktok-accounts.view'],
                 meta: {
                     description: {
                         translateKey: 'nav.conceptsTiktokAccountManagement.tiktokAccountManagementDesc',
                         label: 'Manage TikTok accounts',
+                    },
+                },
+                subMenu: [],
+            },
+            {
+                key: 'concepts.contentManagement',
+                path: `${CONCEPTS_PREFIX_PATH}/content-management`,
+                title: 'Content Management',
+                translateKey: 'nav.conceptsContentManagement.contentManagement',
+                icon: 'fileManager',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [ADMIN],
+                permissions: ['content-groups.view', 'contents.view'],
+                requireAll: false,
+                meta: {
+                    description: {
+                        translateKey: 'nav.conceptsContentManagement.contentManagementDesc',
+                        label: 'Manage content groups and contents',
                     },
                 },
                 subMenu: [],

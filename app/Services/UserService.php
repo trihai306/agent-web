@@ -109,4 +109,23 @@ class UserService
     {
         return $this->userRepository->updateByIds($userIds, ['status' => $status]);
     }
+
+    public function getStatistics(): array
+    {
+        $totalUsers = User::count();
+        $activeUsers = User::where('status', 'active')->count();
+        $lockedUsers = User::where('status', 'locked')->count();
+        $recentUsers = User::where('created_at', '>=', now()->subDays(7))->count();
+        $totalBalance = User::sum('balance');
+        $usersWithRoles = User::whereHas('roles')->count();
+
+        return [
+            'totalUsers' => $totalUsers,
+            'activeUsers' => $activeUsers,
+            'lockedUsers' => $lockedUsers,
+            'recentUsers' => $recentUsers,
+            'totalBalance' => (float) $totalBalance,
+            'usersWithRoles' => $usersWithRoles,
+        ];
+    }
 }

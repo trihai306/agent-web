@@ -1,9 +1,9 @@
 const appConfig = {
     apiPrefix: '/api',
     API_BASE_URL: 'http://agent-ai.test',
-    authenticatedEntryPath: '/dashboard/analytic',
+    authenticatedEntryPath: '/dashboards/analytic',
     unAuthenticatedEntryPath: '/sign-in',
-    locale: 'en',
+    locale: 'vi',
     activeNavTranslation: true,
 }
 

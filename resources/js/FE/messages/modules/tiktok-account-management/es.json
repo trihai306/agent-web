@@ -16,7 +16,10 @@
         "notes": "Notas",
         "createdDate": "Fecha de Creación",
         "edit": "Editar",
-        "view": "Ver"
+        "view": "Ver",
+        "stopRunning": "Detener Ejecución",
+        "tasks": "Tareas",
+        "delete": "Eliminar"
     },
     "detail": {
         "title": "Detalles de Cuenta de TikTok",
@@ -108,6 +111,24 @@
         "analytics": "Análisis de Interacción",
         "analyticsDescription": "Ver estadísticas y análisis de interacciones con usuarios",
         "viewAnalytics": "Ver Análisis"
+    },
+    "interactionConfigModal": {
+        "title": "Configuración de Interacción de TikTok",
+        "createScenario": "Crear Nuevo Escenario",
+        "editScenario": "Editar Escenario",
+        "deleteDialog": {
+            "scenarioTitle": "Eliminar Escenario",
+            "scenarioContent": "¿Está seguro de que desea eliminar el escenario",
+            "scenarioWarning": "Esta acción no se puede deshacer.",
+            "actionTitle": "Eliminar Acción",
+            "actionContent": "¿Está seguro de que desea eliminar la acción",
+            "actionWarning": "Esta acción no se puede deshacer.",
+            "cancel": "Cancelar",
+            "confirm": "Eliminar"
+        },
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "close": "Cerrar"
     },
     "importModal": {
         "title": "Importar Cuentas",

@@ -129,4 +129,25 @@ class TransactionService
     {
         return $this->transactionRepository->deleteByIds($ids);
     }
+
+    public function getStatistics(): array
+    {
+        $totalTransactions = Transaction::count();
+        $pendingTransactions = Transaction::where('status', 'pending')->count();
+        $completedTransactions = Transaction::where('status', 'completed')->count();
+        $failedTransactions = Transaction::where('status', 'failed')->count();
+        $totalAmount = Transaction::sum('amount');
+        $depositAmount = Transaction::where('type', 'deposit')->sum('amount');
+        $withdrawalAmount = Transaction::where('type', 'withdrawal')->sum('amount');
+
+        return [
+            'totalTransactions' => $totalTransactions,
+            'pendingTransactions' => $pendingTransactions,
+            'completedTransactions' => $completedTransactions,
+            'failedTransactions' => $failedTransactions,
+            'totalAmount' => (float) $totalAmount,
+            'depositAmount' => (float) $depositAmount,
+            'withdrawalAmount' => (float) $withdrawalAmount,
+        ];
+    }
 }

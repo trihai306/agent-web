@@ -40,6 +40,18 @@
             "transactionManagement": "交易管理",
             "transactionManagementDesc": "管理所有交易"
         },
+        "conceptsAccountTaskManagement": {
+            "accountTaskManagement": "账户任务管理",
+            "accountTaskManagementDesc": "管理所有账户任务"
+        },
+        "conceptsTiktokAccountManagement": {
+            "tiktokAccountManagement": "TikTok账户管理",
+            "tiktokAccountManagementDesc": "管理TikTok账户"
+        },
+        "conceptsContentManagement": {
+            "contentManagement": "内容管理",
+            "contentManagementDesc": "管理内容组和内容"
+        },
         "conceptsProducts": {
             "products": "产品",
             "productList": "列表",

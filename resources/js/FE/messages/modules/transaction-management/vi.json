@@ -18,6 +18,8 @@
             "selectType": "Chọn loại",
             "user": "Người dùng",
             "searchUser": "Tìm kiếm theo tên hoặc email",
+            "status": "Trạng thái",
+            "selectStatus": "Chọn trạng thái",
             "cancel": "Hủy",
             "apply": "Áp dụng"
         },

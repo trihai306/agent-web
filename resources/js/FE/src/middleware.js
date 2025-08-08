@@ -5,6 +5,7 @@ import {
     authRoutes as _authRoutes,
     publicRoutes as _publicRoutes,
 } from '@/configs/routes.config'
+import { canAccessRoute } from '@/configs/routes.config/routePermissions'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import appConfig from '@/configs/app.config'
 
@@ -49,6 +50,18 @@ export default auth((req) => {
                 nextUrl,
             ),
         )
+    }
+
+    /** Check permissions for protected routes */
+    if (isSignedIn && !isPublicRoute && !isAuthRoute) {
+        const userPermissions = req.auth?.user?.permissions || []
+        const userRoles = req.auth?.user?.roles || []
+        
+        const hasAccess = canAccessRoute(nextUrl.pathname, userPermissions, userRoles)
+        
+        if (!hasAccess) {
+            return Response.redirect(new URL('/access-denied', nextUrl))
+        }
     }
 })
 

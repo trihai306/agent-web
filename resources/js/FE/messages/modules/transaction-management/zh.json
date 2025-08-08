@@ -18,6 +18,8 @@
             "selectType": "选择类型",
             "user": "用户",
             "searchUser": "按姓名或电子邮件搜索",
+            "status": "状态",
+            "selectStatus": "选择状态",
             "cancel": "取消",
             "apply": "应用"
         },

@@ -189,4 +189,31 @@ class TransactionController extends Controller
 
         return response()->json(['message' => "Successfully deleted {$count} transactions."]);
     }
+
+    /**
+     * Get transaction statistics
+     *
+     * Retrieves statistical data about transactions including totals by status and type, 
+     * amounts, and recent activity.
+     * 
+     * @response {
+     *   "data": {
+     *     "totalTransactions": 5420,
+     *     "pendingTransactions": 45,
+     *     "completedTransactions": 5200,
+     *     "failedTransactions": 175,
+     *     "totalAmount": 2500000.75,
+     *     "depositAmount": 1800000.50,
+     *     "withdrawalAmount": 700000.25
+     *   }
+     * }
+     */
+    public function stats(Request $request)
+    {
+        $stats = $this->transactionService->getStatistics();
+        
+        return response()->json([
+            'data' => $stats
+        ]);
+    }
 }

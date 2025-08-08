@@ -68,6 +68,10 @@
             "firstName": "Tên",
             "lastName": "Họ",
             "phoneNumber": "Số điện thoại",
+            "status": "Trạng thái",
+            "allStatus": "Tất cả trạng thái",
+            "active": "Hoạt động",
+            "locked": "Bị khóa",
             "cancel": "Hủy",
             "apply": "Áp dụng"
         },

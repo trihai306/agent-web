@@ -5,15 +5,11 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
 const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Change Name Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        actionName: action?.name || 'Đổi tên',
-        
-        // Lựa chọn
-        nameSource: 'random', // 'random', 'custom', 'list'
-        
-        // Loại tên
-        nameType: 'vietnamese', // 'vietnamese', 'international'
+        name: "Đổi tên",
+        selection_type: "random",
+        name_type: "vietnamese"
     })
 
     const handleInputChange = (field, value) => {

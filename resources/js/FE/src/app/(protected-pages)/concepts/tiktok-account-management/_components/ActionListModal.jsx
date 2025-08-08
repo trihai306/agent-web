@@ -127,13 +127,14 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
             isOpen={isOpen}
             onClose={onClose}
             onRequestClose={onClose}
-            width={1200}
+            width="90vw"
+            maxWidth={1200}
             className="z-[70]"
         >
-            <div className="flex flex-col h-full max-h-[90vh]">
+            <div className="flex flex-col h-full max-h-[85vh] min-h-[50vh]">
                 {/* Enhanced Header */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-600 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
-                    <div className="flex items-center justify-between">
+                <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-600 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
                                 <div className={`p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg ${styles.floatingIcon}`}>
@@ -152,7 +153,7 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
                         </div>
                         
                         {/* Statistics */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
                             <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm">
                                 <TbCheck className="text-green-500" size={18} />
                                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -171,9 +172,9 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
                     </div>
                 </div>
 
-                <div className="flex flex-1 min-h-0">
+                <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
                     {/* Sidebar Navigation */}
-                    <div className="w-72 border-r border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 p-6">
+                    <div className="w-full lg:w-72 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 p-4 lg:p-6 max-h-48 lg:max-h-full overflow-y-auto">
                         {/* Search and Filter */}
                         <div className="space-y-4 mb-6">
                             <div className="relative">
@@ -276,7 +277,7 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
                     </div>
 
                     {/* Main Content */}
-                    <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="flex-1 p-4 lg:p-6 overflow-y-auto min-h-0 max-h-full">
                         {filteredCategories.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center py-12">
                                 <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center mb-6">
@@ -318,11 +319,11 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
                                             </div>
                                         )}
                                         
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                                             {category.actions.map((action, index) => (
                                                 <div
                                                     key={action.id}
-                                                    className={`${styles.actionCard} group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
+                                                    className={`${styles.actionCard} group relative p-4 rounded-2xl border-2 transition-all duration-300 ${
                                                         action.comingSoon 
                                                             ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed' 
                                                             : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xl hover:shadow-blue-100 dark:hover:shadow-blue-900/20 hover:-translate-y-2 active:translate-y-0 active:shadow-lg'
@@ -338,7 +339,7 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
                                                             content={action.description} 
                                                             show={hoveredAction === action.id && !action.comingSoon}
                                                         >
-                                                            <div className={`p-4 rounded-xl transition-all duration-300 ${
+                                                            <div className={`p-3 rounded-xl transition-all duration-300 ${
                                                                 action.comingSoon 
                                                                     ? 'bg-gray-200 dark:bg-gray-700' 
                                                                     : `${category.color} shadow-lg group-hover:shadow-xl group-hover:scale-110`
@@ -413,9 +414,9 @@ const ActionListModal = ({ isOpen, onClose, onSelectAction, selectedScenario }) 
                 </div>
 
                 {/* Enhanced Footer */}
-                <div className="p-6 border-t border-gray-200 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+                <div className="p-4 lg:p-6 border-t border-gray-200 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex flex-wrap items-center gap-4 lg:gap-6 text-sm text-gray-600 dark:text-gray-400">
                             <span>
                                 Tổng cộng: <span className="font-bold text-gray-900 dark:text-gray-100">{stats.totalActions}</span> hành động
                             </span>

@@ -18,6 +18,8 @@
             "selectType": "Seleccionar tipo",
             "user": "Usuario",
             "searchUser": "Buscar por nombre o correo electrónico",
+            "status": "Estado",
+            "selectStatus": "Seleccionar estado",
             "cancel": "Cancelar",
             "apply": "Aplicar"
         },

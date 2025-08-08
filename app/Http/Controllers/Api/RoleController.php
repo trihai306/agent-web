@@ -103,4 +103,28 @@ class RoleController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
     }
+
+    /**
+     * Get role statistics
+     *
+     * Retrieves statistical data about roles including totals, permissions count, 
+     * users with roles, and recent activity.
+     * 
+     * @response {
+     *   "data": {
+     *     "totalRoles": 12,
+     *     "totalPermissions": 45,
+     *     "usersWithRoles": 156,
+     *     "recentlyCreated": 3
+     *   }
+     * }
+     */
+    public function stats(Request $request)
+    {
+        $stats = $this->roleService->getStatistics();
+        
+        return response()->json([
+            'data' => $stats
+        ]);
+    }
 }

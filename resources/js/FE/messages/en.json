@@ -53,6 +53,10 @@
             "tiktokAccountManagement": "TikTok Account Management",
             "tiktokAccountManagementDesc": "Manage TikTok accounts"
         },
+        "conceptsContentManagement": {
+            "contentManagement": "Content Management",
+            "contentManagementDesc": "Manage content groups and contents"
+        },
         "conceptsProducts": {
             "products": "Products",
             "productList": "List",

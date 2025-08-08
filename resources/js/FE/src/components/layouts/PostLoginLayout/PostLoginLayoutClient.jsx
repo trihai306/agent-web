@@ -17,6 +17,8 @@ import PageContainer from '@/components/template/PageContainer'
 import queryRoute from '@/utils/queryRoute'
 import useTheme from '@/utils/hooks/useTheme'
 import { usePathname } from 'next/navigation'
+import { Toaster } from 'react-hot-toast'
+import RealtimeToastProvider from '@/components/shared/RealtimeToastProvider'
 
 const Layout = ({ children, layoutType }) => {
     switch (layoutType) {
@@ -45,11 +47,37 @@ const PostLoginLayoutClient = ({ children }) => {
     const route = queryRoute(pathname)
 
     return (
-        <Layout
-            layoutType={route?.meta?.layout ? route?.meta?.layout : layoutType}
-        >
-            <PageContainer {...route?.meta}>{children}</PageContainer>
-        </Layout>
+        <RealtimeToastProvider>
+            <Layout
+                layoutType={route?.meta?.layout ? route?.meta?.layout : layoutType}
+            >
+                <PageContainer {...route?.meta}>{children}</PageContainer>
+            </Layout>
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: '#363636',
+                        color: '#fff',
+                    },
+                    success: {
+                        duration: 3000,
+                        iconTheme: {
+                            primary: '#4ade80',
+                            secondary: '#fff',
+                        },
+                    },
+                    error: {
+                        duration: 4000,
+                        iconTheme: {
+                            primary: '#ef4444',
+                            secondary: '#fff',
+                        },
+                    },
+                }}
+            />
+        </RealtimeToastProvider>
     )
 }
 

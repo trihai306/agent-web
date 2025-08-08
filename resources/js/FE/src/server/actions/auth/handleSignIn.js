@@ -2,6 +2,7 @@
 import { signIn } from '@/auth'
 import appConfig from '@/configs/app.config'
 import { AuthError } from 'next-auth'
+import { redirect } from 'next/navigation'
 
 export const onSignInWithCredentials = async (
     { login, password },
@@ -15,6 +16,13 @@ export const onSignInWithCredentials = async (
         })
     } catch (error) {
         console.log(error)
+        
+        // Handle NEXT_REDIRECT which is expected behavior for successful sign in
+        if (error?.message?.includes('NEXT_REDIRECT')) {
+            // This is expected - NextAuth redirects on successful sign in
+            return
+        }
+        
         if (error instanceof AuthError) {
             /** Customize error message based on AuthError */
             switch (error.type) {

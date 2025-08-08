@@ -18,6 +18,8 @@
             "selectType": "Select type",
             "user": "User",
             "searchUser": "Search by name or email",
+            "status": "Status",
+            "selectStatus": "Select status",
             "cancel": "Cancel",
             "apply": "Apply"
         },

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             NotificationSeeder::class,
             RolePermissionSeeder::class,
+            DetailedPermissionSeeder::class, // Add detailed permissions
             TransactionSeeder::class,
             TiktokAccountSeeder::class,
             InteractionScenarioSeeder::class,

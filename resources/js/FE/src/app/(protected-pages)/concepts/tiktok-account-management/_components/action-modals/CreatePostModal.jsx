@@ -6,46 +6,30 @@ import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 
 const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
+    // Initialize config based on JSON schema for Create Post Form
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản
-        actionName: action?.name || 'Tạo bài viết',
-        
-        // Thời gian chờ load video
-        loadVideoTime: { min: 3, max: 5 },
-        
-        // Đăng video theo tên file
-        uploadByFileName: false,
-        
-        // Tiêu đề
-        title: '',
-        
-        // Nội dung
-        content: '',
-        
-        // Ảnh
-        imageSource: 'random', // 'random' hoặc 'custom'
-        removeWatermark: false,
-        autoCut: false,
-        
-        // Chỉnh sửa Filter
-        filterType: 'random', // 'random' hoặc 'custom'
-        addTrendingMusic: false
+        name: "Tạo bài viết",
+        load_time_from: 3,
+        load_time_to: 5,
+        post_by_filename: false,
+        title: "",
+        content: "",
+        image_source: "",
+        image_paths: [],
+        image_urls: [],
+        delete_used_images: false,
+        auto_cut: false,
+        filter_type: "random",
+        custom_filters: "",
+        add_trending_music: false
     })
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
             ...prev,
-            [field]: value
-        }))
-    }
-
-    const handleTimeInputChange = (section, type, value) => {
-        setConfig(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [type]: parseInt(value) || 0
-            }
+            [field]: field.includes('_from') || field.includes('_to')
+                ? parseInt(value) || 0 
+                : value
         }))
     }
 
@@ -53,6 +37,13 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
         setConfig(prev => ({
             ...prev,
             [field]: checked
+        }))
+    }
+
+    const handleArrayChange = (field, values) => {
+        setConfig(prev => ({
+            ...prev,
+            [field]: values
         }))
     }
 

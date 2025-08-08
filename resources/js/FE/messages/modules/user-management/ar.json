@@ -68,6 +68,10 @@
             "firstName": "الاسم الأول",
             "lastName": "اسم العائلة",
             "phoneNumber": "رقم الهاتف",
+            "status": "الحالة",
+            "allStatus": "جميع الحالات",
+            "active": "نشط",
+            "locked": "مقفل",
             "cancel": "إلغاء",
             "apply": "تطبيق"
         },

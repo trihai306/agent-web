@@ -4,10 +4,18 @@ import Dialog from '@/components/ui/Dialog'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { TbSearch, TbPlus, TbEdit, TbTrash } from 'react-icons/tb'
-import { useTranslations } from 'next-intl'
+
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import ActionListModal from './ActionListModal'
+import getInteractionScenarios from '@/server/actions/interaction-scenario/getInteractionScenarios'
+import createInteractionScenario from '@/server/actions/interaction-scenario/createInteractionScenario'
+import updateInteractionScenario from '@/server/actions/interaction-scenario/updateInteractionScenario'
+import deleteInteractionScenario from '@/server/actions/interaction-scenario/deleteInteractionScenario'
+import getInteractionScenario from '@/server/actions/interaction-scenario/getInteractionScenario'
+import createScenarioScript from '@/server/actions/scenario-script/createScenarioScript'
+import updateScenarioScript from '@/server/actions/scenario-script/updateScenarioScript'
+import deleteScenarioScript from '@/server/actions/scenario-script/deleteScenarioScript'
 import {
     ActionConfigModal,
     VideoInteractionModal,
@@ -19,32 +27,23 @@ import {
     FollowUserModal,
     CreatePostModal,
     UpdateAvatarModal,
-    ChangeNameModal
+    ChangeNameModal,
+    NotificationModal
 } from './action-modals'
+
+import { useTranslations } from 'next-intl'
 
 const InteractionConfigModal = ({ isOpen, onClose }) => {
     const t = useTranslations('tiktokAccountManagement.interactionConfigModal')
     
-    // Mock data - có thể thay thế bằng API calls
-    const [scenarios, setScenarios] = useState([
-        { id: 1, name: 'change avt', status: 'active' },
-        { id: 2, name: 'Đừng xóa', status: 'active' },
-        { id: 3, name: '1', status: 'active' }
-    ])
-    
-    const [selectedScenario, setSelectedScenario] = useState(scenarios[0])
+    // State management
+    const [scenarios, setScenarios] = useState([])
+    const [selectedScenario, setSelectedScenario] = useState(null)
     const [searchTerm, setSearchTerm] = useState('')
-    
-    // Mock actions data
-    const [actions, setActions] = useState([
-        { 
-            id: 1, 
-            name: 'Cập nhật Ảnh đại diện',
-            scenarioId: 1
-        }
-    ])
-
-    const [filteredScenarios, setFilteredScenarios] = useState(scenarios)
+    const [actions, setActions] = useState([])
+    const [filteredScenarios, setFilteredScenarios] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [scenarioLoading, setScenarioLoading] = useState(false)
     
     // Modal states
     const [showScenarioModal, setShowScenarioModal] = useState(false)
@@ -61,6 +60,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
     const [showCreatePostModal, setShowCreatePostModal] = useState(false)
     const [showUpdateAvatarModal, setShowUpdateAvatarModal] = useState(false)
     const [showChangeNameModal, setShowChangeNameModal] = useState(false)
+    const [showNotificationModal, setShowNotificationModal] = useState(false)
     const [showDeleteScenarioDialog, setShowDeleteScenarioDialog] = useState(false)
     const [showDeleteActionDialog, setShowDeleteActionDialog] = useState(false)
     const [preventActionListClose, setPreventActionListClose] = useState(false)
@@ -71,9 +71,17 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
     const [deletingAction, setDeletingAction] = useState(null)
     
     // Form states
-    const [scenarioForm, setScenarioForm] = useState({ name: '', status: 'active' })
+    const [scenarioForm, setScenarioForm] = useState({ name: '', description: '', status: 'active' })
     const [actionForm, setActionForm] = useState({ name: '', scenarioId: null })
 
+    // Load scenarios when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            loadScenarios()
+        }
+    }, [isOpen])
+
+    // Filter scenarios based on search term
     useEffect(() => {
         const filtered = scenarios.filter(scenario => 
             scenario.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -81,26 +89,103 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         setFilteredScenarios(filtered)
     }, [scenarios, searchTerm])
 
+    // Load scenarios from API
+    const loadScenarios = async () => {
+        setLoading(true)
+        try {
+            const result = await getInteractionScenarios()
+            if (result.success) {
+                // Ensure scenarios are sorted by newest first (fallback sorting)
+                const sortedScenarios = result.data.sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.updated_at || 0)
+                    const dateB = new Date(b.created_at || b.updated_at || 0)
+                    return dateB - dateA // Newest first
+                })
+                
+                setScenarios(sortedScenarios)
+                // Auto-select first scenario if available and no scenario is currently selected
+                if (sortedScenarios.length > 0 && !selectedScenario) {
+                    const firstScenario = sortedScenarios[0]
+                    setSelectedScenario(firstScenario)
+                    // Load details for the first scenario
+                    if (firstScenario.id) {
+                        loadScenarioDetails(firstScenario.id)
+                    }
+                }
+            } else {
+                toast.push(
+                    <Notification title="Lỗi" type="danger" closable>
+                        {result.message || "Không thể tải danh sách kịch bản"}
+                    </Notification>
+                )
+            }
+        } catch (error) {
+            console.error('Error loading scenarios:', error)
+            toast.push(
+                <Notification title="Lỗi" type="danger" closable>
+                    Có lỗi xảy ra khi tải danh sách kịch bản
+                </Notification>
+            )
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Load scenario details with scripts
+    const loadScenarioDetails = async (scenarioId) => {
+        setScenarioLoading(true)
+        try {
+            const result = await getInteractionScenario(scenarioId)
+            if (result.success) {
+                // Update actions with scripts from the scenario
+                setActions(result.data.scripts || [])
+            } else {
+                toast.push(
+                    <Notification title="Lỗi" type="danger" closable>
+                        {result.message || "Không thể tải chi tiết kịch bản"}
+                    </Notification>
+                )
+            }
+        } catch (error) {
+            console.error('Error loading scenario details:', error)
+            toast.push(
+                <Notification title="Lỗi" type="danger" closable>
+                    Có lỗi xảy ra khi tải chi tiết kịch bản
+                </Notification>
+            )
+        } finally {
+            setScenarioLoading(false)
+        }
+    }
+
     const handleScenarioSelect = (scenario) => {
         setSelectedScenario(scenario)
+        // Load scenario details including scripts
+        if (scenario?.id) {
+            loadScenarioDetails(scenario.id)
+        }
     }
 
     const getScenarioActions = (scenarioId) => {
-        return actions.filter(action => action.scenarioId === scenarioId)
+        return actions.filter(action => action.scenario_id === scenarioId || action.scenarioId === scenarioId)
     }
 
-    const currentActions = selectedScenario ? getScenarioActions(selectedScenario.id) : []
+    const currentActions = selectedScenario ? actions : []
     
     // Scenario CRUD functions
     const handleAddScenario = () => {
         setEditingScenario(null)
-        setScenarioForm({ name: '', status: 'active' })
+        setScenarioForm({ name: '', description: '', status: 'active' })
         setShowScenarioModal(true)
     }
     
     const handleEditScenario = (scenario) => {
         setEditingScenario(scenario)
-        setScenarioForm({ name: scenario.name, status: scenario.status })
+        setScenarioForm({ 
+            name: scenario.name, 
+            description: scenario.description || '', 
+            status: scenario.status 
+        })
         setShowScenarioModal(true)
     }
     
@@ -109,14 +194,28 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         setShowDeleteScenarioDialog(true)
     }
     
-    const confirmDeleteScenario = () => {
-        if (deletingScenario) {
-            setScenarios(prev => prev.filter(s => s.id !== deletingScenario.id))
-            setActions(prev => prev.filter(a => a.scenarioId !== deletingScenario.id))
+    const confirmDeleteScenario = async () => {
+        if (!deletingScenario) return
+        
+        setLoading(true)
+        try {
+            const result = await deleteInteractionScenario(deletingScenario.id)
             
+            if (result.success) {
+                // Update local state
+            setScenarios(prev => prev.filter(s => s.id !== deletingScenario.id))
+                setActions(prev => prev.filter(a => a.scenario_id !== deletingScenario.id))
+            
+                // Update selected scenario if it was deleted
             if (selectedScenario?.id === deletingScenario.id) {
                 const remainingScenarios = scenarios.filter(s => s.id !== deletingScenario.id)
-                setSelectedScenario(remainingScenarios[0] || null)
+                    const newSelected = remainingScenarios[0] || null
+                    setSelectedScenario(newSelected)
+                    
+                    // Load details for new selected scenario
+                    if (newSelected?.id) {
+                        loadScenarioDetails(newSelected.id)
+                    }
             }
             
             toast.push(
@@ -124,13 +223,28 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                     {t('toast.scenarioDeleted')}
                 </Notification>
             )
-        }
-        
+            } else {
+                toast.push(
+                    <Notification title="Lỗi" type="danger" closable>
+                        {result.message || "Không thể xóa kịch bản"}
+                    </Notification>
+                )
+            }
+        } catch (error) {
+            console.error('Error deleting scenario:', error)
+            toast.push(
+                <Notification title="Lỗi" type="danger" closable>
+                    Có lỗi xảy ra khi xóa kịch bản
+                </Notification>
+            )
+        } finally {
+            setLoading(false)
         setShowDeleteScenarioDialog(false)
         setDeletingScenario(null)
+        }
     }
     
-    const handleSaveScenario = () => {
+    const handleSaveScenario = async () => {
         if (!scenarioForm.name.trim()) {
             toast.push(
                 <Notification title="Lỗi" type="danger" closable>
@@ -140,35 +254,112 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             return
         }
         
+        setLoading(true)
+        try {
         if (editingScenario) {
             // Update existing scenario
+                const result = await updateInteractionScenario(editingScenario.id, {
+                    name: scenarioForm.name,
+                    description: scenarioForm.description,
+                    status: scenarioForm.status
+                })
+                
+                if (result.success) {
+                    // Update local state
             setScenarios(prev => prev.map(s => 
                 s.id === editingScenario.id 
-                    ? { ...s, name: scenarioForm.name, status: scenarioForm.status }
+                            ? { ...s, name: scenarioForm.name, description: scenarioForm.description, status: scenarioForm.status }
                     : s
             ))
             
             if (selectedScenario?.id === editingScenario.id) {
-                setSelectedScenario(prev => ({ ...prev, name: scenarioForm.name, status: scenarioForm.status }))
+                        setSelectedScenario(prev => ({ ...prev, name: scenarioForm.name, description: scenarioForm.description, status: scenarioForm.status }))
+                    }
+                    
+                    toast.push(
+                        <Notification title="Thành công" type="success" closable>
+                            {t('toast.scenarioUpdated')}
+                        </Notification>
+                    )
+                } else {
+                    console.error("Update scenario error:", result)
+                    toast.push(
+                        <Notification title="Lỗi" type="danger" closable>
+                            {result.message || "Không thể cập nhật kịch bản"}
+                            {result.errors && (
+                                <div className="mt-2 text-sm">
+                                    {Object.entries(result.errors).map(([field, messages]) => (
+                                        <div key={field}>
+                                            <strong>{field}:</strong> {Array.isArray(messages) ? messages.join(', ') : messages}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Notification>
+                    )
+                    return
             }
         } else {
             // Add new scenario
-            const newScenario = {
-                id: Math.max(...scenarios.map(s => s.id), 0) + 1,
+                const result = await createInteractionScenario({
                 name: scenarioForm.name,
-                status: scenarioForm.status
-            }
-            setScenarios(prev => [...prev, newScenario])
+                    description: scenarioForm.description || null,
+                    status: scenarioForm.status || 'active',
+                    shuffle_actions: false,
+                    run_count: false
+                })
+                
+                if (result.success) {
+                    // Reload scenarios to get the new one
+                    await loadScenarios()
+                    
+                    // Auto-select the newly created scenario (should be first in the list)
+                    if (result.data && result.data.id) {
+                        const newScenario = result.data
+                        setSelectedScenario(newScenario)
+                        // Load details for the new scenario
+                        if (newScenario.id) {
+                            loadScenarioDetails(newScenario.id)
+                        }
+                    }
+                    
+                    toast.push(
+                        <Notification title="Thành công" type="success" closable>
+                            {t('toast.scenarioAdded')}
+                        </Notification>
+                    )
+                } else {
+                    console.error("Create scenario error:", result)
+                    toast.push(
+                        <Notification title="Lỗi" type="danger" closable>
+                            {result.message || "Không thể tạo kịch bản"}
+                            {result.errors && (
+                                <div className="mt-2 text-sm">
+                                    {Object.entries(result.errors).map(([field, messages]) => (
+                                        <div key={field}>
+                                            <strong>{field}:</strong> {Array.isArray(messages) ? messages.join(', ') : messages}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Notification>
+                    )
+                    return
+                }
         }
         
         setShowScenarioModal(false)
         setEditingScenario(null)
-        
+        } catch (error) {
+            console.error('Error saving scenario:', error)
         toast.push(
-            <Notification title="Thành công" type="success" closable>
-                {editingScenario ? t('toast.scenarioUpdated') : t('toast.scenarioAdded')}
+                <Notification title="Lỗi" type="danger" closable>
+                    Có lỗi xảy ra khi lưu kịch bản
             </Notification>
         )
+        } finally {
+            setLoading(false)
+        }
     }
     
     // Action CRUD functions
@@ -210,6 +401,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         const createPostActions = ['create_post']
         const updateAvatarActions = ['update_avatar']
         const changeNameActions = ['change_name']
+        const notificationActions = ['notification']
         
         if (randomVideoActions.includes(actionData.id)) {
             setShowVideoInteractionModal(true)
@@ -231,6 +423,8 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             setShowUpdateAvatarModal(true)
         } else if (changeNameActions.includes(actionData.id)) {
             setShowChangeNameModal(true)
+        } else if (notificationActions.includes(actionData.id)) {
+            setShowNotificationModal(true)
         } else {
             setShowActionConfigModal(true)
         }
@@ -250,6 +444,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         const createPostActions = ['create_post']
         const updateAvatarActions = ['update_avatar']
         const changeNameActions = ['change_name']
+        const notificationActions = ['notification']
         
         if (randomVideoActions.includes(action.actionId)) {
             setShowVideoInteractionModal(true)
@@ -271,17 +466,34 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             setShowUpdateAvatarModal(true)
         } else if (changeNameActions.includes(action.actionId)) {
             setShowChangeNameModal(true)
+        } else if (notificationActions.includes(action.actionId)) {
+            setShowNotificationModal(true)
         } else {
             setShowActionConfigModal(true)
         }
     }
     
-    const handleActionConfigSave = (action, config) => {
+    // Helper function to save action configuration
+    const saveActionConfig = async (action, config, modalSetter) => {
+        setLoading(true)
+        try {
         if (action.isNew) {
-            // Thêm action mới vào danh sách với cấu hình
-            const newAction = { ...action, config: config }
-            delete newAction.isNew // Xóa flag isNew
-            setActions(prev => [...prev, newAction])
+                // Tạo script mới cho scenario
+                const scriptData = {
+                    scenario_id: selectedScenario.id,
+                    order: actions.length + 1,
+                    script: JSON.stringify({
+                        action_type: action.actionId,
+                        name: action.name,
+                        config: config
+                    })
+                }
+                
+                const result = await createScenarioScript(scriptData)
+                
+                if (result.success) {
+                    // Reload scenario details to get updated scripts
+                    await loadScenarioDetails(selectedScenario.id)
             
             toast.push(
                 <Notification title="Thành công" type="success" closable>
@@ -289,10 +501,30 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 </Notification>
             )
         } else {
-            // Cập nhật cấu hình action hiện có
+            toast.push(
+                        <Notification title="Lỗi" type="danger" closable>
+                            {result.message || "Không thể tạo hành động"}
+                </Notification>
+            )
+                    return
+                }
+            } else {
+                // Cập nhật script hiện có
+                const scriptData = {
+                    script: JSON.stringify({
+                        action_type: action.actionId,
+                        name: action.name,
+                        config: config
+                    })
+                }
+                
+                const result = await updateScenarioScript(action.id, scriptData)
+                
+                if (result.success) {
+                    // Update local state
             setActions(prev => prev.map(a => 
                 a.id === action.id 
-                    ? { ...a, config: config }
+                            ? { ...a, script: scriptData.script }
                     : a
             ))
             
@@ -301,288 +533,76 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                     Đã lưu cấu hình hành động
                 </Notification>
             )
+        } else {
+            toast.push(
+                        <Notification title="Lỗi" type="danger" closable>
+                            {result.message || "Không thể cập nhật hành động"}
+                </Notification>
+            )
+                    return
+                }
+            }
+            
+            modalSetter(false)
+            setConfiguringAction(null)
+        } catch (error) {
+            console.error('Error saving action config:', error)
+            toast.push(
+                <Notification title="Lỗi" type="danger" closable>
+                    Có lỗi xảy ra khi lưu cấu hình hành động
+                </Notification>
+            )
+        } finally {
+            setLoading(false)
         }
-        
-        setShowActionConfigModal(false)
-        setConfiguringAction(null)
     }
 
-    const handleVideoInteractionSave = (action, config) => {
-        if (action.isNew) {
-            // Thêm action mới vào danh sách với cấu hình
-            const newAction = { ...action, config: config }
-            delete newAction.isNew // Xóa flag isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            // Cập nhật cấu hình action hiện có
-            setActions(prev => prev.map(a => 
-                a.id === action.id 
-                    ? { ...a, config: config }
-                    : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowVideoInteractionModal(false)
-        setConfiguringAction(null)
+    const handleActionConfigSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowActionConfigModal)
     }
 
-    const handleSpecificVideoInteractionSave = (action, config) => {
-        if (action.isNew) {
-            // Thêm action mới vào danh sách với cấu hình
-            const newAction = { ...action, config: config }
-            delete newAction.isNew // Xóa flag isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            // Cập nhật cấu hình action hiện có
-            setActions(prev => prev.map(a => 
-                a.id === action.id 
-                    ? { ...a, config: config }
-                    : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowSpecificVideoInteractionModal(false)
-        setConfiguringAction(null)
+    const handleVideoInteractionSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowVideoInteractionModal)
     }
 
-    const handleKeywordVideoInteractionSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowKeywordVideoInteractionModal(false)
-        setConfiguringAction(null)
+    const handleSpecificVideoInteractionSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowSpecificVideoInteractionModal)
     }
 
-    const handleUserVideoInteractionSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowUserVideoInteractionModal(false)
-        setConfiguringAction(null)
+    const handleKeywordVideoInteractionSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowKeywordVideoInteractionModal)
     }
 
-    const handleRandomLiveInteractionSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowRandomLiveInteractionModal(false)
-        setConfiguringAction(null)
+    const handleUserVideoInteractionSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowUserVideoInteractionModal)
     }
 
-    const handleSpecificLiveInteractionSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowSpecificLiveInteractionModal(false)
-        setConfiguringAction(null)
+    const handleRandomLiveInteractionSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowRandomLiveInteractionModal)
     }
 
-    const handleFollowUserSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowFollowUserModal(false)
-        setConfiguringAction(null)
+    const handleSpecificLiveInteractionSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowSpecificLiveInteractionModal)
     }
 
-    const handleCreatePostSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowCreatePostModal(false)
-        setConfiguringAction(null)
+    const handleFollowUserSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowFollowUserModal)
     }
 
-    const handleUpdateAvatarSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowUpdateAvatarModal(false)
-        setConfiguringAction(null)
+    const handleCreatePostSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowCreatePostModal)
     }
 
-    const handleChangeNameSave = (action, config) => {
-        if (action.isNew) {
-            const newAction = { ...action, config: config }
-            delete newAction.isNew
-            setActions(prev => [...prev, newAction])
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    {t('toast.actionAdded')}
-                </Notification>
-            )
-        } else {
-            setActions(prev => prev.map(a => 
-                a.id === action.id ? { ...a, config: config } : a
-            ))
-            
-            toast.push(
-                <Notification title="Thành công" type="success" closable>
-                    Đã lưu cấu hình hành động
-                </Notification>
-            )
-        }
-        
-        setShowChangeNameModal(false)
-        setConfiguringAction(null)
+    const handleUpdateAvatarSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowUpdateAvatarModal)
+    }
+
+    const handleChangeNameSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowChangeNameModal)
+    }
+
+    const handleNotificationSave = async (action, config) => {
+        await saveActionConfig(action, config, setShowNotificationModal)
     }
     
     const handleDeleteAction = (action) => {
@@ -590,8 +610,15 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         setShowDeleteActionDialog(true)
     }
     
-    const confirmDeleteAction = () => {
-        if (deletingAction) {
+    const confirmDeleteAction = async () => {
+        if (!deletingAction) return
+        
+        setLoading(true)
+        try {
+            const result = await deleteScenarioScript(deletingAction.id)
+            
+            if (result.success) {
+                // Update local state
             setActions(prev => prev.filter(a => a.id !== deletingAction.id))
             
             toast.push(
@@ -599,10 +626,25 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                     {t('toast.actionDeleted')}
                 </Notification>
             )
-        }
-        
+            } else {
+                toast.push(
+                    <Notification title="Lỗi" type="danger" closable>
+                        {result.message || "Không thể xóa hành động"}
+                    </Notification>
+                )
+            }
+        } catch (error) {
+            console.error('Error deleting action:', error)
+            toast.push(
+                <Notification title="Lỗi" type="danger" closable>
+                    Có lỗi xảy ra khi xóa hành động
+                </Notification>
+            )
+        } finally {
+            setLoading(false)
         setShowDeleteActionDialog(false)
         setDeletingAction(null)
+        }
     }
     
     const handleSaveAction = () => {
@@ -694,7 +736,12 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
 
                             {/* Scenarios List */}
                             <div className="space-y-2 max-h-96 overflow-y-auto">
-                                {filteredScenarios.map((scenario) => (
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                    </div>
+                                ) : filteredScenarios.length > 0 ? (
+                                    filteredScenarios.map((scenario) => (
                                     <div
                                         key={scenario.id}
                                         className={`p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -707,8 +754,12 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                         <div className="flex items-center justify-between">
                                             <span className="font-medium">{scenario.name}</span>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-                                                    Hoạt động
+                                                    <span className={`text-xs px-2 py-1 rounded ${
+                                                        scenario.status === 'active' 
+                                                            ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                                            : 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400'
+                                                    }`}>
+                                                        {scenario.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
                                                 </span>
                                                 <div className="flex gap-1">
                                                     <button 
@@ -733,7 +784,12 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        {searchTerm ? 'Không tìm thấy kịch bản nào' : 'Chưa có kịch bản nào'}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -762,7 +818,11 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
 
                                     {/* Actions Grid */}
                                     <div className="space-y-4">
-                                        {currentActions.length > 0 ? (
+                                        {scenarioLoading ? (
+                                            <div className="flex items-center justify-center py-8">
+                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                            </div>
+                                        ) : currentActions.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {currentActions.map((action) => (
                                                     <div 
@@ -776,11 +836,16 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                                                         {action.id}
                                                                     </span>
                                                                     <h6 className="font-semibold text-gray-900 dark:text-gray-100">
-                                                                        {action.name}
+                                                                        {action.name || action.action_name}
                                                                     </h6>
                                                                 </div>
                                                                 <div className="text-xs text-gray-500 dark:text-gray-400">
                                                                     Hành động #{action.id}
+                                                                    {action.description && (
+                                                                        <div className="mt-1 text-xs text-gray-400">
+                                                                            {action.description}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                             <div className="flex gap-2 ml-4">
@@ -876,6 +941,28 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                 onChange={(e) => setScenarioForm(prev => ({ ...prev, name: e.target.value }))}
                             />
                         </div>
+                        <div>
+                            <label className="form-label">Mô tả</label>
+                            <textarea
+                                placeholder="Nhập mô tả cho kịch bản..."
+                                value={scenarioForm.description}
+                                onChange={(e) => setScenarioForm(prev => ({ ...prev, description: e.target.value }))}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">Trạng thái</label>
+                            <select
+                                value={scenarioForm.status}
+                                onChange={(e) => setScenarioForm(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            >
+                                <option value="active">Hoạt động</option>
+                                <option value="inactive">Không hoạt động</option>
+                                <option value="draft">Bản nháp</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -885,6 +972,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                             type="button"
                             variant="default"
                             onClick={() => setShowScenarioModal(false)}
+                            disabled={loading}
                         >
                             {t('scenarioForm.cancel')}
                         </Button>
@@ -892,8 +980,9 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                             type="button"
                             variant="solid"
                             onClick={handleSaveScenario}
+                            disabled={loading}
                         >
-                            {editingScenario ? t('scenarioForm.update') : t('scenarioForm.save')}
+                            {loading ? 'Đang lưu...' : (editingScenario ? t('scenarioForm.update') : t('scenarioForm.save'))}
                         </Button>
                     </div>
                 </div>
@@ -1073,6 +1162,17 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 }}
                 action={configuringAction}
                 onSave={handleChangeNameSave}
+            />
+
+            {/* Notification Modal */}
+            <NotificationModal
+                isOpen={showNotificationModal}
+                onClose={() => {
+                    setShowNotificationModal(false)
+                    setConfiguringAction(null)
+                }}
+                action={configuringAction}
+                onSave={handleNotificationSave}
             />
 
             {/* Delete Scenario Confirmation Dialog */}

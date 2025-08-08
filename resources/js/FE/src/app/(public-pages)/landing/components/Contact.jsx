@@ -2,7 +2,7 @@ import Container from './LandingContainer'
 import { motion } from 'framer-motion'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import Textarea from '@/components/ui/Textarea'
+// import Textarea from '@/components/ui/Textarea'
 
 const Contact = () => {
     return (
@@ -41,7 +41,7 @@ const Contact = () => {
                             </div>
                             <div className="mb-6">
                                 <label htmlFor="message" className="block text-sm font-medium mb-2">Tin nhắn của bạn</label>
-                                <Textarea id="message" rows={4} placeholder="Hãy cho chúng tôi biết làm thế nào chúng tôi có thể giúp bạn..." />
+                                <Input textArea id="message" rows={4} placeholder="Hãy cho chúng tôi biết làm thế nào chúng tôi có thể giúp bạn..." />
                             </div>
                             <div className="text-right">
                                 <Button type="submit" variant="solid">Gửi tin nhắn</Button>

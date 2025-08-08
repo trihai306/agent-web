@@ -71,12 +71,8 @@ const ApiService = {
                     resolve(response.data)
                 })
                 .catch((errors) => {
-                    // Nếu là lỗi 401, throw lỗi tùy chỉnh
-                    if (errors?.response?.status === 401) {
-                        reject(new UnauthorizedError())
-                        return
-                    }
-                    // Các lỗi khác thì reject như bình thường
+                    // Lỗi 401 đã được xử lý bởi Axios interceptor (redirect to sign-in)
+                    // Không cần xử lý thêm ở đây nữa
                     reject(errors)
                 })
         })

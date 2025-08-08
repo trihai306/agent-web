@@ -123,4 +123,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(InteractionScenario::class);
     }
+
+    /**
+     * Get the content groups for the user.
+     */
+    public function contentGroups(): HasMany
+    {
+        return $this->hasMany(ContentGroup::class);
+    }
+
+    /**
+     * Get the contents for the user.
+     */
+    public function contents(): HasMany
+    {
+        return $this->hasMany(Content::class);
+    }
 }

@@ -56,4 +56,18 @@ export async function apiImportTiktokAccounts(data) {
     })
     console.log('TiktokAccountService - apiImportTiktokAccounts response:', response)
     return response
+}
+
+export async function apiGetTiktokAccountStats() {
+    return ApiService.fetchDataWithAxios({
+        url: '/tiktok-accounts/stats',
+        method: 'get',
+    })
+}
+
+export async function apiGetTiktokAccountRecentActivities() {
+    return ApiService.fetchDataWithAxios({
+        url: '/tiktok-accounts/recent-activities',
+        method: 'get',
+    })
 } 

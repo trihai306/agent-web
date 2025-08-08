@@ -36,6 +36,18 @@
             "transactionManagement": "إدارة المعاملات",
             "transactionManagementDesc": "إدارة جميع المعاملات"
         },
+        "conceptsAccountTaskManagement": {
+            "accountTaskManagement": "إدارة مهام الحساب",
+            "accountTaskManagementDesc": "إدارة جميع مهام الحساب"
+        },
+        "conceptsTiktokAccountManagement": {
+            "tiktokAccountManagement": "إدارة حسابات TikTok",
+            "tiktokAccountManagementDesc": "إدارة حسابات TikTok"
+        },
+        "conceptsContentManagement": {
+            "contentManagement": "إدارة المحتوى",
+            "contentManagementDesc": "إدارة مجموعات المحتوى والمحتويات"
+        },
         "conceptsProducts": {
             "products": "المنتجات",
             "productList": "القائمة",
