@@ -58,16 +58,60 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
             try {
                 setIsLoadingData(true)
                 const [devicesResponse, scenariosResponse] = await Promise.all([
-                    getDevices(),
-                    getInteractionScenarios()
+                    getDevices({ per_page: 1000, page: 1 }), // Lấy tối đa 1000 devices
+                    getInteractionScenarios({ per_page: 1000, page: 1 }) // Lấy tối đa 1000 scenarios
                 ])
 
+
+
                 if (devicesResponse.success) {
-                    setDevices(devicesResponse.data.data || [])
+                    // Handle multiple possible data structures
+                    let deviceData = []
+                    
+                    if (devicesResponse.data?.data && Array.isArray(devicesResponse.data.data)) {
+                        deviceData = devicesResponse.data.data
+                    } else if (devicesResponse.data && Array.isArray(devicesResponse.data)) {
+                        deviceData = devicesResponse.data
+                    } else if (devicesResponse.data?.list && Array.isArray(devicesResponse.data.list)) {
+                        deviceData = devicesResponse.data.list
+                    } else if (devicesResponse.data?.devices && Array.isArray(devicesResponse.data.devices)) {
+                        deviceData = devicesResponse.data.devices
+                    }
+                    
+
+                    setDevices(deviceData)
+                } else {
+                    console.error('❌ [ImportAccountsModal] Failed to load devices:', devicesResponse)
+                    toast.push(
+                        <Notification title="Lỗi" type="warning">
+                            Không thể tải danh sách thiết bị: {devicesResponse.message || 'Lỗi không xác định'}
+                        </Notification>
+                    )
                 }
 
                 if (scenariosResponse.success) {
-                    setScenarios(scenariosResponse.data.data || [])
+                    // Handle multiple possible data structures
+                    let scenarioData = []
+                    
+                    if (scenariosResponse.data?.data && Array.isArray(scenariosResponse.data.data)) {
+                        scenarioData = scenariosResponse.data.data
+                    } else if (scenariosResponse.data && Array.isArray(scenariosResponse.data)) {
+                        scenarioData = scenariosResponse.data
+                    } else if (scenariosResponse.data?.list && Array.isArray(scenariosResponse.data.list)) {
+                        scenarioData = scenariosResponse.data.list
+                    } else if (scenariosResponse.data?.scenarios && Array.isArray(scenariosResponse.data.scenarios)) {
+                        scenarioData = scenariosResponse.data.scenarios
+                    }
+                    
+
+                    setScenarios(scenarioData)
+                } else {
+                    console.error('❌ [ImportAccountsModal] Failed to load scenarios:', scenariosResponse)
+                    toast.push(
+                        <Notification title="Lỗi" type="warning">
+                            Không thể tải danh sách kịch bản: {scenariosResponse.message || 'Lỗi không xác định'}
+                        </Notification>
+                    )
                 }
             } catch (error) {
                 console.error('Error loading data:', error)
@@ -93,52 +137,96 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
         autoAssign: false,
         deviceId: '',
         scenarioId: '',
+        format: 'new', // Default to new format: UID|PASS|2FA|MAIL
     })
 
     // Enhanced validation functions
     const validateAccountFormat = (line) => {
-        // Expected format: username|email|password|phone_number (phone_number is optional)
         const parts = line.split('|')
         const errors = []
+        const format = formData.format || 'new'
         
-        if (parts.length < 3 || parts.length > 4) {
-            errors.push('Định dạng không đúng. Cần: username|email|password|phone_number (phone_number tùy chọn)')
-            return { valid: false, errors, data: null }
-        }
-        
-        const [username, email, password, phone_number] = parts.map(p => p.trim())
-        
-        // Validate username
-        if (!username || username.length < 3) {
-            errors.push('Username phải có ít nhất 3 ký tự')
-        }
-        if (!/^[a-zA-Z0-9._]+$/.test(username)) {
-            errors.push('Username chỉ được chứa chữ cái, số, dấu chấm và gạch dưới')
-        }
-        
-        // Validate email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!email || !emailRegex.test(email)) {
-            errors.push('Email không hợp lệ')
-        }
-        
-        // Validate password
-        if (!password || password.length < 6) {
-            errors.push('Mật khẩu phải có ít nhất 6 ký tự')
-        }
-        
-        // Validate phone number (optional)
-        if (phone_number) {
-            const phoneRegex = /^[0-9+\-\s()]+$/
-            if (!phoneRegex.test(phone_number)) {
-                errors.push('Số điện thoại không hợp lệ')
+        if (format === 'new') {
+            // New format: UID|PASS|2FA|MAIL
+            if (parts.length < 2) {
+                errors.push('Định dạng không đúng. Cần: UID|PASS|2FA|MAIL (2FA và MAIL tùy chọn)')
+                return { valid: false, errors, data: null }
             }
-        }
-        
-        return {
-            valid: errors.length === 0,
-            errors,
-            data: { username, email, password, phone_number: phone_number || null }
+            
+            const [uid, password, twoFa, email] = parts.map(p => p.trim())
+            
+            // Validate UID
+            if (!uid || uid.length < 3) {
+                errors.push('UID phải có ít nhất 3 ký tự')
+            }
+            if (!/^[a-zA-Z0-9._]+$/.test(uid)) {
+                errors.push('UID chỉ được chứa chữ cái, số, dấu chấm và gạch dưới')
+            }
+            
+            // Validate password
+            if (!password || password.length < 6) {
+                errors.push('Password phải có ít nhất 6 ký tự')
+            }
+            
+            // Validate email if provided
+            const finalEmail = email || `${uid}@tiktok.com`
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (email && !emailRegex.test(email)) {
+                errors.push('Email không hợp lệ')
+            }
+            
+            return {
+                valid: errors.length === 0,
+                errors,
+                data: { 
+                    username: uid, 
+                    email: finalEmail, 
+                    password, 
+                    two_fa: twoFa || null,
+                    phone_number: null 
+                }
+            }
+        } else {
+            // Legacy format: username|email|password|phone_number (phone_number optional)
+            if (parts.length < 3 || parts.length > 4) {
+                errors.push('Định dạng không đúng. Cần: username|email|password|phone_number (phone_number tùy chọn)')
+                return { valid: false, errors, data: null }
+            }
+            
+            const [username, email, password, phone_number] = parts.map(p => p.trim())
+            
+            // Validate username
+            if (!username || username.length < 3) {
+                errors.push('Username phải có ít nhất 3 ký tự')
+            }
+            if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+                errors.push('Username chỉ được chứa chữ cái, số, dấu chấm và gạch dưới')
+            }
+            
+            // Validate email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!email || !emailRegex.test(email)) {
+                errors.push('Email không hợp lệ')
+            }
+            
+            // Validate password
+            if (!password || password.length < 6) {
+                errors.push('Mật khẩu phải có ít nhất 6 ký tự')
+            }
+            
+            // Validate phone number (optional)
+            if (phone_number) {
+                const phoneRegex = /^[0-9+\-\s()]+$/
+                if (!phoneRegex.test(phone_number)) {
+                    errors.push('Số điện thoại không hợp lệ')
+                }
+            }
+            
+            return {
+                valid: errors.length === 0,
+                errors,
+                data: { username, email, password, phone_number: phone_number || null, two_fa: null }
+            }
         }
     }
     
@@ -306,6 +394,7 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
             autoAssign: false,
             deviceId: '',
             scenarioId: '',
+            format: 'new',
         })
         setAccountCount(0)
         setValidationResults({ valid: [], invalid: [], duplicates: [], errors: [] })
@@ -320,6 +409,7 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
             autoAssign: false,
             deviceId: '',
             scenarioId: '',
+            format: 'new',
         })
         setAccountCount(0)
         setValidationResults({ valid: [], invalid: [], duplicates: [], errors: [] })
@@ -332,14 +422,15 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
             onClose={handleClose}
             onRequestClose={handleClose}
             width={800}
+            height="90vh"
             className="z-50"
         >
-            <div className="flex flex-col h-full relative">
-                <div className="p-4 border-b border-gray-200 dark:border-gray-600">
+            <div className="flex flex-col h-full max-h-[90vh] relative">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-600 flex-shrink-0">
                     <h5 className="font-bold">{t('title')}</h5>
                 </div>
                 
-                <div className="p-4 flex-1 overflow-y-auto relative">
+                <div className="p-4 flex-1 overflow-y-auto min-h-0 relative">
                     <div className="space-y-6">
                         {/* Danh sách tài khoản */}
                         <div>
@@ -356,7 +447,11 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
                             <Input
                                 textArea
-                                placeholder={t('accountListPlaceholder')}
+                                placeholder={
+                                    formData.format === 'new' 
+                                        ? "user1|password123|ABCD1234|user1@example.com\nuser2|password456|EFGH5678|user2@example.com\nuser3|password789|IJKL9012"
+                                        : "user1|user1@example.com|password123|0987654321\nuser2|user2@example.com|password456|0123456789"
+                                }
                                 rows={8}
                                 value={formData.accountList}
                                 onChange={(e) => handleAccountListChange(e.target.value)}
@@ -404,7 +499,7 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                                     Chi tiết lỗi
                                 </h6>
                                 
-                                <div className="max-h-40 overflow-y-auto space-y-2 bg-red-50 dark:bg-red-900/10 rounded-lg p-3">
+                                <div className="max-h-32 overflow-y-auto space-y-2 bg-red-50 dark:bg-red-900/10 rounded-lg p-3 border border-red-200 dark:border-red-800">
                                     {/* Invalid entries */}
                                     {validationResults.invalid.map((item, index) => (
                                         <div key={`invalid-${index}`} className="text-sm">
@@ -436,35 +531,67 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
                         )}
 
-                        {/* Định dạng nhập */}
+                        {/* Format Selection */}
                         <div>
-                            <label className="form-label">{t('formatLabel')}</label>
-                            <Input
-                                value={t('formatValue')}
-                                readOnly
-                                className="bg-gray-50 dark:bg-gray-800"
-                            />
-                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <TbInfoCircle className="w-3 h-3" />
-                                    <span>Định dạng: username|email|password|phone_number (phone_number tùy chọn)</span>
+                            <label className="form-label">Chọn định dạng nhập</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div 
+                                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                                        formData.format === 'new' 
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                                    }`}
+                                    onClick={() => handleInputChange('format', 'new')}
+                                >
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <input 
+                                            type="radio" 
+                                            checked={formData.format === 'new'} 
+                                            onChange={() => handleInputChange('format', 'new')}
+                                            className="text-blue-600"
+                                        />
+                                        <span className="font-medium">Định dạng mới (Khuyến nghị)</span>
+                                    </div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                        <div className="font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mb-2">
+                                            UID|PASS|2FA|MAIL
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div>• UID: Tên tài khoản TikTok</div>
+                                            <div>• PASS: Mật khẩu</div>
+                                            <div>• 2FA: Mã xác thực 2 bước (tùy chọn)</div>
+                                            <div>• MAIL: Email (tùy chọn, tự động tạo nếu không có)</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="ml-5 space-y-1">
-                                    <div className="flex items-center gap-2">
-                                        <TbUser className="w-3 h-3" />
-                                        <span>Username: ít nhất 3 ký tự, chỉ chứa chữ cái, số, dấu chấm và gạch dưới</span>
+                                
+                                <div 
+                                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                                        formData.format === 'legacy' 
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                                    }`}
+                                    onClick={() => handleInputChange('format', 'legacy')}
+                                >
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <input 
+                                            type="radio" 
+                                            checked={formData.format === 'legacy'} 
+                                            onChange={() => handleInputChange('format', 'legacy')}
+                                            className="text-blue-600"
+                                        />
+                                        <span className="font-medium">Định dạng cũ</span>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <TbMail className="w-3 h-3" />
-                                        <span>Email: định dạng email hợp lệ</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <TbKey className="w-3 h-3" />
-                                        <span>Password: ít nhất 6 ký tự</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <TbPhone className="w-3 h-3" />
-                                        <span>Phone: số điện thoại hợp lệ (tùy chọn)</span>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                        <div className="font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mb-2">
+                                            username|email|password|phone
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div>• Username: Tên người dùng</div>
+                                            <div>• Email: Địa chỉ email</div>
+                                            <div>• Password: Mật khẩu</div>
+                                            <div>• Phone: Số điện thoại (tùy chọn)</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -491,14 +618,61 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
                         </div>
 
+
+
                         {/* Dropdowns */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
                             <div>
-                                <label className="form-label">{t('selectDevice')}</label>
+                                <div className="flex items-center justify-between">
+                                    <label className="form-label">
+                                        {t('selectDevice')} 
+                                        {!isLoadingData && (
+                                            <span className="text-xs text-gray-500 ml-2">
+                                                ({devices.length} thiết bị)
+                                            </span>
+                                        )}
+                                    </label>
+                                    {devices.length === 0 && !isLoadingData && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsLoadingData(true)
+                                                const loadData = async () => {
+                                                    try {
+                                                        const devicesResponse = await getDevices({ per_page: 1000, page: 1 })
+                                                        if (devicesResponse.success) {
+                                                            let deviceData = []
+                                                            if (devicesResponse.data?.data && Array.isArray(devicesResponse.data.data)) {
+                                                                deviceData = devicesResponse.data.data
+                                                            } else if (devicesResponse.data && Array.isArray(devicesResponse.data)) {
+                                                                deviceData = devicesResponse.data
+                                                            }
+                                                            setDevices(deviceData)
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Error reloading devices:', error)
+                                                    } finally {
+                                                        setIsLoadingData(false)
+                                                    }
+                                                }
+                                                loadData()
+                                            }}
+                                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                            Tải lại
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="relative">
                                     <Select
                                         instanceId="import-accounts-device-select"
-                                        placeholder={isLoadingData ? "Đang tải..." : t('selectDevicePlaceholder')}
+                                        placeholder={
+                                            isLoadingData 
+                                                ? "Đang tải..." 
+                                                : devices.length === 0 
+                                                    ? "Không có thiết bị nào"
+                                                    : t('selectDevicePlaceholder')
+                                        }
                                         value={formData.deviceId ? { value: formData.deviceId, label: (Array.isArray(devices) ? devices.find(d => d.id == formData.deviceId)?.device_name : '') || '' } : null}
                                         onChange={(option) => handleInputChange('deviceId', option?.value || '')}
                                         options={(Array.isArray(devices) ? devices : []).map(device => ({
@@ -529,11 +703,56 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
 
                             <div>
-                                <label className="form-label">{t('selectScenario')}</label>
+                                <div className="flex items-center justify-between">
+                                    <label className="form-label">
+                                        {t('selectScenario')}
+                                        {!isLoadingData && (
+                                            <span className="text-xs text-gray-500 ml-2">
+                                                ({scenarios.length} kịch bản)
+                                            </span>
+                                        )}
+                                    </label>
+                                    {scenarios.length === 0 && !isLoadingData && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsLoadingData(true)
+                                                const loadData = async () => {
+                                                    try {
+                                                        const scenariosResponse = await getInteractionScenarios({ per_page: 1000, page: 1 })
+                                                        if (scenariosResponse.success) {
+                                                            let scenarioData = []
+                                                            if (scenariosResponse.data?.data && Array.isArray(scenariosResponse.data.data)) {
+                                                                scenarioData = scenariosResponse.data.data
+                                                            } else if (scenariosResponse.data && Array.isArray(scenariosResponse.data)) {
+                                                                scenarioData = scenariosResponse.data
+                                                            }
+                                                            setScenarios(scenarioData)
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Error reloading scenarios:', error)
+                                                    } finally {
+                                                        setIsLoadingData(false)
+                                                    }
+                                                }
+                                                loadData()
+                                            }}
+                                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                            Tải lại
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="relative">
                                     <Select
                                         instanceId="import-accounts-scenario-select"
-                                        placeholder={isLoadingData ? "Đang tải..." : t('selectScenarioPlaceholder')}
+                                        placeholder={
+                                            isLoadingData 
+                                                ? "Đang tải..." 
+                                                : scenarios.length === 0 
+                                                    ? "Không có kịch bản nào"
+                                                    : t('selectScenarioPlaceholder')
+                                        }
                                         value={formData.scenarioId ? { value: formData.scenarioId, label: (Array.isArray(scenarios) ? scenarios.find(s => s.id == formData.scenarioId)?.name : '') || '' } : null}
                                         onChange={(option) => handleInputChange('scenarioId', option?.value || '')}
                                         options={(Array.isArray(scenarios) ? scenarios : []).map(scenario => ({
@@ -566,12 +785,13 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-gray-200 dark:border-gray-600">
+                {/* Footer - Always visible */}
+                <div className="p-4 border-t border-gray-200 dark:border-gray-600 flex-shrink-0 bg-white dark:bg-gray-800">
                     {/* Validation Status Bar */}
                     {showValidation && (
-                        <div className="mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
+                        <div className="mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-3">
                                     {validationResults.valid.length > 0 && (
                                         <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                                             <TbCircleCheck className="w-4 h-4" />
@@ -597,11 +817,12 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                         </div>
                     )}
                     
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2">
                         <Button
                             type="button"
                             variant="default"
                             onClick={handleRedo}
+                            className="w-full sm:w-auto"
                         >
                             {t('redo')}
                         </Button>
@@ -609,6 +830,7 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                             type="button"
                             variant="default"
                             onClick={handleClose}
+                            className="w-full sm:w-auto"
                         >
                             {t('exit')}
                         </Button>
@@ -623,6 +845,7 @@ const ImportAccountsModal = ({ isOpen, onClose, onSuccess }) => {
                                 (showValidation && (validationResults.invalid.length > 0 || validationResults.duplicates.length > 0)) ||
                                 (showValidation && validationResults.valid.length === 0)
                             }
+                            className="w-full sm:w-auto"
                         >
                             {isSubmitting ? t('saving') : t('save')}
                         </Button>

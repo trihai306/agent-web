@@ -12,7 +12,7 @@ export default async function deleteTiktokAccounts(ids) {
             
             return {
                 success: true,
-                message: response.data.message || 'Tiktok accounts deleted successfully'
+                message: response.message || 'Tiktok accounts deleted successfully'
             }
         } catch (error) {
             console.error('Error deleting tiktok accounts:', error)

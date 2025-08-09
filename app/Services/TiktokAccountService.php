@@ -27,8 +27,9 @@ class TiktokAccountService
             'pendingTasks as pending_tasks_count'
         ]);
 
-        // Load scenario của account và pending tasks với device
+        // Load scenario và device của account, cùng với pending tasks
         $query->with([
+            'device', // Device được gán cho account
             'interactionScenario', // Scenario của account
             'pendingTasks' => function($query) {
                 $query->with(['device'])
@@ -182,11 +183,16 @@ class TiktokAccountService
      */
     public function importAccounts(array $data)
     {
+
         $accountList = $data['accountList'];
+        $format = $data['format'] ?? 'legacy';
         $lines = explode("\n", $accountList);
         $importedCount = 0;
+        $failedCount = 0;
         $errors = [];
-        $processedAccounts = [];
+        $importedAccounts = [];
+        $failedAccounts = [];
+
 
         foreach ($lines as $index => $line) {
             $line = trim($line);
@@ -195,61 +201,274 @@ class TiktokAccountService
             }
 
             try {
-                // Parse line theo format: uid|password|2fa (optional)|email (optional)
-                $parts = explode('|', $line);
+                $parsedData = $this->parseAccountLine($line, $format, $index + 1);
                 
-                if (count($parts) < 2) {
-                    $errors[] = "Dòng " . ($index + 1) . ": Format không đúng (cần ít nhất uid|password)";
+                if (!$parsedData['success']) {
+                    $errors[] = $parsedData['error'];
+                    $failedCount++;
+                    $failedAccounts[] = [
+                        'line' => $index + 1,
+                        'content' => $line,
+                        'error' => $parsedData['error']
+                    ];
                     continue;
                 }
 
-                $uid = trim($parts[0]);
-                $password = trim($parts[1]);
-                $twoFa = isset($parts[2]) ? trim($parts[2]) : '';
-                $email = isset($parts[3]) ? trim($parts[3]) : $uid . '@tiktok.com';
+                $accountInfo = $parsedData['data'];
 
                 // Kiểm tra tài khoản đã tồn tại chưa
-                $existingAccount = TiktokAccount::where('username', $uid)
-                    ->orWhere('email', $email)
+                $existingAccount = TiktokAccount::where('username', $accountInfo['username'])
+                    ->orWhere('email', $accountInfo['email'])
                     ->first();
 
                 if ($existingAccount) {
-                    $errors[] = "Tài khoản {$uid} đã tồn tại";
+                    $error = "Tài khoản {$accountInfo['username']} đã tồn tại";
+                    $errors[] = "Dòng " . ($index + 1) . ": " . $error;
+                    $failedCount++;
+                    $failedAccounts[] = [
+                        'line' => $index + 1,
+                        'content' => $line,
+                        'error' => $error
+                    ];
                     continue;
                 }
 
                 // Tạo tài khoản mới
                 $accountData = [
-                    'user_id' => auth()->id(), // Thêm user_id của user đang call API
-                    'username' => $uid,
-                    'email' => $email,
-                    'password' => $password,
+                    'user_id' => $data['user_id'] ?? auth()->id(),
+                    'username' => $accountInfo['username'],
+                    'email' => $accountInfo['email'],
+                    'password' => $accountInfo['password'],
+                    'phone_number' => $accountInfo['phone_number'] ?? null,
                     'status' => $data['enableRunningStatus'] ?? true ? 'active' : 'inactive',
-                    'notes' => "Imported from line " . ($index + 1),
+                    'notes' => "",
                 ];
 
-                // Thêm 2FA vào notes nếu có
-                if (!empty($twoFa)) {
-                    $accountData['notes'] .= " | 2FA: {$twoFa}";
+                // Thêm device và scenario nếu có (luôn gán nếu được truyền từ FE)
+                if (!empty($data['deviceId'])) {
+                    $accountData['device_id'] = $data['deviceId'];
                 }
 
-                $this->repository->create($accountData);
+                if (!empty($data['scenarioId'])) {
+                    $accountData['scenario_id'] = $data['scenarioId'];
+                }
+
+                // Thêm 2FA vào notes nếu có
+                if (!empty($accountInfo['two_fa'])) {
+                    $accountData['notes'] .= " | 2FA: {$accountInfo['two_fa']}";
+                }
+
+                // Thêm thông tin bổ sung vào notes
+                if (!empty($accountInfo['additional_info'])) {
+                    $accountData['notes'] .= " | Info: {$accountInfo['additional_info']}";
+                }
+
+                // Lưu trạng thái 2FA và mã dự phòng nếu có
+                if (!empty($accountInfo['two_fa'])) {
+                    $backupCodes = $this->parseBackupCodes($accountInfo['two_fa']);
+                    if (!empty($backupCodes)) {
+                        $accountData['two_factor_enabled'] = true;
+                        $accountData['two_factor_backup_codes'] = $backupCodes;
+                    } else {
+                        // Nếu không parse được mã dự phòng vẫn bật cờ 2FA
+                        $accountData['two_factor_enabled'] = true;
+                    }
+                }
+
+
+                $createdAccount = $this->repository->create($accountData);
                 $importedCount++;
-                $processedAccounts[] = $uid;
+                
+                
+                $importedAccounts[] = [
+                    'id' => $createdAccount->id,
+                    'username' => $createdAccount->username,
+                    'email' => $createdAccount->email,
+                    'status' => $createdAccount->status,
+                    'device_id' => $createdAccount->device_id,
+                    'scenario_id' => $createdAccount->scenario_id,
+                    'line' => $index + 1
+                ];
 
             } catch (\Exception $e) {
-                $errors[] = "Dòng " . ($index + 1) . ": " . $e->getMessage();
+                $error = $e->getMessage();
+                
+                $errors[] = "Dòng " . ($index + 1) . ": " . $error;
+                $failedCount++;
+                $failedAccounts[] = [
+                    'line' => $index + 1,
+                    'content' => $line,
+                    'error' => $error
+                ];
             }
         }
 
+        $totalProcessed = $importedCount + $failedCount;
+        $message = "Đã xử lý {$totalProcessed} dòng: {$importedCount} thành công";
+        if ($failedCount > 0) {
+            $message .= ", {$failedCount} thất bại";
+        }
+
+
         return [
-            'success' => true,
-            'imported_count' => $importedCount,
-            'total_count' => count(array_filter($lines)),
-            'errors' => $errors,
-            'processed_accounts' => $processedAccounts,
-            'message' => "Đã nhập thành công {$importedCount} tài khoản" . (count($errors) > 0 ? " với " . count($errors) . " lỗi" : "")
+            'success' => $importedCount > 0,
+            'status' => $importedCount > 0
+                ? ($failedCount > 0 ? 'partial' : 'success')
+                : 'failed',
+            'message' => $message,
+            'data' => [
+                'imported_count' => $importedCount,
+                'failed_count' => $failedCount,
+                'total_processed' => $totalProcessed,
+                'imported_accounts' => $importedAccounts,
+                'failed_accounts' => $failedAccounts,
+                'errors' => $errors
+            ]
         ];
+    }
+
+    /**
+     * Parse a single account line based on format
+     *
+     * @param string $line
+     * @param string $format
+     * @param int $lineNumber
+     * @return array
+     */
+    private function parseAccountLine($line, $format, $lineNumber)
+    {
+        $parts = explode('|', $line);
+
+        if ($format === 'new') {
+            // New format: UID|PASS|2FA|MAIL
+            if (count($parts) < 2) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: Format không đúng (cần ít nhất UID|PASS)"
+                ];
+            }
+
+            $uid = trim($parts[0]);
+            $password = trim($parts[1]);
+            $twoFa = isset($parts[2]) ? trim($parts[2]) : '';
+            $email = isset($parts[3]) ? trim($parts[3]) : '';
+
+            // Validate UID
+            if (empty($uid) || strlen($uid) < 3) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: UID phải có ít nhất 3 ký tự"
+                ];
+            }
+
+            // Validate password
+            if (empty($password) || strlen($password) < 6) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: Password phải có ít nhất 6 ký tự"
+                ];
+            }
+
+            // Generate email if not provided
+            if (empty($email)) {
+                $email = $uid . '@tiktok.com';
+            } else {
+                // Validate email format
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return [
+                        'success' => false,
+                        'error' => "Dòng {$lineNumber}: Email không hợp lệ"
+                    ];
+                }
+            }
+
+            return [
+                'success' => true,
+                'data' => [
+                    'username' => $uid,
+                    'password' => $password,
+                    'two_fa' => $twoFa,
+                    'email' => $email,
+                    'phone_number' => null,
+                    'additional_info' => null
+                ]
+            ];
+
+        } else {
+            // Legacy format: username|email|password|phone_number (phone_number optional)
+            if (count($parts) < 3) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: Format không đúng (cần username|email|password|phone_number)"
+                ];
+            }
+
+            $username = trim($parts[0]);
+            $email = trim($parts[1]);
+            $password = trim($parts[2]);
+            $phoneNumber = isset($parts[3]) ? trim($parts[3]) : null;
+
+            // Validate username
+            if (empty($username) || strlen($username) < 3) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: Username phải có ít nhất 3 ký tự"
+                ];
+            }
+
+            // Validate email
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: Email không hợp lệ"
+                ];
+            }
+
+            // Validate password
+            if (empty($password) || strlen($password) < 6) {
+                return [
+                    'success' => false,
+                    'error' => "Dòng {$lineNumber}: Password phải có ít nhất 6 ký tự"
+                ];
+            }
+
+            return [
+                'success' => true,
+                'data' => [
+                    'username' => $username,
+                    'email' => $email,
+                    'password' => $password,
+                    'phone_number' => $phoneNumber,
+                    'two_fa' => null,
+                    'additional_info' => null
+                ]
+            ];
+        }
+    }
+
+    /**
+     * Parse backup codes helper
+     */
+    private function parseBackupCodes($input)
+    {
+        if (is_array($input)) {
+            return array_values(array_filter(array_map('strval', $input)));
+        }
+        $str = trim((string) $input);
+        if ($str === '') {
+            return [];
+        }
+        // JSON array input
+        if ($str[0] === '[') {
+            $decoded = json_decode($str, true);
+            if (is_array($decoded)) {
+                return array_values(array_filter(array_map('strval', $decoded)));
+            }
+        }
+        // Normalize common separators to commas, then split
+        $normalized = preg_replace('/[\s;|]+/', ',', $str);
+        $parts = array_filter(array_map('trim', explode(',', $normalized)));
+        return array_values($parts);
     }
 
     /**

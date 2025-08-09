@@ -22,47 +22,33 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
     }
 
     const fetchRecentActivities = async () => {
+        console.log('🔄 Fetching recent activities...')
         setActivitiesLoading(true)
         try {
-            // Mock data với design đẹp
-            await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-            const mockActivities = [
-                {
-                    id: 1,
-                    username: '@user123',
-                    action: 'Bắt đầu kịch bản Follow',
-                    status: 'running',
-                    time: '2 phút trước',
-                    scenario_name: 'Follow Campaign'
-                },
-                {
-                    id: 2,
-                    username: '@tiktoker456',
-                    action: 'Hoàn thành tạo bài viết',
-                    status: 'success',
-                    time: '5 phút trước',
-                    scenario_name: 'Content Creation'
-                },
-                {
-                    id: 3,
-                    username: '@creator789',
-                    action: 'Lỗi khi đăng nhập',
-                    status: 'error',
-                    time: '8 phút trước',
-                    scenario_name: 'Auto Login'
-                },
-                {
-                    id: 4,
-                    username: '@influencer101',
-                    action: 'Tạm dừng kịch bản',
-                    status: 'pending',
-                    time: '12 phút trước',
-                    scenario_name: 'Like Posts'
-                }
-            ]
-            setRecentActivities(mockActivities)
+            const result = await getTiktokAccountRecentActivities()
+            console.log('📊 API Result:', result)
+            
+            if (result.success) {
+                console.log('✅ API Success, data count:', result.data.length)
+                // Map the API response to match the expected format
+                const mappedActivities = result.data.map(activity => ({
+                    id: activity.id,
+                    username: activity.username,
+                    action: activity.action,
+                    status: activity.status === 'completed' ? 'success' : 
+                           activity.status === 'failed' ? 'error' : 
+                           activity.status,
+                    time: activity.time,
+                    scenario_name: activity.scenario_name
+                }))
+                console.log('🎯 Mapped activities:', mappedActivities)
+                setRecentActivities(mappedActivities)
+            } else {
+                console.error('❌ Failed to fetch recent activities:', result.message)
+                setRecentActivities([])
+            }
         } catch (error) {
-            console.error('Error fetching recent activities:', error)
+            console.error('💥 Error fetching recent activities:', error)
             setRecentActivities([])
         } finally {
             setActivitiesLoading(false)
@@ -72,6 +58,12 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
     useEffect(() => {
         fetchRecentActivities()
     }, [])
+
+    // Debug effect to track state changes
+    useEffect(() => {
+        console.log('🔍 Recent activities state changed:', recentActivities.length, 'items')
+        console.log('📋 Activities:', recentActivities)
+    }, [recentActivities])
 
     const quickActions = [
         {
@@ -100,44 +92,41 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
 
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             {/* Quick Actions */}
             <Card>
-                <div className="p-6">
+                <div className="p-4 lg:p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm lg:text-base">
                             Thao tác nhanh
                         </h3>
                         {selectedAccounts.length > 0 && (
                             <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
-                                {selectedAccounts.length} đã chọn
+                                {selectedAccounts.length}
                             </span>
                         )}
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-3">
+                    {/* Always show mobile-friendly layout */}
+                    <div className="space-y-3">
                         {quickActions.map((action) => (
-                            <div key={action.id} className="relative group">
-                                <Button
-                                    onClick={() => handleAction(action.id)}
-                                    disabled={loading || selectedAccounts.length === 0}
-                                    className={`${action.color} text-white border-0 flex items-center justify-center w-16 h-16 rounded-xl transition-all duration-200 transform hover:scale-105 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                    <action.icon className="w-7 h-7" />
-                                </Button>
-                                
-                                {/* Tooltip */}
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                            <Button
+                                key={action.id}
+                                onClick={() => handleAction(action.id)}
+                                disabled={loading || selectedAccounts.length === 0}
+                                className={`${action.color} text-white border-0 w-full flex items-center justify-center gap-3 h-12 rounded-lg transition-all duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                <action.icon className="w-5 h-5" />
+                                <span className="text-sm font-medium">
                                     {action.label}
-                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
-                                </div>
-                            </div>
+                                </span>
+                            </Button>
                         ))}
                     </div>
                     
                     {selectedAccounts.length === 0 && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
                             Chọn tài khoản để sử dụng thao tác nhanh
                         </p>
                     )}
@@ -148,23 +137,23 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
 
             {/* Recent Activity */}
             <Card>
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="px-4 lg:px-6 py-3 lg:py-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                            <Users className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        <div className="p-1.5 lg:p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                            <Users className="w-4 h-4 lg:w-5 lg:h-5 text-gray-600 dark:text-gray-400" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm lg:text-base">
                                 Hoạt động gần đây
                             </h3>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            <p className="text-gray-500 dark:text-gray-400 text-xs lg:text-sm">
                                 Theo dõi các tác vụ mới nhất
                             </p>
                         </div>
                     </div>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-4 lg:p-6">
                     <div className="space-y-4">
                         {activitiesLoading ? (
                             // Loading skeleton
@@ -186,9 +175,9 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
                             ))
                         ) : recentActivities.length > 0 ? (
                             recentActivities.map((activity, index) => (
-                                <div key={activity.id} className="flex items-start gap-4 group hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg p-3 -m-3 transition-colors">
-                                    <div className="flex flex-col items-center">
-                                        <div className={`w-3 h-3 rounded-full shadow-sm ${
+                                <div key={activity.id} className="flex items-start gap-3 lg:gap-4 group hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg p-2 lg:p-3 -m-2 lg:-m-3 transition-colors">
+                                    <div className="flex flex-col items-center flex-shrink-0">
+                                        <div className={`w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full shadow-sm ${
                                             activity.status === 'success' ? 'bg-green-500 shadow-green-200' :
                                             activity.status === 'error' ? 'bg-red-500 shadow-red-200' :
                                             activity.status === 'running' ? 'bg-blue-500 shadow-blue-200 animate-pulse' :
@@ -196,15 +185,15 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
                                             'bg-gray-400 shadow-gray-200'
                                         }`} />
                                         {index < recentActivities.length - 1 && (
-                                            <div className="w-px h-8 bg-gray-200 dark:bg-gray-700 mt-2" />
+                                            <div className="w-px h-6 lg:h-8 bg-gray-200 dark:bg-gray-700 mt-2" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                            <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs lg:text-sm truncate">
                                                 {activity.username}
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                            <span className={`px-1.5 lg:px-2 py-0.5 rounded text-xs font-medium self-start ${
                                                 activity.status === 'success' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' :
                                                 activity.status === 'error' ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' :
                                                 activity.status === 'running' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
@@ -217,14 +206,14 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
                                                  activity.status === 'pending' ? 'Chờ xử lý' : 'Khác'}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 leading-relaxed">
+                                        <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mb-1 leading-relaxed">
                                             {activity.action}
                                         </p>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-gray-500 dark:text-gray-500">
                                             <span>{activity.time}</span>
                                             {activity.scenario_name && (
                                                 <>
-                                                    <span>•</span>
+                                                    <span className="hidden sm:inline">•</span>
                                                     <span className="text-gray-600 dark:text-gray-400 font-medium">
                                                         {activity.scenario_name}
                                                     </span>
@@ -235,11 +224,11 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-8">
-                                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                                    <Users className="w-8 h-8 text-gray-400" />
+                            <div className="text-center py-6 lg:py-8">
+                                <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                                    <Users className="w-6 h-6 lg:w-8 lg:h-8 text-gray-400" />
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mb-1">
                                     Chưa có hoạt động nào
                                 </div>
                                 <div className="text-xs text-gray-400 dark:text-gray-500">

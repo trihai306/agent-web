@@ -97,6 +97,17 @@ class TiktokAccountController extends Controller
              * @example Personal account for content creation
              */
             'notes' => ['sometimes', 'string', 'max:1000'],
+            /**
+             * Whether two-factor authentication is enabled.
+             * @example true
+             */
+            'two_factor_enabled' => ['sometimes', 'boolean'],
+            /**
+             * Backup codes for two-factor authentication.
+             * @example ["ABCD1234", "EFGH5678", "IJKL9012"]
+             */
+            'two_factor_backup_codes' => ['sometimes', 'array'],
+            'two_factor_backup_codes.*' => ['string', 'max:255'],
         ]);
 
         $tiktokAccount = $this->tiktokAccountService->createTiktokAccount($validated);
@@ -203,6 +214,17 @@ class TiktokAccountController extends Controller
              * @example Updated notes about the account
              */
             'notes' => 'sometimes|string|max:1000',
+            /**
+             * Whether two-factor authentication is enabled.
+             * @example true
+             */
+            'two_factor_enabled' => 'sometimes|boolean',
+            /**
+             * Backup codes for two-factor authentication.
+             * @example ["ABCD1234", "EFGH5678", "IJKL9012"]
+             */
+            'two_factor_backup_codes' => 'sometimes|array',
+            'two_factor_backup_codes.*' => 'string|max:255',
         ]);
 
         $updatedTiktokAccount = $this->tiktokAccountService->updateTiktokAccount($tiktokAccount, $validated);
@@ -267,16 +289,80 @@ class TiktokAccountController extends Controller
      * Import multiple tiktok accounts
      *
      * Creates new tiktok accounts from a formatted string.
+     * Supports two formats:
+     * - Legacy: username|email|password|phone_number (phone_number optional)
+     * - New: UID|PASS|2FA|MAIL
+     * 
+     * @bodyParam accountList string required The list of accounts in the specified format.
+     * @bodyParam enableRunningStatus boolean Set accounts to active status after import.
+     * @bodyParam autoAssign boolean Auto-assign device and scenario to accounts.
+     * @bodyParam deviceId string The device ID to assign to imported accounts.
+     * @bodyParam scenarioId string The scenario ID to assign to imported accounts.
+     * @bodyParam format string The format of the account list: 'legacy' or 'new'. Default: 'legacy'
+     * 
+     * @response {
+     *   "success": true,
+     *   "message": "Successfully imported 5 accounts",
+     *   "data": {
+     *     "imported_count": 5,
+     *     "failed_count": 0,
+     *     "total_processed": 5,
+     *     "imported_accounts": [
+     *       {
+     *         "id": 123,
+     *         "username": "user123",
+     *         "email": "user@example.com",
+     *         "status": "active",
+     *         "device_id": "device_456",
+     *         "scenario_id": "scenario_789"
+     *       }
+     *     ],
+     *     "failed_accounts": []
+     *   }
+     * }
      */
     public function import(Request $request)
     {
         $validated = $request->validate([
+            /**
+             * The list of accounts to import.
+             * Legacy format: username|email|password|phone_number
+             * New format: UID|PASS|2FA|MAIL
+             * @example "user1|pass123|ABCD1234|user1@example.com\nuser2|pass456|EFGH5678|user2@example.com"
+             */
             'accountList' => 'required|string',
+            /**
+             * Set imported accounts to active status.
+             * @example true
+             */
             'enableRunningStatus' => 'sometimes|boolean',
+            /**
+             * Auto-assign device and scenario to imported accounts.
+             * @example true
+             */
             'autoAssign' => 'sometimes|boolean',
+            /**
+             * Device ID to assign to imported accounts.
+             * @example "device_123"
+             */
             'deviceId' => 'sometimes|string|exists:devices,id',
+            /**
+             * Scenario ID to assign to imported accounts.
+             * @example "scenario_456"
+             */
             'scenarioId' => 'sometimes|string|exists:interaction_scenarios,id',
+            /**
+             * Format of the account list.
+             * @example "new"
+             */
+            'format' => 'sometimes|string|in:legacy,new',
         ]);
+
+        // Default format is legacy for backward compatibility
+        $validated['format'] = $validated['format'] ?? 'legacy';
+
+        // Ensure user context is passed to service
+        $validated['user_id'] = $request->user()->id ?? null;
 
         $result = $this->tiktokAccountService->importAccounts($validated);
 
@@ -355,5 +441,468 @@ class TiktokAccountController extends Controller
         return response()->json([
             'data' => $analysis
         ]);
+    }
+
+    /**
+     * Run linked scenario for a TikTok account: create pending account tasks from its scenario scripts
+     */
+    public function runScenario(Request $request, TiktokAccount $tiktokAccount)
+    {
+        \Log::info('runScenario called for account:', ['id' => $tiktokAccount->id, 'username' => $tiktokAccount->username]);
+        
+        $user = $request->user();
+        if (!$user->hasRole('admin') && $tiktokAccount->user_id !== $user->id) {
+            \Log::warning('Unauthorized access attempt:', ['user_id' => $user->id, 'account_user_id' => $tiktokAccount->user_id]);
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Validate that account has scenario and device assigned
+        if (!$tiktokAccount->scenario_id) {
+            \Log::warning('Account has no linked scenario:', ['account_id' => $tiktokAccount->id]);
+            return response()->json(['message' => 'Account has no linked scenario.'], 422);
+        }
+
+        // Optional: allow override device via body
+        $validated = $request->validate([
+            'device_id' => 'sometimes|exists:devices,id',
+        ]);
+        $deviceId = $validated['device_id'] ?? $tiktokAccount->device_id;
+        
+        \Log::info('Running scenario for account:', [
+            'account_id' => $tiktokAccount->id,
+            'scenario_id' => $tiktokAccount->scenario_id,
+            'device_id' => $deviceId,
+            'user_id' => $user->id
+        ]);
+
+        $result = app(\App\Services\AccountTaskService::class)
+            ->createTasksFromScenario($tiktokAccount, $deviceId, $user->id);
+
+        \Log::info('runScenario result:', $result);
+        return response()->json($result);
+    }
+
+    /**
+     * Get TikTok account activity history
+     *
+     * Retrieves the activity history for a specific TikTok account including
+     * completed, failed, running, and pending tasks with pagination support.
+     * 
+     * @param  TiktokAccount  $tiktokAccount The tiktok account model instance.
+     * @response {
+     *   "data": {
+     *     "activities": [
+     *       {
+     *         "id": "task_123",
+     *         "task_type": "follow_user",
+     *         "status": "completed",
+     *         "priority": "high",
+     *         "completed_at": "2024-01-15T10:30:00Z",
+     *         "started_at": "2024-01-15T10:25:00Z",
+     *         "scheduled_at": "2024-01-15T10:20:00Z",
+     *         "created_at": "2024-01-15T10:15:00Z"
+     *       }
+     *     ],
+     *     "pagination": {
+     *       "current_page": 1,
+     *       "per_page": 20,
+     *       "total": 156,
+     *       "last_page": 8
+     *     }
+     *   }
+     * }
+     */
+    #[QueryParameter('page', description: 'The page number for pagination.', example: 1)]
+    #[QueryParameter('per_page', description: 'The number of items per page (max 50).', example: 20)]
+    #[QueryParameter('status', description: 'Filter by task status: completed, failed, running, pending.', example: 'completed')]
+    #[QueryParameter('task_type', description: 'Filter by task type.', example: 'follow_user')]
+    #[QueryParameter('priority', description: 'Filter by priority: low, medium, high.', example: 'high')]
+    public function activityHistory(Request $request, TiktokAccount $tiktokAccount)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('admin') && $tiktokAccount->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:50',
+            'status' => 'sometimes|string|in:completed,failed,running,pending',
+            'task_type' => 'sometimes|string',
+            'priority' => 'sometimes|string|in:low,medium,high',
+        ]);
+
+        $perPage = $validated['per_page'] ?? 20;
+        $page = $validated['page'] ?? 1;
+
+        // Build query for all tasks related to this account
+        $query = $tiktokAccount->accountTasks()
+            ->select([
+                'id', 
+                'task_type', 
+                'status', 
+                'priority', 
+                'completed_at', 
+                'started_at', 
+                'scheduled_at', 
+                'created_at',
+                'error_message'
+            ]);
+
+        // Apply filters
+        if (isset($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        if (isset($validated['task_type'])) {
+            $query->where('task_type', $validated['task_type']);
+        }
+
+        if (isset($validated['priority'])) {
+            $query->where('priority', $validated['priority']);
+        }
+
+        // Order by most recent activity first
+        $query->orderByRaw("
+            CASE 
+                WHEN completed_at IS NOT NULL THEN completed_at
+                WHEN started_at IS NOT NULL THEN started_at
+                WHEN scheduled_at IS NOT NULL THEN scheduled_at
+                ELSE created_at
+            END DESC
+        ");
+
+        // Paginate results
+        $activities = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => [
+                'activities' => $activities->items(),
+                'pagination' => [
+                    'current_page' => $activities->currentPage(),
+                    'per_page' => $activities->perPage(),
+                    'total' => $activities->total(),
+                    'last_page' => $activities->lastPage(),
+                    'from' => $activities->firstItem(),
+                    'to' => $activities->lastItem(),
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Get recent activities across all TikTok accounts
+     *
+     * Returns recent activities/tasks for all TikTok accounts that the user has access to.
+     * Admin can see all activities, regular users can only see their own accounts' activities.
+     */
+    public function recentActivities(Request $request)
+    {
+        $user = $request->user();
+        
+        // Build base query for account tasks
+        $query = \App\Models\AccountTask::query()
+            ->with(['tiktokAccount:id,username'])
+            ->select([
+                'id',
+                'tiktok_account_id',
+                'task_type',
+                'status',
+                'priority',
+                'completed_at',
+                'started_at',
+                'scheduled_at',
+                'created_at',
+                'error_message'
+            ]);
+
+        // If not admin, only show activities for user's accounts
+        if (!$user->hasRole('admin')) {
+            $query->whereHas('tiktokAccount', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        // Order by most recent activity first
+        $activities = $query->orderByRaw("
+            CASE 
+                WHEN completed_at IS NOT NULL THEN completed_at
+                WHEN started_at IS NOT NULL THEN started_at
+                WHEN scheduled_at IS NOT NULL THEN scheduled_at
+                ELSE created_at
+            END DESC
+        ")
+        ->limit(20)
+        ->get()
+        ->filter(function ($task) {
+            // Only include tasks that have a valid TiktokAccount
+            return $task->tiktokAccount !== null;
+        })
+        ->map(function ($task) {
+            // Determine the action text based on task type and status
+            $actionText = $this->getActionText($task->task_type, $task->status);
+            
+            // Determine the time to display
+            $time = $task->completed_at ?? $task->started_at ?? $task->scheduled_at ?? $task->created_at;
+            
+            return [
+                'id' => $task->id,
+                'username' => '@' . $task->tiktokAccount->username,
+                'action' => $actionText,
+                'status' => $task->status,
+                'time' => $time->diffForHumans(),
+                'scenario_name' => $this->getScenarioName($task->task_type),
+                'priority' => $task->priority,
+                'error_message' => $task->error_message
+            ];
+        })
+        ->values(); // Re-index the collection
+
+        return response()->json($activities);
+    }
+
+    /**
+     * Get action text based on task type and status
+     */
+    private function getActionText($taskType, $status)
+    {
+        $actionMap = [
+            'follow_user' => 'Follow người dùng',
+            'like_post' => 'Like bài viết',
+            'comment_post' => 'Comment bài viết',
+            'create_post' => 'Tạo bài viết',
+            'update_avatar' => 'Cập nhật avatar',
+            'change_bio' => 'Thay đổi bio',
+            'change_name' => 'Thay đổi tên',
+            'auto_login' => 'Đăng nhập tự động',
+            'notification' => 'Thông báo',
+            'video_interaction' => 'Tương tác video',
+            'live_interaction' => 'Tương tác livestream',
+            'random_video_interaction' => 'Tương tác video ngẫu nhiên',
+            'specific_video_interaction' => 'Tương tác video cụ thể',
+            'keyword_video_interaction' => 'Tương tác video theo từ khóa',
+            'user_video_interaction' => 'Tương tác video người dùng',
+            'random_live_interaction' => 'Tương tác livestream ngẫu nhiên',
+            'specific_live_interaction' => 'Tương tác livestream cụ thể',
+            'follow_user_list' => 'Follow danh sách người dùng',
+            'follow_user_keyword' => 'Follow theo từ khóa',
+            'follow_back' => 'Follow back',
+        ];
+
+        $baseAction = $actionMap[$taskType] ?? ucfirst(str_replace('_', ' ', $taskType));
+
+        switch ($status) {
+            case 'completed':
+                return "Hoàn thành {$baseAction}";
+            case 'failed':
+                return "Lỗi khi {$baseAction}";
+            case 'running':
+                return "Đang {$baseAction}";
+            case 'pending':
+                return "Chuẩn bị {$baseAction}";
+            default:
+                return $baseAction;
+        }
+    }
+
+    /**
+     * Get scenario name based on task type
+     */
+    private function getScenarioName($taskType)
+    {
+        $scenarioMap = [
+            'follow_user' => 'Follow Campaign',
+            'like_post' => 'Like Posts',
+            'comment_post' => 'Comment Campaign',
+            'create_post' => 'Content Creation',
+            'update_avatar' => 'Profile Update',
+            'change_bio' => 'Profile Update',
+            'change_name' => 'Profile Update',
+            'auto_login' => 'Auto Login',
+            'notification' => 'Notification',
+            'video_interaction' => 'Video Interaction',
+            'live_interaction' => 'Live Interaction',
+            'random_video_interaction' => 'Random Video Interaction',
+            'specific_video_interaction' => 'Specific Video Interaction',
+            'keyword_video_interaction' => 'Keyword Video Interaction',
+            'user_video_interaction' => 'User Video Interaction',
+            'random_live_interaction' => 'Random Live Interaction',
+            'specific_live_interaction' => 'Specific Live Interaction',
+            'follow_user_list' => 'Follow Campaign',
+            'follow_user_keyword' => 'Follow Campaign',
+            'follow_back' => 'Follow Campaign',
+        ];
+
+        return $scenarioMap[$taskType] ?? 'General Task';
+    }
+
+    /**
+     * Enable two-factor authentication for a TikTok account
+     *
+     * Enables 2FA and generates backup codes for the account.
+     * @param  TiktokAccount  $tiktokAccount The tiktok account to enable 2FA for.
+     */
+    public function enable2FA(Request $request, TiktokAccount $tiktokAccount)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('admin') && $tiktokAccount->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            /**
+             * Backup codes for two-factor authentication.
+             * @example ["ABCD1234", "EFGH5678", "IJKL9012", "MNOP3456", "QRST7890"]
+             */
+            'backup_codes' => 'sometimes|array|min:1|max:10',
+            'backup_codes.*' => 'string|max:255',
+        ]);
+
+        // Generate backup codes if not provided
+        $backupCodes = $validated['backup_codes'] ?? $this->generateBackupCodes();
+
+        $updatedAccount = $this->tiktokAccountService->updateTiktokAccount($tiktokAccount, [
+            'two_factor_enabled' => true,
+            'two_factor_backup_codes' => $backupCodes,
+        ]);
+
+        return response()->json([
+            'message' => 'Two-factor authentication enabled successfully',
+            'data' => [
+                'two_factor_enabled' => $updatedAccount->two_factor_enabled,
+                'backup_codes' => $updatedAccount->two_factor_backup_codes,
+            ]
+        ]);
+    }
+
+    /**
+     * Disable two-factor authentication for a TikTok account
+     *
+     * Disables 2FA and removes backup codes for the account.
+     * @param  TiktokAccount  $tiktokAccount The tiktok account to disable 2FA for.
+     */
+    public function disable2FA(Request $request, TiktokAccount $tiktokAccount)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('admin') && $tiktokAccount->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $updatedAccount = $this->tiktokAccountService->updateTiktokAccount($tiktokAccount, [
+            'two_factor_enabled' => false,
+            'two_factor_backup_codes' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Two-factor authentication disabled successfully',
+            'data' => [
+                'two_factor_enabled' => $updatedAccount->two_factor_enabled,
+                'backup_codes' => $updatedAccount->two_factor_backup_codes,
+            ]
+        ]);
+    }
+
+    /**
+     * Regenerate backup codes for a TikTok account
+     *
+     * Generates new backup codes for an account with 2FA enabled.
+     * @param  TiktokAccount  $tiktokAccount The tiktok account to regenerate codes for.
+     */
+    public function regenerateBackupCodes(Request $request, TiktokAccount $tiktokAccount)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('admin') && $tiktokAccount->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (!$tiktokAccount->two_factor_enabled) {
+            return response()->json(['message' => 'Two-factor authentication is not enabled for this account'], 422);
+        }
+
+        $newBackupCodes = $this->generateBackupCodes();
+
+        $updatedAccount = $this->tiktokAccountService->updateTiktokAccount($tiktokAccount, [
+            'two_factor_backup_codes' => $newBackupCodes,
+        ]);
+
+        return response()->json([
+            'message' => 'Backup codes regenerated successfully',
+            'data' => [
+                'backup_codes' => $updatedAccount->two_factor_backup_codes,
+            ]
+        ]);
+    }
+
+    /**
+     * Delete all pending tasks for specified TikTok accounts
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deletePendingTasks(Request $request)
+    {
+        $request->validate([
+            'account_ids' => 'required|array',
+            'account_ids.*' => 'integer|exists:tiktok_accounts,id'
+        ]);
+
+        $user = $request->user();
+        $accountIds = $request->input('account_ids');
+
+        try {
+            // Get accounts that belong to the user
+            $accounts = TiktokAccount::where('user_id', $user->id)
+                ->whereIn('id', $accountIds)
+                ->get();
+
+            if ($accounts->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy tài khoản nào thuộc về bạn'
+                ], 404);
+            }
+
+            $deletedCount = 0;
+
+            foreach ($accounts as $account) {
+                // Delete all pending tasks for this account
+                $deleted = $account->accountTasks()
+                    ->where('status', 'pending')
+                    ->delete();
+                
+                $deletedCount += $deleted;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Đã xóa {$deletedCount} pending tasks thành công",
+                'data' => [
+                    'deleted_count' => $deletedCount,
+                    'processed_accounts' => $accounts->count()
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error deleting pending tasks: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi xóa pending tasks'
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate backup codes for 2FA
+     *
+     * @return array
+     */
+    private function generateBackupCodes()
+    {
+        $codes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $codes[] = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 8));
+        }
+        return $codes;
     }
 }

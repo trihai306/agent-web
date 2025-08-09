@@ -26,6 +26,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
+// Token-based authentication routes
+Route::post('/generate-login-token', [AuthController::class, 'generateLoginToken']);
+Route::post('/login-with-token', [AuthController::class, 'loginWithToken']);
+
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -100,10 +104,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:scenario-scripts.view');
     Route::apiResource('account-tasks', AccountTaskController::class)
         ->middleware('permission:account-tasks.view');
-    Route::apiResource('devices', DeviceController::class)
-        ->middleware('permission:devices.view');
     
-    // Additional device routes
+    // Device specific routes (must come before resource routes)
     Route::post('devices/bulk-delete', [DeviceController::class, 'bulkDelete'])
         ->middleware('permission:devices.delete');
     Route::post('devices/bulk-update-status', [DeviceController::class, 'bulkUpdateStatus'])
@@ -114,18 +116,36 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:devices.view');
     Route::post('devices/import', [DeviceController::class, 'import'])
         ->middleware('permission:devices.create');
+    
+    // Device resource routes (must come after specific routes)
+    Route::apiResource('devices', DeviceController::class)
+        ->middleware('permission:devices.view');
     Route::get('tiktok-accounts/stats', [\App\Http\Controllers\Api\TiktokAccountController::class, 'stats'])
         ->middleware('permission:tiktok-accounts.view');
     Route::get('tiktok-accounts/task-analysis', [\App\Http\Controllers\Api\TiktokAccountController::class, 'taskAnalysis'])
         ->middleware('permission:tiktok-accounts.view');
     Route::get('tiktok-accounts/recent-activities', [\App\Http\Controllers\Api\TiktokAccountController::class, 'recentActivities'])
         ->middleware('permission:tiktok-accounts.view');
+    Route::get('tiktok-accounts/{tiktokAccount}/activity-history', [\App\Http\Controllers\Api\TiktokAccountController::class, 'activityHistory'])
+        ->middleware('permission:tiktok-accounts.view');
+    // 2FA management routes for TikTok accounts
+    Route::post('tiktok-accounts/{tiktokAccount}/enable-2fa', [\App\Http\Controllers\Api\TiktokAccountController::class, 'enable2FA'])
+        ->middleware('permission:tiktok-accounts.edit');
+    Route::post('tiktok-accounts/{tiktokAccount}/disable-2fa', [\App\Http\Controllers\Api\TiktokAccountController::class, 'disable2FA'])
+        ->middleware('permission:tiktok-accounts.edit');
+    Route::post('tiktok-accounts/{tiktokAccount}/regenerate-backup-codes', [\App\Http\Controllers\Api\TiktokAccountController::class, 'regenerateBackupCodes'])
+        ->middleware('permission:tiktok-accounts.edit');
     Route::apiResource('tiktok-accounts', \App\Http\Controllers\Api\TiktokAccountController::class)
         ->middleware('permission:tiktok-accounts.view');
+    // Run linked scenario for a TikTok account -> create account tasks from scenario scripts
+    Route::post('tiktok-accounts/{tiktokAccount}/run-scenario', [\App\Http\Controllers\Api\TiktokAccountController::class, 'runScenario'])
+        ->middleware('permission:account-tasks.create');
     Route::post('tiktok-accounts/bulk-delete', [\App\Http\Controllers\Api\TiktokAccountController::class, 'bulkDelete'])
         ->middleware('permission:tiktok-accounts.bulk-operations');
     Route::post('tiktok-accounts/bulk-update-status', [\App\Http\Controllers\Api\TiktokAccountController::class, 'bulkUpdateStatus'])
         ->middleware('permission:tiktok-accounts.bulk-operations');
+    Route::post('tiktok-accounts/delete-pending-tasks', [\App\Http\Controllers\Api\TiktokAccountController::class, 'deletePendingTasks'])
+        ->middleware('permission:account-tasks.delete');
     Route::post('tiktok-accounts/import', [\App\Http\Controllers\Api\TiktokAccountController::class, 'import'])
         ->middleware('permission:tiktok-accounts.import');
 

@@ -22,7 +22,7 @@ export default async function createInteractionScenario(data) {
                 }
             }
             
-            console.log("Current user profile:", profile)
+
             
             // Add user_id to the data
             const scenarioData = {
@@ -30,7 +30,7 @@ export default async function createInteractionScenario(data) {
                 user_id: profile.id
             }
             
-            console.log("Sending scenario data:", scenarioData)
+
             
             const resp = await InteractionScenarioService.createInteractionScenario(scenarioData)
             return {

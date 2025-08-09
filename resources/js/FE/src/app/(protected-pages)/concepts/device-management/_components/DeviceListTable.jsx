@@ -4,10 +4,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import DataTable from '@/components/shared/DataTable'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import Tooltip from '@/components/ui/Tooltip'
+import toast from '@/components/ui/toast'
+import Notification from '@/components/ui/Notification'
 import { useDeviceListStore } from '../_store/deviceListStore'
 import DeviceDetailModal from './DeviceDetailModal'
 import ColumnSelector from './ColumnSelector'
 import DeviceListTableTools from './DeviceListTableTools'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import deleteDevice from '@/server/actions/device/deleteDevice'
 import {
     HiOutlineEye as Eye,
     HiOutlinePencilAlt as Edit,
@@ -55,33 +60,31 @@ const DeviceNameColumn = ({ row, onViewDetail }) => {
 }
 
 // Action Column Component
-const ActionColumn = ({ row, onViewDetail, onEdit, onDelete }) => {
+const ActionColumn = ({ row, onViewDetail, onDelete }) => {
     return (
         <div className="flex items-center gap-1">
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onViewDetail(row)}
-                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-            >
-                <Eye className="w-4 h-4" />
-            </Button>
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(row)}
-                className="text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400"
-            >
-                <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(row)}
-                className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-            >
-                <Trash className="w-4 h-4" />
-            </Button>
+            <Tooltip title="Xem chi tiết">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onViewDetail(row)}
+                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 !px-2"
+                    aria-label="Xem chi tiết"
+                >
+                    <Eye className="w-4 h-4" />
+                </Button>
+            </Tooltip>
+            <Tooltip title="Xóa">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(row)}
+                    className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 !px-2"
+                    aria-label="Xóa"
+                >
+                    <Trash className="w-4 h-4" />
+                </Button>
+            </Tooltip>
         </div>
     )
 }
@@ -103,9 +106,14 @@ const DeviceListTable = ({
         clearSelectedDevice
     } = useDeviceListStore()
     
+
+    
     // Local state
     const [selectedDetailDevice, setSelectedDetailDevice] = useState(null)
     const [showDetailModal, setShowDetailModal] = useState(false)
+    const [selectedDeleteDevice, setSelectedDeleteDevice] = useState(null)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
     const [visibleColumns, setVisibleColumns] = useState([
         'device_name',
         'user',
@@ -128,14 +136,68 @@ const DeviceListTable = ({
         setSelectedDetailDevice(null)
     }
 
-    const handleEdit = (device) => {
-        console.log('Edit device:', device)
-        // TODO: Implement edit functionality
+    const handleDelete = (device) => {
+        setSelectedDeleteDevice(device)
+        setShowDeleteConfirm(true)
     }
 
-    const handleDelete = (device) => {
-        console.log('Delete device:', device)
-        // TODO: Implement delete functionality
+    const handleDeleteConfirm = async () => {
+        if (!selectedDeleteDevice) return
+
+        setIsDeleting(true)
+        try {
+            const result = await deleteDevice(selectedDeleteDevice.id)
+            
+            if (result.success) {
+                // Show success toast
+                toast.push(
+                    <Notification
+                        title="Xóa thiết bị thành công"
+                        type="success"
+                        duration={4000}
+                    >
+                        Thiết bị "{selectedDeleteDevice.device_name}" đã được xóa khỏi hệ thống.
+                    </Notification>
+                )
+                
+                // Remove device from store
+                const removeDeviceFromList = useDeviceListStore.getState().removeDeviceFromList
+                removeDeviceFromList(selectedDeleteDevice.id)
+                
+                // Refresh page to get latest data
+                router.refresh()
+            } else {
+                console.error('Failed to delete device:', result.message)
+                
+                // Show error toast
+                toast.push(
+                    <Notification
+                        title="Lỗi xóa thiết bị"
+                        type="danger"
+                        duration={5000}
+                    >
+                        {result.message || 'Không thể xóa thiết bị. Vui lòng thử lại.'}
+                    </Notification>
+                )
+            }
+        } catch (error) {
+            console.error('Error deleting device:', error)
+            
+            // Show error toast
+            toast.push(
+                <Notification
+                    title="Lỗi hệ thống"
+                    type="danger"
+                    duration={5000}
+                >
+                    Đã xảy ra lỗi khi xóa thiết bị. Vui lòng thử lại sau.
+                </Notification>
+            )
+        } finally {
+            setIsDeleting(false)
+            setShowDeleteConfirm(false)
+            setSelectedDeleteDevice(null)
+        }
     }
 
     const onColumnToggle = (accessorKey) => {
@@ -281,7 +343,6 @@ const DeviceListTable = ({
                 <ActionColumn
                     row={row.original}
                     onViewDetail={handleViewDetails}
-                    onEdit={handleEdit}
                     onDelete={handleDelete}
                 />
             ),
@@ -342,24 +403,23 @@ const DeviceListTable = ({
 
                 {/* Data Table */}
                 <DataTable
+                    selectable
                     data={deviceList}
                     columns={visibleColumnsData}
-                    pagination={{
-                        pageIndex: page - 1,
+                    pagingData={{
+                        pageIndex: page,
                         pageSize: per_page,
-                        pageCount: Math.ceil(deviceListTotal / per_page),
                         total: deviceListTotal,
-                        onPageChange: handlePaginationChange,
-                        onPageSizeChange: handleSelectChange,
                     }}
-                    sorting={{
-                        onSortingChange: handleSort,
-                    }}
-                    rowSelection={{
-                        selectedRows: selectedDevice,
-                        onRowSelect: handleRowSelect,
-                        onAllRowsSelect: handleAllRowSelect,
-                        getRowId: (row) => row.id,
+                    onPaginationChange={handlePaginationChange}
+                    onSelectChange={handleSelectChange}
+                    onSort={handleSort}
+                    onCheckBoxChange={handleRowSelect}
+                    onIndeterminateCheckBoxChange={handleAllRowSelect}
+                    checkboxChecked={(row) => selectedDevice.some(device => device.id === row.id)}
+                    indeterminateCheckboxChecked={(rows) => {
+                        const allRows = rows.map(row => row.original)
+                        return selectedDevice.length === allRows.length && allRows.length > 0
                     }}
                     loading={false}
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-sm"
@@ -371,7 +431,25 @@ const DeviceListTable = ({
                 isOpen={showDetailModal}
                 onClose={handleCloseDetailView}
                 device={selectedDetailDevice}
+                onDelete={handleDelete}
             />
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Xác nhận xóa thiết bị"
+                confirmButtonColor="red-600"
+                loading={isDeleting}
+            >
+                <p>
+                    Bạn có chắc chắn muốn xóa thiết bị <strong>{selectedDeleteDevice?.device_name}</strong>?
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                    Hành động này không thể hoàn tác.
+                </p>
+            </ConfirmDialog>
         </>
     )
 }

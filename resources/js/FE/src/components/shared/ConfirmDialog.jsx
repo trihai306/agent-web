@@ -67,6 +67,7 @@ const ConfirmDialog = (props) => {
         children,
         onCancel,
         onConfirm,
+        onClose,
         cancelText = 'Cancel',
         confirmText = 'Confirm',
         confirmButtonProps,
@@ -75,7 +76,11 @@ const ConfirmDialog = (props) => {
     } = props
 
     const handleCancel = () => {
-        onCancel?.()
+        if (onCancel) {
+            onCancel()
+        } else if (onClose) {
+            onClose()
+        }
     }
 
     const handleConfirm = () => {

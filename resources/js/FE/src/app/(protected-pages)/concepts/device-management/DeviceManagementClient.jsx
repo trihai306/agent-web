@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
+import toast from '@/components/ui/toast'
+import Notification from '@/components/ui/Notification'
 import DeviceListProvider from './_components/DeviceListProvider'
 import DeviceListTable from './_components/DeviceListTable'
 
@@ -16,6 +18,8 @@ const DeviceManagementClient = ({ data, params }) => {
     const t = useTranslations('deviceManagement')
     const [isLoading, setIsLoading] = useState(false)
     
+
+    
     // Get selected devices from store
     const selectedDevices = useDeviceListStore((state) => state.selectedDevice)
 
@@ -29,7 +33,6 @@ const DeviceManagementClient = ({ data, params }) => {
     }
 
     const handleSettings = () => {
-        console.log('Open device settings')
         // TODO: Implement device settings functionality
     }
 
@@ -39,7 +42,7 @@ const DeviceManagementClient = ({ data, params }) => {
             return
         }
 
-        console.log(`Performing ${actionType} on devices:`, selectedDevices)
+
         setIsLoading(true)
         
         try {
@@ -50,10 +53,27 @@ const DeviceManagementClient = ({ data, params }) => {
                     // Kích hoạt - set status to active
                     const activateResult = await updateDeviceStatus(deviceIds, 'active')
                     if (activateResult.success) {
-                        console.log('Activated devices successfully')
+                        toast.push(
+                            <Notification
+                                title="Kích hoạt thiết bị thành công"
+                                type="success"
+                                duration={4000}
+                            >
+                                Đã kích hoạt thành công {selectedDevices.length} thiết bị.
+                            </Notification>
+                        )
                         handleRefresh()
                     } else {
                         console.error('Failed to activate devices:', activateResult.message)
+                        toast.push(
+                            <Notification
+                                title="Lỗi kích hoạt thiết bị"
+                                type="danger"
+                                duration={5000}
+                            >
+                                {activateResult.message || 'Không thể kích hoạt thiết bị. Vui lòng thử lại.'}
+                            </Notification>
+                        )
                     }
                     break
                     
@@ -61,10 +81,27 @@ const DeviceManagementClient = ({ data, params }) => {
                     // Tạm dừng - set status to inactive
                     const pauseResult = await updateDeviceStatus(deviceIds, 'inactive')
                     if (pauseResult.success) {
-                        console.log('Paused devices successfully')
+                        toast.push(
+                            <Notification
+                                title="Tạm dừng thiết bị thành công"
+                                type="success"
+                                duration={4000}
+                            >
+                                Đã tạm dừng thành công {selectedDevices.length} thiết bị.
+                            </Notification>
+                        )
                         handleRefresh()
                     } else {
                         console.error('Failed to pause devices:', pauseResult.message)
+                        toast.push(
+                            <Notification
+                                title="Lỗi tạm dừng thiết bị"
+                                type="danger"
+                                duration={5000}
+                            >
+                                {pauseResult.message || 'Không thể tạm dừng thiết bị. Vui lòng thử lại.'}
+                            </Notification>
+                        )
                     }
                     break
                     
@@ -72,10 +109,27 @@ const DeviceManagementClient = ({ data, params }) => {
                     // Chặn - set status to blocked
                     const blockResult = await updateDeviceStatus(deviceIds, 'blocked')
                     if (blockResult.success) {
-                        console.log('Blocked devices successfully')
+                        toast.push(
+                            <Notification
+                                title="Chặn thiết bị thành công"
+                                type="success"
+                                duration={4000}
+                            >
+                                Đã chặn thành công {selectedDevices.length} thiết bị.
+                            </Notification>
+                        )
                         handleRefresh()
                     } else {
                         console.error('Failed to block devices:', blockResult.message)
+                        toast.push(
+                            <Notification
+                                title="Lỗi chặn thiết bị"
+                                type="danger"
+                                duration={5000}
+                            >
+                                {blockResult.message || 'Không thể chặn thiết bị. Vui lòng thử lại.'}
+                            </Notification>
+                        )
                     }
                     break
                     
@@ -84,13 +138,22 @@ const DeviceManagementClient = ({ data, params }) => {
             }
         } catch (error) {
             console.error('Error performing quick action:', error)
+            toast.push(
+                <Notification
+                    title="Lỗi hệ thống"
+                    type="danger"
+                    duration={5000}
+                >
+                    Đã xảy ra lỗi khi thực hiện thao tác. Vui lòng thử lại sau.
+                </Notification>
+            )
         } finally {
             setIsLoading(false)
         }
     }
 
     return (
-        <DeviceListProvider deviceList={data?.list || []}>
+        <DeviceListProvider deviceList={data?.data || []}>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Dashboard Header */}
                 <DashboardHeader

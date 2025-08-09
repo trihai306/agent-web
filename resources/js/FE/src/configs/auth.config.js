@@ -57,6 +57,7 @@ export default {
                 session.user.email = token.email
                 session.user.avatar = token.avatar
                 session.accessToken = token.accessToken
+                session.user.login_token = token.accessToken // Add login_token for device connection
                 session.user.first_name = token.first_name
                 session.user.last_name = token.last_name
                 session.user.roles = token.permissions?.roles || []

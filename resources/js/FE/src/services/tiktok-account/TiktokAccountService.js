@@ -70,4 +70,12 @@ export async function apiGetTiktokAccountRecentActivities() {
         url: '/tiktok-accounts/recent-activities',
         method: 'get',
     })
+}
+
+export async function apiDeletePendingTasks(data) {
+    return ApiService.fetchDataWithAxios({
+        url: '/tiktok-accounts/delete-pending-tasks',
+        method: 'post',
+        data,
+    })
 } 

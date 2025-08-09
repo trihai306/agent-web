@@ -30,9 +30,11 @@ const TiktokAccountListBulkActionTools = () => {
     const router = useRouter()
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const [showSuspendConfirmation, setShowSuspendConfirmation] = useState(false)
+    const [showStartConfirmation, setShowStartConfirmation] = useState(false)
     const t = useTranslations('tiktokAccountManagement.bulkAction')
     const tDelete = useTranslations('tiktokAccountManagement.bulkDeleteConfirm')
     const tSuspend = useTranslations('tiktokAccountManagement.bulkSuspendConfirm')
+    const tStart = useTranslations('tiktokAccountManagement.bulkStartConfirm')
 
     const selectedTiktokAccount = useTiktokAccountListStore((state) => state.selectedTiktokAccount)
     const setSelectAllTiktokAccount = useTiktokAccountListStore((state) => state.setSelectAllTiktokAccount)
@@ -45,24 +47,58 @@ const TiktokAccountListBulkActionTools = () => {
         setShowSuspendConfirmation(true)
     }
 
-    const onBulkStart = async () => {
-        const tiktokAccountIds = selectedTiktokAccount.map((tiktokAccount) => tiktokAccount.id)
-        const result = await updateTiktokAccountStatus(tiktokAccountIds, 'active')
-        if (result.success) {
-            toast.push(
-                <Notification title={t('success')} type="success" closable>
-                    {t('activateSuccess', { count: selectedTiktokAccount.length })}
-                </Notification>
-            )
-            setSelectAllTiktokAccount([])
-            router.refresh()
-        } else {
+    const onBulkStart = () => {
+        setShowStartConfirmation(true)
+    }
+
+    const handleStartConfirm = async () => {
+        try {
+            // Import the run scenario server action
+            const { default: runTiktokAccountScenario } = await import('@/server/actions/tiktok-account/runTiktokAccountScenario')
+            
+            let successCount = 0
+            let errorMessages = []
+            
+            for (const account of selectedTiktokAccount) {
+                try {
+                    const result = await runTiktokAccountScenario(account.id)
+                    if (result.success) {
+                        successCount++
+                        console.log(`Created tasks for account ${account.username}`)
+                    } else {
+                        errorMessages.push(`${account.username}: ${result.message}`)
+                    }
+                } catch (error) {
+                    errorMessages.push(`${account.username}: ${error.message}`)
+                }
+            }
+            
+            if (successCount > 0) {
+                toast.push(
+                    <Notification title={t('success')} type="success" closable>
+                        {t('activateSuccess', { count: successCount })} - Đã tạo tasks theo kịch bản
+                    </Notification>
+                )
+                setSelectAllTiktokAccount([])
+                router.refresh()
+            }
+            
+            if (errorMessages.length > 0) {
+                toast.push(
+                    <Notification title={t('error')} type="danger" closable>
+                        Một số tài khoản thất bại: {errorMessages.join(', ')}
+                    </Notification>
+                )
+            }
+        } catch (error) {
             toast.push(
                 <Notification title={t('error')} type="danger" closable>
-                    {result.message}
+                    Có lỗi xảy ra khi tạo tasks
                 </Notification>
             )
         }
+        
+        setShowStartConfirmation(false)
     }
 
     const onBulkPause = async () => {
@@ -112,23 +148,66 @@ const TiktokAccountListBulkActionTools = () => {
     }
 
     const handleSuspendConfirm = async () => {
-        const tiktokAccountIds = selectedTiktokAccount.map((tiktokAccount) => tiktokAccount.id)
-        const result = await updateTiktokAccountStatus(tiktokAccountIds, 'suspended')
-        if (result.success) {
-            toast.push(
-                <Notification title="Success" type="success" closable>
-                    {result.message}
-                </Notification>
-            )
-            setSelectAllTiktokAccount([])
-            router.refresh()
-        } else {
+        try {
+            const tiktokAccountIds = selectedTiktokAccount.map((tiktokAccount) => tiktokAccount.id)
+            
+            // Import the delete pending tasks server action
+            const { default: deletePendingTasks } = await import('@/server/actions/tiktok-account/deletePendingTasks')
+            
+            let deletedTasksCount = 0
+            let deleteErrorMessages = []
+            
+            // First, delete all pending tasks
+            try {
+                const deleteResult = await deletePendingTasks(tiktokAccountIds)
+                if (deleteResult.success) {
+                    deletedTasksCount = deleteResult.data?.deleted_count || 0
+                    console.log(`Deleted ${deletedTasksCount} pending tasks`)
+                } else {
+                    deleteErrorMessages.push(deleteResult.message)
+                }
+            } catch (error) {
+                deleteErrorMessages.push(`Lỗi khi xóa tasks: ${error.message}`)
+            }
+            
+            // Then, update account status to suspended
+            const result = await updateTiktokAccountStatus(tiktokAccountIds, 'suspended')
+            if (result.success) {
+                let successMessage = result.message
+                if (deletedTasksCount > 0) {
+                    successMessage += ` và đã xóa ${deletedTasksCount} pending tasks`
+                }
+                
+                toast.push(
+                    <Notification title="Success" type="success" closable>
+                        {successMessage}
+                    </Notification>
+                )
+                setSelectAllTiktokAccount([])
+                router.refresh()
+            } else {
+                toast.push(
+                    <Notification title="Error" type="danger" closable>
+                        {result.message}
+                    </Notification>
+                )
+            }
+            
+            if (deleteErrorMessages.length > 0) {
+                toast.push(
+                    <Notification title="Warning" type="warning" closable>
+                        Một số tasks không thể xóa: {deleteErrorMessages.join(', ')}
+                    </Notification>
+                )
+            }
+        } catch (error) {
             toast.push(
                 <Notification title="Error" type="danger" closable>
-                    {result.message}
+                    Có lỗi xảy ra khi dừng tài khoản
                 </Notification>
             )
         }
+        
         setShowSuspendConfirmation(false)
     }
 
@@ -236,6 +315,27 @@ const TiktokAccountListBulkActionTools = () => {
                     </Button>
                     <Button variant="solid" onClick={handleSuspendConfirm}>
                         {tSuspend('suspend')}
+                    </Button>
+                </div>
+            </Dialog>
+            <Dialog
+                isOpen={showStartConfirmation}
+                onClose={() => setShowStartConfirmation(false)}
+                onRequestClose={() => setShowStartConfirmation(false)}
+            >
+                <h5 className="mb-4">{tStart('title')}</h5>
+                <p>
+                    {tStart('message', { count: selectedTiktokAccount.length })}
+                </p>
+                <div className="text-right mt-6">
+                    <Button
+                        className="ltr:mr-2 rtl:ml-2"
+                        onClick={() => setShowStartConfirmation(false)}
+                    >
+                        {tStart('cancel')}
+                    </Button>
+                    <Button variant="solid" onClick={handleStartConfirm}>
+                        {tStart('start')}
                     </Button>
                 </div>
             </Dialog>

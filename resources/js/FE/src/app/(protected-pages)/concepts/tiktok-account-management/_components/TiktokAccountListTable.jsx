@@ -39,7 +39,9 @@ import {
 } from 'react-icons/tb'
 import TiktokAccountListTableTools from './TiktokAccountListTableTools'
 import AccountDetailModal from './AccountDetailModal'
+import EditAccountModal from './EditAccountModal'
 import Dialog from '@/components/ui/Dialog'
+// Server actions will be imported dynamically to avoid client-side issues
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
@@ -486,8 +488,19 @@ const TiktokAccountListTable = ({
     const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
     const [selectedTiktokAccountForDetail, setSelectedTiktokAccountForDetail] = useState(null)
     
+    // Edit modal states
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [selectedAccountForEdit, setSelectedAccountForEdit] = useState(null)
+    
+    // Data for edit modal
+    const [devices, setDevices] = useState([])
+    const [scenarios, setScenarios] = useState([])
+    const [loadingDevices, setLoadingDevices] = useState(false)
+    const [loadingScenarios, setLoadingScenarios] = useState(false)
+    
     // Dialog states
     const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false)
+    const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
     const [showSuccessDialog, setShowSuccessDialog] = useState(false)
     const [showErrorDialog, setShowErrorDialog] = useState(false)
     const [dialogMessage, setDialogMessage] = useState('')
@@ -512,6 +525,112 @@ const TiktokAccountListTable = ({
         setSelectedTiktokAccountForDetail(null)
     }
 
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false)
+        setSelectedAccountForEdit(null)
+        // Clear data when closing modal
+        setDevices([])
+        setScenarios([])
+    }
+
+    const loadDevicesForEdit = async () => {
+        setLoadingDevices(true)
+        try {
+            const { default: getDevices } = await import('@/server/actions/device/getDevices')
+            const response = await getDevices({ per_page: 100 }) // Get all devices
+            
+            if (response.success) {
+                // Debug: Log the full response structure
+                console.log('Full devices response:', JSON.stringify(response, null, 2))
+                
+                // Check if data is in response.data.data (paginated) or response.data (direct)
+                const devicesData = response.data?.data || response.data || []
+                console.log('Devices data array:', devicesData)
+                
+                const deviceOptions = devicesData.map((device, index) => {
+                    console.log(`Processing device ${index}:`, device)
+                    
+                    // Handle different possible field names
+                    const deviceName = device.device_name || device.name || device.deviceName || `Device ${device.id || index + 1}`
+                    const deviceType = device.device_type || device.type || device.deviceType || 'Unknown'
+                    
+                    return {
+                        value: String(device.id ?? index),
+                        label: `${deviceName} (${deviceType})`
+                    }
+                })
+                setDevices([{ value: '', label: 'Chọn thiết bị' }, ...deviceOptions])
+            } else {
+                console.error('Error loading devices:', response.message)
+                setDevices([{ value: '', label: 'Chọn thiết bị' }])
+            }
+        } catch (error) {
+            console.error('Error loading devices:', error)
+            setDevices([{ value: '', label: 'Chọn thiết bị' }])
+        } finally {
+            setLoadingDevices(false)
+        }
+    }
+
+    const loadScenariosForEdit = async () => {
+        setLoadingScenarios(true)
+        try {
+            const { default: getInteractionScenarios } = await import('@/server/actions/interaction-scenario/getInteractionScenarios')
+            const response = await getInteractionScenarios({ per_page: 100 })
+            
+            if (response.success) {
+                const scenarioOptions = response.data.map(scenario => ({
+                    value: String(scenario.id),
+                    label: scenario.name
+                }))
+                setScenarios([{ value: '', label: 'Chọn kịch bản' }, ...scenarioOptions])
+            } else {
+                console.error('Error loading scenarios:', response.message)
+                setScenarios([{ value: '', label: 'Chọn kịch bản' }])
+            }
+        } catch (error) {
+            console.error('Error loading scenarios:', error)
+            setScenarios([{ value: '', label: 'Chọn kịch bản' }])
+        } finally {
+            setLoadingScenarios(false)
+        }
+    }
+
+    // Callback functions for edit modal
+    const handleLoadDevices = () => {
+        loadDevicesForEdit()
+    }
+
+    const handleLoadScenarios = () => {
+        loadScenariosForEdit()
+    }
+
+    const handleSaveAccount = async (accountId, accountData) => {
+        try {
+            console.log('Saving account:', accountId, accountData)
+            const { default: updateTiktokAccount } = await import('@/server/actions/tiktok-account/updateTiktokAccount')
+            const result = await updateTiktokAccount(accountId, accountData)
+            
+            if (result.success) {
+                setDialogMessage(`Cập nhật thông tin tài khoản thành công!`)
+                setShowSuccessDialog(true)
+                handleCloseEditModal()
+                
+                // Refresh data
+                if (onRefresh) {
+                    onRefresh()
+                }
+            } else {
+                setDialogMessage(`Không thể cập nhật tài khoản: ${result.message}`)
+                setShowErrorDialog(true)
+            }
+        } catch (error) {
+            console.error('Error saving account:', error)
+            setDialogMessage(`Có lỗi xảy ra khi cập nhật tài khoản`)
+            setShowErrorDialog(true)
+        }
+    }
+
     // Enhanced action handlers
 
     const handleViewTasks = (tiktokAccount) => {
@@ -522,46 +641,42 @@ const TiktokAccountListTable = ({
 
     const handleEdit = (tiktokAccount) => {
         console.log('Edit account:', tiktokAccount.username)
-        // Open edit modal or navigate to edit page
-        // setEditingAccount(tiktokAccount)
-        // setIsEditModalOpen(true)
+        setSelectedAccountForEdit(tiktokAccount)
+        setIsEditModalOpen(true)
+        // Load devices and scenarios when opening edit modal
+        loadDevicesForEdit()
+        loadScenariosForEdit()
     }
 
-    const handleDelete = async (tiktokAccount) => {
-        if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${tiktokAccount.username}?`)) {
-            try {
-                console.log('Deleting account:', tiktokAccount.username)
-                // Call API to delete account
-                // await deleteTiktokAccount(tiktokAccount.id)
-                // Refresh data after successful deletion
-            } catch (error) {
-                console.error('Error deleting account:', error)
-            }
-        }
+    const handleDelete = (tiktokAccount) => {
+        setSelectedAccountForAction(tiktokAccount)
+        setShowDeleteConfirmDialog(true)
     }
 
     const handleStart = async (tiktokAccount) => {
         try {
-            console.log('Starting account:', tiktokAccount.username)
-            // Import the updateTiktokAccountStatus function
-            const { default: updateTiktokAccountStatus } = await import('@/server/actions/tiktok-account/updateTiktokAccountStatus')
+            console.log('Running scenario for account:', tiktokAccount.username)
+            // Import the run scenario server action
+            const { default: runTiktokAccountScenario } = await import('@/server/actions/tiktok-account/runTiktokAccountScenario')
             
-            const result = await updateTiktokAccountStatus([tiktokAccount.id], 'active')
+            const result = await runTiktokAccountScenario(tiktokAccount.id)
             
             if (result.success) {
-                console.log('Account started successfully')
+                console.log('Created tasks from scenario successfully', result.data)
+                setDialogMessage(`Đã tạo tasks cho tài khoản ${tiktokAccount.username} theo kịch bản liên kết.`)
+                setShowSuccessDialog(true)
                 // Refresh the data
                 if (onRefresh) {
                     onRefresh()
                 }
             } else {
-                console.error('Failed to start account:', result.message)
-                setDialogMessage(`Không thể khởi động tài khoản ${tiktokAccount.username}: ${result.message}`)
+                console.error('Failed to run scenario:', result.message)
+                setDialogMessage(`Không thể tạo tasks cho tài khoản ${tiktokAccount.username}: ${result.message}`)
                 setShowErrorDialog(true)
             }
         } catch (error) {
-            console.error('Error starting account:', error)
-            setDialogMessage(`Có lỗi xảy ra khi khởi động tài khoản ${tiktokAccount.username}`)
+            console.error('Error running scenario:', error)
+            setDialogMessage(`Có lỗi xảy ra khi tạo tasks cho tài khoản ${tiktokAccount.username}`)
             setShowErrorDialog(true)
         } finally {
             setIsProcessing(false)
@@ -602,6 +717,38 @@ const TiktokAccountListTable = ({
         } catch (error) {
             console.error('Error stopping account:', error)
             setDialogMessage(`Có lỗi xảy ra khi dừng tài khoản ${selectedAccountForAction.username}`)
+            setShowErrorDialog(true)
+        } finally {
+            setIsProcessing(false)
+            setSelectedAccountForAction(null)
+        }
+    }
+
+    const confirmDelete = async () => {
+        if (!selectedAccountForAction) return
+
+        setIsProcessing(true)
+        setShowDeleteConfirmDialog(false)
+
+        try {
+            console.log('Deleting account:', selectedAccountForAction.username)
+            const { default: deleteTiktokAccounts } = await import('@/server/actions/tiktok-account/deleteTiktokAccounts')
+            const result = await deleteTiktokAccounts([selectedAccountForAction.id])
+
+            if (result.success) {
+                setDialogMessage(`Đã xóa tài khoản ${selectedAccountForAction.username} thành công!`)
+                setShowSuccessDialog(true)
+                if (onRefresh) {
+                    onRefresh()
+                }
+            } else {
+                console.error('Failed to delete account:', result.message)
+                setDialogMessage(`Không thể xóa tài khoản ${selectedAccountForAction.username}: ${result.message}`)
+                setShowErrorDialog(true)
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error)
+            setDialogMessage(`Có lỗi xảy ra khi xóa tài khoản ${selectedAccountForAction.username}`)
             setShowErrorDialog(true)
         } finally {
             setIsProcessing(false)
@@ -939,6 +1086,58 @@ const TiktokAccountListTable = ({
                 </div>
             </Dialog>
 
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                isOpen={showDeleteConfirmDialog}
+                onClose={() => setShowDeleteConfirmDialog(false)}
+                onRequestClose={() => setShowDeleteConfirmDialog(false)}
+                width={400}
+                className="z-[70]"
+            >
+                <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                            <TbTrash className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Xác nhận xóa tài khoản
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Hành động này không thể hoàn tác
+                            </p>
+                        </div>
+                    </div>
+
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        Bạn có chắc chắn muốn xóa tài khoản{' '}
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                            {selectedAccountForAction?.username}
+                        </span>
+                        ?
+                    </p>
+
+                    <div className="flex justify-end gap-3">
+                        <Button
+                            variant="default"
+                            onClick={() => setShowDeleteConfirmDialog(false)}
+                            disabled={isProcessing}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            variant="solid"
+                            color="red-500"
+                            onClick={confirmDelete}
+                            loading={isProcessing}
+                            disabled={isProcessing}
+                        >
+                            Xóa tài khoản
+                        </Button>
+                    </div>
+                </div>
+            </Dialog>
+
             {/* Success Dialog */}
             <Dialog
                 isOpen={showSuccessDialog}
@@ -1010,6 +1209,20 @@ const TiktokAccountListTable = ({
                     </div>
                 </div>
             </Dialog>
+
+            {/* Edit Account Modal */}
+            <EditAccountModal
+                isOpen={isEditModalOpen}
+                onClose={handleCloseEditModal}
+                account={selectedAccountForEdit}
+                onSave={handleSaveAccount}
+                devices={devices}
+                scenarios={scenarios}
+                loadingDevices={loadingDevices}
+                loadingScenarios={loadingScenarios}
+                onLoadDevices={handleLoadDevices}
+                onLoadScenarios={handleLoadScenarios}
+            />
         </div>
     )
 }

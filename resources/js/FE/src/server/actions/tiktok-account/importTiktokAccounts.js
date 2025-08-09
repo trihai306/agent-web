@@ -7,7 +7,7 @@ import { withAuthCheck } from '@/utils/withAuthCheck'
 const importTiktokAccounts = async (data) => {
     return withAuthCheck(async () => {
         try {
-            console.log('Import data received:', data)
+
             
             // Kiểm tra accountList có dữ liệu không
             if (!data.accountList || !data.accountList.trim()) {
@@ -22,6 +22,7 @@ const importTiktokAccounts = async (data) => {
                 accountList: data.accountList,
                 enableRunningStatus: data.enableRunningStatus,
                 autoAssign: data.autoAssign,
+                format: data.format,
             }
 
             // Chỉ thêm deviceId và scenarioId nếu có giá trị
@@ -32,16 +33,16 @@ const importTiktokAccounts = async (data) => {
                 importData.scenarioId = String(data.scenarioId)
             }
 
-            console.log('Import data to send:', importData)
+
             const response = await apiImportTiktokAccounts(importData)
-            console.log('API response:', response)
+
             
             revalidatePath('/concepts/tiktok-account-management')
             
             return {
-                success: true,
-                message: response.message || `Đã nhập thành công`,
-                data: response
+                success: response?.success ?? false,
+                message: response?.message || (response?.success ? 'Đã nhập thành công' : 'Nhập tài khoản thất bại'),
+                data: response?.data ?? null
             }
         } catch (error) {
             console.error('Error importing TikTok accounts:', error)

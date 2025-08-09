@@ -89,3 +89,46 @@ export async function apiGetTiktokAccountTaskAnalysis() {
         method: 'get',
     })
 }
+
+// Get TikTok account activity history
+export async function apiGetTiktokAccountActivityHistory(id, params = {}) {
+    return ApiService.fetchDataWithAxios({
+        url: `/tiktok-accounts/${id}/activity-history`,
+        method: 'get',
+        params,
+    })
+}
+
+// Run linked scenario for an account (create account tasks from scenario scripts)
+export async function apiRunAccountScenario(id, data = {}) {
+    return ApiService.fetchDataWithAxios({
+        url: `/tiktok-accounts/${id}/run-scenario`,
+        method: 'post',
+        data,
+    })
+}
+
+// Enable two-factor authentication for a TikTok account
+export async function apiEnable2FA(id, data = {}) {
+    return ApiService.fetchDataWithAxios({
+        url: `/tiktok-accounts/${id}/enable-2fa`,
+        method: 'post',
+        data,
+    })
+}
+
+// Disable two-factor authentication for a TikTok account
+export async function apiDisable2FA(id) {
+    return ApiService.fetchDataWithAxios({
+        url: `/tiktok-accounts/${id}/disable-2fa`,
+        method: 'post',
+    })
+}
+
+// Regenerate backup codes for a TikTok account
+export async function apiRegenerateBackupCodes(id) {
+    return ApiService.fetchDataWithAxios({
+        url: `/tiktok-accounts/${id}/regenerate-backup-codes`,
+        method: 'post',
+    })
+}

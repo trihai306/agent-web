@@ -177,6 +177,79 @@ class AuthController extends Controller
     }
 
     /**
+     * Generate login token
+     *
+     * Generates a login token for the user that can be used for passwordless login.
+     * @unauthenticated
+     */
+    public function generateLoginToken(Request $request)
+    {
+        $validated = $request->validate([
+            /**
+             * The user's email or phone number.
+             * @example john@example.com or 0987654321
+             */
+            'login' => 'required|string',
+            /**
+             * Token expiration time in hours (optional, default 24).
+             * @example 24
+             */
+            'expiration_hours' => 'nullable|integer|min:1|max:168', // Max 7 days
+        ]);
+
+        try {
+            $result = $this->authService->generateLoginToken(
+                $validated['login'], 
+                $validated['expiration_hours'] ?? 24
+            );
+            
+            // Login token generated successfully.
+            return response()->json([
+                'message' => 'Login token generated successfully.',
+                'user' => $result['user']->only(['id', 'name', 'email', 'first_name', 'last_name']),
+                'login_token' => $result['login_token'],
+                'expires_at' => $result['expires_at'],
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Login with token
+     *
+     * Authenticates a user using a login token instead of password.
+     * @unauthenticated
+     */
+    public function loginWithToken(Request $request)
+    {
+        $validated = $request->validate([
+            /**
+             * The login token.
+             * @example abc123def456...
+             */
+            'token' => 'required|string',
+        ]);
+
+        try {
+            $result = $this->authService->loginWithToken($validated['token']);
+            
+            // User logged in successfully with token.
+            return response()->json([
+                'message' => 'User logged in successfully.',
+                'user' => $result['user'],
+                'token' => $result['token'],
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get user permissions
      *
      * Returns the current user's roles and permissions.

@@ -15,7 +15,7 @@ export const onSignInWithCredentials = async (
             redirectTo: callbackUrl || appConfig.authenticatedEntryPath,
         })
     } catch (error) {
-        console.log(error)
+
         
         // Handle NEXT_REDIRECT which is expected behavior for successful sign in
         if (error?.message?.includes('NEXT_REDIRECT')) {

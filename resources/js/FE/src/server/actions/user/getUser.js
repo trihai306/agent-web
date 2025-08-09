@@ -11,9 +11,9 @@ import { withAuthCheck } from '@/utils/withAuthCheck'
 export default async function getUser(id) {
     return withAuthCheck(async () => {
         try {
-            console.log('Fetching user with id:', id)
+
             const resp = await apiGetUser(id)
-            console.log('API response in getUser:', resp)
+
             return resp // Assuming the response is the user object or null
         } catch (errors) {
             console.error('Error in getUser:', errors)

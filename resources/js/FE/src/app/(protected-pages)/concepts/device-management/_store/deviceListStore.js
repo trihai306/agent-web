@@ -31,7 +31,9 @@ export const useDeviceListStore = create((set, get) => ({
     sortOrder: 'desc',
     
     // Actions
-    setDeviceList: (devices) => set({ deviceList: devices }),
+    setDeviceList: (devices) => {
+        set({ deviceList: devices })
+    },
     
     setSelectedDevice: (devices) => set({ selectedDevice: devices }),
     

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import Checkbox from '@/components/ui/Checkbox'
+import Tooltip from '@/components/ui/Tooltip'
 import { HiOutlineViewBoards as Columns, HiOutlineX as X } from 'react-icons/hi'
 
 const ColumnSelector = ({ columns = [], selectableColumns = [], onColumnToggle }) => {
@@ -11,15 +12,17 @@ const ColumnSelector = ({ columns = [], selectableColumns = [], onColumnToggle }
 
     return (
         <div className="relative">
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-gray-600 dark:text-gray-400"
-            >
-                <Columns className="w-4 h-4 mr-2" />
-                Cột hiển thị
-            </Button>
+            <Tooltip title="Cột hiển thị">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="text-gray-600 dark:text-gray-400 !px-2"
+                    aria-label="Cột hiển thị"
+                >
+                    <Columns className="w-4 h-4" />
+                </Button>
+            </Tooltip>
 
             {isOpen && (
                 <>

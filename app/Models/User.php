@@ -54,6 +54,8 @@ class User extends Authenticatable
         'password',
         'balance',
         'status',
+        'login_token',
+        'login_token_expires_at',
     ];
 
     /**
@@ -64,6 +66,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'login_token',
     ];
 
     /**
@@ -84,6 +87,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'login_token_expires_at' => 'datetime',
         ];
     }
 
@@ -143,5 +147,49 @@ class User extends Authenticatable
     public function contents(): HasMany
     {
         return $this->hasMany(Content::class);
+    }
+
+    /**
+     * Generate a new login token for the user.
+     *
+     * @param int $expirationHours
+     * @return string
+     */
+    public function generateLoginToken(int $expirationHours = 24): string
+    {
+        $token = bin2hex(random_bytes(32));
+        
+        $this->update([
+            'login_token' => $token,
+            'login_token_expires_at' => now()->addHours($expirationHours),
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Check if the login token is valid.
+     *
+     * @param string $token
+     * @return bool
+     */
+    public function isValidLoginToken(string $token): bool
+    {
+        return $this->login_token === $token 
+            && $this->login_token_expires_at 
+            && $this->login_token_expires_at->isFuture();
+    }
+
+    /**
+     * Clear the login token.
+     *
+     * @return void
+     */
+    public function clearLoginToken(): void
+    {
+        $this->update([
+            'login_token' => null,
+            'login_token_expires_at' => null,
+        ]);
     }
 }

@@ -12,7 +12,7 @@ export default async function updateTiktokAccountStatus(ids, status) {
             
             return {
                 success: true,
-                message: response.data.message || 'Tiktok accounts status updated successfully'
+                message: response.message || 'Tiktok accounts status updated successfully'
             }
         } catch (error) {
             console.error('Error updating tiktok accounts status:', error)

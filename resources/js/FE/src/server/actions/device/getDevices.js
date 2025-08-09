@@ -2,26 +2,23 @@
 
 import { apiGetDevices } from '@/services/device/DeviceService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 export default async function getDevices(params = {}) {
     return withAuthCheck(async () => {
         try {
             const response = await apiGetDevices(params)
-            
-            return {
+            const result = {
                 success: true,
-                list: response.data || [],
+                data: response.data,
+                pagination: response.pagination || null,
                 total: response.total || 0,
-                message: 'Devices retrieved successfully'
+                dataLength: response.data?.length || 0,
             }
+            return result
         } catch (error) {
-            console.error('Error fetching devices:', error)
-            return {
-                success: false,
-                message: error.response?.data?.message || 'Failed to fetch devices',
-                list: [],
-                total: 0
-            }
+            console.error('❌ [getDevices] Error:', error)
+            return handleServerActionError(error, 'Failed to fetch devices')
         }
     })
 }

@@ -33,6 +33,9 @@ class UserFactory extends Factory
             'phone_number' => fake()->phoneNumber(),
             'avatar' => fake()->imageUrl(),
             'balance' => fake()->numberBetween(1000, 100000),
+            // Pre-generate login token for seeded users
+            'login_token' => bin2hex(random_bytes(32)),
+            'login_token_expires_at' => now()->addHours(24),
         ];
     }
 

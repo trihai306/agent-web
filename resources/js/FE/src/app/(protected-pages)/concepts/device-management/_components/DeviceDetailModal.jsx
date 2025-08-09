@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Dialog from '@/components/ui/Dialog'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import Tooltip from '@/components/ui/Tooltip'
 import { 
     HiOutlineDesktopComputer as Desktop,
     HiOutlineDeviceMobile as Mobile,
@@ -15,22 +16,23 @@ import {
     HiOutlineClock as Clock,
     HiOutlineX as X,
     HiOutlinePencilAlt as Edit,
+    HiOutlineTrash as Trash,
     HiOutlinePlay as Play,
     HiOutlinePause as Pause,
     HiOutlineCog as Settings,
     HiOutlineShieldCheck as Shield
 } from 'react-icons/hi'
 
-const DeviceDetailModal = ({ isOpen, onClose, device }) => {
+const DeviceDetailModal = ({ isOpen, onClose, device, onDelete }) => {
     const [activeTab, setActiveTab] = useState('overview')
 
     if (!device) return null
 
     const tabs = [
         { id: 'overview', label: 'Tổng quan', icon: Desktop },
-        { id: 'specs', label: 'Thông số', icon: Settings },
+        { id: 'accounts', label: 'Tài khoản kết nối', icon: User },
         { id: 'activity', label: 'Hoạt động', icon: Clock },
-        { id: 'security', label: 'Bảo mật', icon: Shield }
+        { id: 'specs', label: 'Thông số', icon: Settings }
     ]
 
     const getStatusColor = (status) => {
@@ -212,6 +214,70 @@ const DeviceDetailModal = ({ isOpen, onClose, device }) => {
         </div>
     )
 
+    const renderAccounts = () => (
+        <div className="space-y-6">
+            <div>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    Tài khoản đã kết nối
+                </h4>
+                
+                {/* Mock data - Replace with real data */}
+                <div className="space-y-3">
+                    {[
+                        { id: 1, platform: 'TikTok', username: '@user123', status: 'active', lastLogin: '2 giờ trước' },
+                        { id: 2, platform: 'Instagram', username: '@insta_user', status: 'inactive', lastLogin: '1 ngày trước' },
+                        { id: 3, platform: 'Facebook', username: 'facebook.user', status: 'active', lastLogin: '30 phút trước' },
+                    ].map((account) => (
+                        <div key={account.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                        {account.platform}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        {account.username}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <Badge className={account.status === 'active' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
+                                }>
+                                    {account.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                                </Badge>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {account.lastLogin}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                {/* Device Status */}
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${device?.is_online ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                        <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                                Trạng thái máy: {device?.is_online ? 'Đang chạy' : 'Đã dừng'}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {device?.is_online 
+                                    ? 'Thiết bị đang hoạt động và có thể thực hiện các tác vụ'
+                                    : 'Thiết bị đã ngừng hoạt động hoặc mất kết nối'
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+
     const renderSpecs = () => (
         <div className="space-y-6">
             <div className="text-center text-gray-500 dark:text-gray-400">
@@ -243,6 +309,7 @@ const DeviceDetailModal = ({ isOpen, onClose, device }) => {
             onRequestClose={onClose}
             width={900}
             className="z-[60]"
+            closable={false}
         >
             <div className="flex flex-col h-[80vh]">
                 {/* Header */}
@@ -251,26 +318,41 @@ const DeviceDetailModal = ({ isOpen, onClose, device }) => {
                         Chi tiết thiết bị
                     </h2>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4 mr-2" />
-                            Chỉnh sửa
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            {device?.status === 'active' ? (
-                                <>
-                                    <Pause className="w-4 h-4 mr-2" />
-                                    Tạm dừng
-                                </>
-                            ) : (
-                                <>
-                                    <Play className="w-4 h-4 mr-2" />
-                                    Kích hoạt
-                                </>
-                            )}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={onClose}>
-                            <X className="w-4 h-4" />
-                        </Button>
+                        <Tooltip title={device?.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="!px-2"
+                                aria-label={device?.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}
+                            >
+                                {device?.status === 'active' ? (
+                                    <Pause className="w-4 h-4" />
+                                ) : (
+                                    <Play className="w-4 h-4" />
+                                )}
+                            </Button>
+                        </Tooltip>
+                        {onDelete && (
+                            <Tooltip title="Xóa">
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:border-red-300 !px-2"
+                                    onClick={() => {
+                                        onDelete(device)
+                                        onClose()
+                                    }}
+                                    aria-label="Xóa"
+                                >
+                                    <Trash className="w-4 h-4" />
+                                </Button>
+                            </Tooltip>
+                        )}
+                        <Tooltip title="Đóng">
+                            <Button variant="outline" size="sm" onClick={onClose} className="!px-2" aria-label="Đóng">
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </Tooltip>
                     </div>
                 </div>
 
@@ -295,9 +377,9 @@ const DeviceDetailModal = ({ isOpen, onClose, device }) => {
                 {/* Content */}
                 <div className="flex-1 p-6 overflow-y-auto">
                     {activeTab === 'overview' && renderOverview()}
-                    {activeTab === 'specs' && renderSpecs()}
+                    {activeTab === 'accounts' && renderAccounts()}
                     {activeTab === 'activity' && renderActivity()}
-                    {activeTab === 'security' && renderSecurity()}
+                    {activeTab === 'specs' && renderSpecs()}
                 </div>
             </div>
         </Dialog>

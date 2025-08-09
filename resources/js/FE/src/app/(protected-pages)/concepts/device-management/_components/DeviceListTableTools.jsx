@@ -3,6 +3,8 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Tooltip from '@/components/ui/Tooltip'
+import toast from '@/components/ui/toast'
+import Notification from '@/components/ui/Notification'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { useDeviceListStore } from '../_store/deviceListStore'
 import ColumnSelector from './ColumnSelector'
@@ -47,14 +49,46 @@ const DeviceListBulkActionTools = () => {
             const result = await deleteDevices(deviceIds)
             
             if (result.success) {
-                console.log('Devices deleted successfully')
+                // Show success toast
+                toast.push(
+                    <Notification
+                        title="Xóa thiết bị thành công"
+                        type="success"
+                        duration={4000}
+                    >
+                        Đã xóa thành công {selectedCount} thiết bị khỏi hệ thống.
+                    </Notification>
+                )
+                
                 clearSelectedDevice()
                 router.refresh()
             } else {
                 console.error('Failed to delete devices:', result.message)
+                
+                // Show error toast
+                toast.push(
+                    <Notification
+                        title="Lỗi xóa thiết bị"
+                        type="danger"
+                        duration={5000}
+                    >
+                        {result.message || 'Không thể xóa các thiết bị đã chọn. Vui lòng thử lại.'}
+                    </Notification>
+                )
             }
         } catch (error) {
             console.error('Error deleting devices:', error)
+            
+            // Show error toast
+            toast.push(
+                <Notification
+                    title="Lỗi hệ thống"
+                    type="danger"
+                    duration={5000}
+                >
+                    Đã xảy ra lỗi khi xóa thiết bị. Vui lòng thử lại sau.
+                </Notification>
+            )
         } finally {
             setDeleting(false)
             setShowDeleteConfirm(false)
@@ -68,14 +102,46 @@ const DeviceListBulkActionTools = () => {
             const result = await updateDeviceStatus(deviceIds, 'inactive')
             
             if (result.success) {
-                console.log('Devices suspended successfully')
+                // Show success toast
+                toast.push(
+                    <Notification
+                        title="Tạm dừng thiết bị thành công"
+                        type="success"
+                        duration={4000}
+                    >
+                        Đã tạm dừng thành công {selectedCount} thiết bị.
+                    </Notification>
+                )
+                
                 clearSelectedDevice()
                 router.refresh()
             } else {
                 console.error('Failed to suspend devices:', result.message)
+                
+                // Show error toast
+                toast.push(
+                    <Notification
+                        title="Lỗi tạm dừng thiết bị"
+                        type="danger"
+                        duration={5000}
+                    >
+                        {result.message || 'Không thể tạm dừng các thiết bị đã chọn. Vui lòng thử lại.'}
+                    </Notification>
+                )
             }
         } catch (error) {
             console.error('Error suspending devices:', error)
+            
+            // Show error toast
+            toast.push(
+                <Notification
+                    title="Lỗi hệ thống"
+                    type="danger"
+                    duration={5000}
+                >
+                    Đã xảy ra lỗi khi tạm dừng thiết bị. Vui lòng thử lại sau.
+                </Notification>
+            )
         } finally {
             setUpdating(false)
             setShowSuspendConfirm(false)

@@ -114,7 +114,7 @@
         "accountListLabel": "输入账户列表:",
         "accountListPlaceholder": "UID1|PASS1|TWO-FA1|MAIL1|...\nUID2|PASS2|TWO-FA2|MAIL2|...",
         "formatLabel": "导入格式:",
-        "formatValue": "UID|PASS|2FA",
+        "formatValue": "UID|PASS|2FA|MAIL",
         "enableRunningStatus": "启用运行状态",
         "autoAssign": "自动分配",
         "selectDevice": "选择设备",
@@ -125,5 +125,163 @@
         "exit": "退出",
         "save": "保存",
         "saving": "保存中..."
+    },
+    "accountDetailModal": {
+        "title": "账户详情",
+        "loading": "加载中...",
+        "loadingHistory": "加载历史记录...",
+        "errorLoading": "无法加载账户信息",
+        "retry": "重试",
+        "refresh": "刷新",
+        "edit": "编辑",
+        "start": "开始",
+        "close": "关闭",
+        "tabs": {
+            "overview": "概览",
+            "stats": "统计",
+            "activity": "活动",
+            "security": "安全",
+            "settings": "设置"
+        },
+        "status": {
+            "active": "活跃",
+            "inactive": "非活跃",
+            "suspended": "已暂停",
+            "running": "运行中",
+            "error": "错误",
+            "unknown": "未知"
+        },
+        "overview": {
+            "noDisplayName": "无显示名称",
+            "joinDate": "加入时间：{date}",
+            "lastActivity": "活动：{date}",
+            "noActivity": "无活动",
+            "undetermined": "未确定",
+            "followers": "粉丝",
+            "likes": "点赞",
+            "videos": "视频",
+            "estimatedViews": "观看次数（估计）",
+            "currentTasks": "当前任务",
+            "runningTasks": "{count} 个运行中",
+            "pendingTasks": "{count} 个待处理",
+            "noTasks": "当前没有正在执行的任务",
+            "priority": "优先级：{priority}",
+            "startedAt": "开始时间：{time}",
+            "scheduledAt": "计划时间：{time}",
+            "immediately": "立即",
+            "pending": "待处理"
+        },
+        "stats": {
+            "placeholder": "详细统计信息将在此处显示",
+            "title": "详细统计",
+            "description": "账户性能分析和活动洞察",
+            "sections": {
+                "performance": "性能概览",
+                "taskAnalysis": "任务分析",
+                "engagement": "互动",
+                "timeline": "时间趋势"
+            },
+            "metrics": {
+                "totalTasks": "总任务数",
+                "completedTasks": "已完成",
+                "failedTasks": "失败",
+                "successRate": "成功率",
+                "averageTasksPerDay": "平均任务/天",
+                "totalFollowers": "总粉丝数",
+                "totalLikes": "总点赞数",
+                "totalVideos": "总视频数",
+                "totalViews": "总观看数",
+                "engagementRate": "互动率",
+                "averageViewsPerVideo": "平均观看/视频",
+                "accountAge": "账户年龄",
+                "lastActiveTime": "最后活跃时间"
+            },
+            "charts": {
+                "taskDistribution": "任务分布",
+                "taskStatusBreakdown": "任务状态分析",
+                "priorityDistribution": "优先级分布",
+                "performanceTrend": "性能趋势"
+            },
+            "periods": {
+                "today": "今天",
+                "thisWeek": "本周",
+                "thisMonth": "本月",
+                "allTime": "全部时间"
+            },
+            "noData": "无数据显示",
+            "calculating": "计算中..."
+        },
+        "activity": {
+            "summary": {
+                "completed": "已完成",
+                "running": "运行中",
+                "pending": "待处理",
+                "failed": "失败"
+            },
+            "timeline": {
+                "title": "最近活动历史",
+                "description": "跟踪所有账户互动任务",
+                "noActivity": "暂无活动",
+                "noActivityDescription": "此账户尚未执行任何互动任务。",
+                "viewMore": "查看更多 {count} 个活动"
+            },
+            "taskStatus": {
+                "completed": "已完成",
+                "failed": "失败",
+                "running": "运行中",
+                "pending": "待处理",
+                "unknown": "未知"
+            },
+            "taskTypes": {
+                "follow_user": "关注用户",
+                "unfollow_user": "取消关注用户",
+                "like_video": "点赞视频",
+                "unlike_video": "取消点赞视频",
+                "comment_video": "评论视频",
+                "share_video": "分享视频",
+                "view_video": "观看视频",
+                "create_post": "创建帖子",
+                "live_interaction": "直播互动",
+                "message_user": "私信用户",
+                "unknown": "未知任务"
+            },
+            "priority": {
+                "high": "高",
+                "medium": "中",
+                "low": "低",
+                "unknown": "未知"
+            },
+            "timeAgo": {
+                "justNow": "刚刚",
+                "minutesAgo": "{minutes} 分钟前",
+                "hoursAgo": "{hours} 小时前",
+                "daysAgo": "{days} 天前"
+            }
+        },
+        "security": {
+            "twoFactor": {
+                "title": "双因素认证 (2FA)",
+                "description": "通过额外的安全层保护您的账户",
+                "enabled": "已启用",
+                "disabled": "已禁用",
+                "enabledMessage": "此账户已启用 2FA",
+                "disabledMessage": "账户未受 2FA 保护",
+                "recommendation": "我们建议启用 2FA 以增强此 TikTok 账户的安全性。",
+                "backupCodes": "备用代码",
+                "backupCodesAvailable": "{count} 个备用代码可用",
+                "moreBackupCodes": "还有 {count} 个代码"
+            },
+            "securityInfo": {
+                "title": "安全信息",
+                "phoneNumber": "电话号码",
+                "email": "邮箱",
+                "lastLogin": "最后登录",
+                "notUpdated": "未更新",
+                "notLoggedIn": "未登录"
+            }
+        },
+        "settings": {
+            "placeholder": "账户设置将在此处显示"
+        }
     }
 } 

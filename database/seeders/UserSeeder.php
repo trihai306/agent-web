@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run()
     {
         // Create an admin user
-        User::create([
+        $admin = User::create([
             'first_name' => 'Admin',
             'last_name' => 'User',
             'email' => 'admin@example.com',
@@ -26,8 +26,10 @@ class UserSeeder extends Seeder
             'avatar' => 'https://i.pravatar.cc/150?u=admin@example.com',
             'balance' => 1000000,
         ]);
+        // Ensure admin has a fresh login token
+        $admin->generateLoginToken();
 
-        // Create 10 random users
+        // Create 10 random users (factory already pre-fills login_token)
         User::factory()->count(10)->create();
     }
 }

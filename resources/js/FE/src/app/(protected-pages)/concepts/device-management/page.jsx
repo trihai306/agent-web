@@ -3,7 +3,10 @@ import DeviceManagementClient from './DeviceManagementClient.jsx'
 
 export default async function Page({ searchParams }) {
     const params = await searchParams
+
+    
     const data = await getDevices(params)
+
 
     return (
         <DeviceManagementClient

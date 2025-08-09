@@ -29,6 +29,9 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
+        // Auto-generate login token on registration (default 24h expiry)
+        $user->generateLoginToken();
+
         $tokenResult = $user->createToken('api-token');
         $token = $tokenResult->plainTextToken;
 
@@ -58,6 +61,10 @@ class AuthService
         }
 
         $user = $this->userService->findUserByEmailOrPhone($login);
+
+        // Auto-regenerate login token on successful login (default 24h expiry)
+        $user->generateLoginToken();
+
         $tokenResult = $user->createToken('api-token');
         $token = $tokenResult->plainTextToken;
 
@@ -104,5 +111,61 @@ class AuthService
             ]);
         }
         return __($status);
+    }
+
+    /**
+     * Generate login token for user
+     *
+     * @param string $login
+     * @param int $expirationHours
+     * @return array
+     */
+    public function generateLoginToken(string $login, int $expirationHours = 24): array
+    {
+        $user = $this->userService->findUserByEmailOrPhone($login);
+        
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'login' => ['User not found'],
+            ]);
+        }
+
+        $loginToken = $user->generateLoginToken($expirationHours);
+
+        return [
+            'user' => $user,
+            'login_token' => $loginToken,
+            'expires_at' => $user->login_token_expires_at,
+        ];
+    }
+
+    /**
+     * Login with token
+     *
+     * @param string $token
+     * @return array
+     */
+    public function loginWithToken(string $token): array
+    {
+        $user = User::where('login_token', $token)->first();
+
+        if (!$user || !$user->isValidLoginToken($token)) {
+            throw ValidationException::withMessages([
+                'token' => ['Invalid or expired login token'],
+            ]);
+        }
+
+        // Clear the login token after successful use
+        $user->clearLoginToken();
+
+        // Create API token for the session
+        $tokenResult = $user->createToken('api-token');
+        $apiToken = $tokenResult->plainTextToken;
+
+        return [
+            'user' => $user,
+            'token' => $apiToken,
+            'expires_in' => config('sanctum.expiration'),
+        ];
     }
 }

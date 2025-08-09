@@ -14,12 +14,17 @@ import { DashboardStats } from './_components/stats'
 import { useTiktokAccountListStore } from './_store/tiktokAccountListStore'
 import updateTiktokAccountStatus from '@/server/actions/tiktok-account/updateTiktokAccountStatus'
 import { useTranslations } from 'next-intl'
+import Dialog from '@/components/ui/Dialog'
+import Button from '@/components/ui/Button'
 
 const TiktokAccountManagementClient = ({ data, params }) => {
     const t = useTranslations('tiktokAccountManagement')
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [showInteractionConfigModal, setShowInteractionConfigModal] = useState(false)
+    const [showStartConfirmation, setShowStartConfirmation] = useState(false)
+    const [showStopConfirmation, setShowStopConfirmation] = useState(false)
+    const [pendingAction, setPendingAction] = useState(null)
     
     // Get selected accounts from store
     const selectedAccounts = useTiktokAccountListStore((state) => state.selectedTiktokAccount)
@@ -52,6 +57,24 @@ const TiktokAccountManagementClient = ({ data, params }) => {
             return
         }
 
+        // Show confirmation for start and stop actions
+        if (actionType === 'start') {
+            setPendingAction('start')
+            setShowStartConfirmation(true)
+            return
+        }
+        
+        if (actionType === 'stop') {
+            setPendingAction('stop')
+            setShowStopConfirmation(true)
+            return
+        }
+
+        // Execute other actions directly (pause doesn't need confirmation)
+        await executeQuickAction(actionType)
+    }
+
+    const executeQuickAction = async (actionType) => {
         console.log(`Performing ${actionType} on accounts:`, selectedAccounts)
         setIsLoading(true)
         
@@ -60,14 +83,33 @@ const TiktokAccountManagementClient = ({ data, params }) => {
             
             switch (actionType) {
                 case 'start':
-                    // Bắt đầu - set status to active
-                    const startResult = await updateTiktokAccountStatus(accountIds, 'active')
-                    if (startResult.success) {
-                        console.log('Started accounts successfully')
-                        // Refresh data or update store
+                    // Bắt đầu - run scenario for each selected account
+                    const { default: runTiktokAccountScenario } = await import('@/server/actions/tiktok-account/runTiktokAccountScenario')
+                    
+                    let successCount = 0
+                    let errorMessages = []
+                    
+                    for (const account of selectedAccounts) {
+                        try {
+                            const result = await runTiktokAccountScenario(account.id)
+                            if (result.success) {
+                                successCount++
+                                console.log(`Created tasks for account ${account.username}`)
+                            } else {
+                                errorMessages.push(`${account.username}: ${result.message}`)
+                            }
+                        } catch (error) {
+                            errorMessages.push(`${account.username}: ${error.message}`)
+                        }
+                    }
+                    
+                    if (successCount > 0) {
+                        console.log(`Successfully created tasks for ${successCount} accounts`)
                         handleRefresh()
-                    } else {
-                        console.error('Failed to start accounts:', startResult.message)
+                    }
+                    
+                    if (errorMessages.length > 0) {
+                        console.error('Some accounts failed:', errorMessages)
                     }
                     break
                     
@@ -83,13 +125,39 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                     break
                     
                 case 'stop':
-                    // Dừng - set status to suspended
+                    // Dừng - delete all pending tasks and set status to suspended
+                    const { default: deletePendingTasks } = await import('@/server/actions/tiktok-account/deletePendingTasks')
+                    
+                    let deletedTasksCount = 0
+                    let deleteErrorMessages = []
+                    
+                    // First, delete all pending tasks
+                    try {
+                        const deleteResult = await deletePendingTasks(accountIds)
+                        if (deleteResult.success) {
+                            deletedTasksCount = deleteResult.data?.deleted_count || 0
+                            console.log(`Deleted ${deletedTasksCount} pending tasks`)
+                        } else {
+                            deleteErrorMessages.push(deleteResult.message)
+                        }
+                    } catch (error) {
+                        deleteErrorMessages.push(`Lỗi khi xóa tasks: ${error.message}`)
+                    }
+                    
+                    // Then, update account status to suspended
                     const stopResult = await updateTiktokAccountStatus(accountIds, 'suspended')
                     if (stopResult.success) {
                         console.log('Stopped accounts successfully')
+                        if (deletedTasksCount > 0) {
+                            console.log(`Đã dừng ${selectedAccounts.length} tài khoản và xóa ${deletedTasksCount} pending tasks`)
+                        }
                         handleRefresh()
                     } else {
                         console.error('Failed to stop accounts:', stopResult.message)
+                    }
+                    
+                    if (deleteErrorMessages.length > 0) {
+                        console.error('Some tasks deletion failed:', deleteErrorMessages)
                     }
                     break
                     
@@ -101,6 +169,16 @@ const TiktokAccountManagementClient = ({ data, params }) => {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleStartConfirm = async () => {
+        setShowStartConfirmation(false)
+        await executeQuickAction('start')
+    }
+
+    const handleStopConfirm = async () => {
+        setShowStopConfirmation(false)
+        await executeQuickAction('stop')
     }
 
     return (
@@ -120,17 +198,17 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                         <DashboardStats loading={isLoading} />
 
                         {/* Main Content Grid */}
-                        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                            {/* Account Management Table - Takes 3 columns */}
-                            <div className="xl:col-span-3">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+                            {/* Account Management Table - Takes 2/3 columns on lg, 3 columns on xl */}
+                            <div className="lg:col-span-2 xl:col-span-3">
                                 <AdaptiveCard className="overflow-hidden">
-                                    <div className="p-6">
-                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                                    <div className="p-4 lg:p-6">
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 lg:mb-6">
                                             <div>
-                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                                <h2 className="text-lg lg:text-xl font-semibold text-gray-900 dark:text-gray-100">
                                                     Danh sách tài khoản
                                                 </h2>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-1">
                                                     Quản lý và theo dõi trạng thái của {data?.total || 0} tài khoản
                                                 </p>
                                             </div>
@@ -154,8 +232,8 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                                 />
                             </div>
 
-                            {/* Quick Actions Sidebar - Takes 1 column */}
-                            <div className="xl:col-span-1">
+                            {/* Quick Actions Sidebar - Takes 1 column on both lg and xl */}
+                            <div className="lg:col-span-1 xl:col-span-1">
                                 <QuickActions 
                                     selectedAccounts={selectedAccounts}
                                     onAction={handleQuickAction}
@@ -166,6 +244,56 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                     </div>
                 </Container>
             </div>
+
+            {/* Start Confirmation Dialog */}
+            <Dialog
+                isOpen={showStartConfirmation}
+                onClose={() => setShowStartConfirmation(false)}
+                onRequestClose={() => setShowStartConfirmation(false)}
+            >
+                <h5 className="mb-4">Xác nhận bắt đầu</h5>
+                <p>
+                    Bạn có chắc chắn muốn bắt đầu chạy kịch bản cho {selectedAccounts.length} tài khoản đã chọn?
+                    <br />
+                    <small className="text-gray-500">Hệ thống sẽ tạo tasks theo kịch bản đã liên kết với từng tài khoản.</small>
+                </p>
+                <div className="text-right mt-6">
+                    <Button
+                        className="ltr:mr-2 rtl:ml-2"
+                        onClick={() => setShowStartConfirmation(false)}
+                    >
+                        Hủy
+                    </Button>
+                    <Button variant="solid" onClick={handleStartConfirm}>
+                        Bắt đầu
+                    </Button>
+                </div>
+            </Dialog>
+
+            {/* Stop Confirmation Dialog */}
+            <Dialog
+                isOpen={showStopConfirmation}
+                onClose={() => setShowStopConfirmation(false)}
+                onRequestClose={() => setShowStopConfirmation(false)}
+            >
+                <h5 className="mb-4">Xác nhận dừng</h5>
+                <p>
+                    Bạn có chắc chắn muốn dừng {selectedAccounts.length} tài khoản đã chọn?
+                    <br />
+                    <small className="text-red-500">Tất cả pending tasks sẽ bị xóa và tài khoản sẽ được suspend.</small>
+                </p>
+                <div className="text-right mt-6">
+                    <Button
+                        className="ltr:mr-2 rtl:ml-2"
+                        onClick={() => setShowStopConfirmation(false)}
+                    >
+                        Hủy
+                    </Button>
+                    <Button variant="solid" className="bg-red-600 hover:bg-red-700" onClick={handleStopConfirm}>
+                        Dừng
+                    </Button>
+                </div>
+            </Dialog>
 
             {/* Interaction Config Modal */}
             <InteractionConfigModal

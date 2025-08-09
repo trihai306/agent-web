@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import Drawer from '@/components/ui/Drawer'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
+import Tooltip from '@/components/ui/Tooltip'
 import { Form, FormItem } from '@/components/ui/Form'
 import { useDeviceListStore } from '../_store/deviceListStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
@@ -127,9 +128,10 @@ const DeviceTableFilter = () => {
 
     return (
         <>
-            <Button icon={<TbFilter />} onClick={() => openDrawer()}>
-                {t('filter') || 'Bộ lọc'}
-            </Button>
+            <Tooltip title={t('filter') || 'Bộ lọc'}>
+                <Button icon={<TbFilter />} onClick={() => openDrawer()} aria-label={t('filter') || 'Bộ lọc'} className="!px-2">
+                </Button>
+            </Tooltip>
             <Drawer
                 title={t('filter') || 'Bộ lọc thiết bị'}
                 isOpen={isOpen}

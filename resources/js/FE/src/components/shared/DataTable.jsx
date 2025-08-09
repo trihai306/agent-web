@@ -83,12 +83,16 @@ function DataTable(props) {
         indeterminateCheckboxChecked,
         instanceId = 'data-table',
         ref,
+        // Filter out props that shouldn't be passed to DOM elements
+        rowSelection,
+        pagination,
+        sorting,
         ...rest
     } = props
 
     const { pageSize, pageIndex, total } = pagingData
 
-    const [sorting, setSorting] = useState(null)
+    const [sortingState, setSortingState] = useState(null)
 
     const pageSizeOption = useMemo(
         () =>
@@ -100,14 +104,14 @@ function DataTable(props) {
     )
 
     useEffect(() => {
-        if (Array.isArray(sorting)) {
+        if (Array.isArray(sortingState)) {
             const sortOrder =
-                sorting.length > 0 ? (sorting[0].desc ? 'desc' : 'asc') : ''
-            const id = sorting.length > 0 ? sorting[0].id : ''
+                sortingState.length > 0 ? (sortingState[0].desc ? 'desc' : 'asc') : ''
+            const id = sortingState.length > 0 ? sortingState[0].id : ''
             onSort?.({ order: sortOrder, key: id })
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sorting])
+    }, [sortingState])
 
     const handleIndeterminateCheckBoxChange = (checked, rows) => {
         if (!loading) {
@@ -182,10 +186,10 @@ function DataTable(props) {
         getSortedRowModel: getSortedRowModel(),
         manualSorting: true,
         onSortingChange: (sorter) => {
-            setSorting(sorter)
+            setSortingState(sorter)
         },
         state: {
-            sorting: sorting,
+            sorting: sortingState,
         },
     })
 
