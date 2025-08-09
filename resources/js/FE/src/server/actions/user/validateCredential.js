@@ -1,25 +1,29 @@
 'use server'
 import appConfig from '@/configs/app.config'
+import { secureFetch } from '@/utils/apiUtils'
 
 const validateCredential = async (values) => {
     const { login, password } = values
 
     try {
-        // Use native fetch to call the login API directly.
-        // This avoids using the global Axios instance and breaks the circular dependency.
-        const response = await fetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`, {
+        console.log('🔍 validateCredential: Attempting login to:', `${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`)
+        
+        // Use secure fetch with proper SSL and CORS handling
+        const response = await secureFetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            },
             body: JSON.stringify({ login, password }),
         })
 
         if (!response.ok) {
-            console.error('Login API request failed:', response.statusText)
+            console.error('❌ Login API request failed:', {
+                status: response.status,
+                statusText: response.statusText,
+                url: `${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`
+            })
             return null
         }
+        
+        console.log('✅ Login API request successful:', response.status)
 
         const data = await response.json()
 
@@ -38,11 +42,9 @@ const validateCredential = async (values) => {
 
             // Fetch user permissions after successful login
             try {
-                const permissionsResponse = await fetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/profile/permissions`, {
+                const permissionsResponse = await secureFetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/profile/permissions`, {
                     method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
                         Authorization: `Bearer ${data.token}`,
                     },
                 })
@@ -66,7 +68,12 @@ const validateCredential = async (values) => {
         }
         return null
     } catch (error) {
-        console.error('Authentication request failed:', error)
+        console.error('❌ Authentication request failed:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            url: `${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`
+        })
         return null
     }
 }

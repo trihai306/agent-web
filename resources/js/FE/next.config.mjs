@@ -4,8 +4,14 @@ const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
 let nextConfig = {
-    swcMinify: true,
-    fastRefresh: true,
+    // Remove deprecated options
+    // swcMinify and fastRefresh are enabled by default in newer Next.js versions
+    
+    // Use the correct property name for external packages
+    serverExternalPackages: [],
+    
+    // For SSL issues in development, we'll handle this differently
+    // since env config is not allowed for NODE_TLS_REJECT_UNAUTHORIZED
 };
 
 if (process.env.ANALYZE === 'true') {
