@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             NotificationSeeder::class,
             RolePermissionSeeder::class,
             DetailedPermissionSeeder::class, // Add detailed permissions
+            SuperAdminSeeder::class, // Tạo super admin sau khi có roles
             TransactionSeeder::class,
             InteractionScenarioSeeder::class, // Tạo scenarios trước
             DeviceSeeder::class, // Tạo devices trước

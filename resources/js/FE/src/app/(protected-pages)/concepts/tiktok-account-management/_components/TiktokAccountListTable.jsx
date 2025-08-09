@@ -696,14 +696,35 @@ const TiktokAccountListTable = ({
         
         try {
             console.log('Stopping account:', selectedAccountForAction.username)
-            // Import the updateTiktokAccountStatus function
-            const { default: updateTiktokAccountStatus } = await import('@/server/actions/tiktok-account/updateTiktokAccountStatus')
             
+            let deletedTasksCount = 0
+            let deleteErrorMessages = []
+            
+            // First, delete all pending tasks
+            try {
+                const { default: deletePendingTasks } = await import('@/server/actions/tiktok-account/deletePendingTasks')
+                const deleteResult = await deletePendingTasks([selectedAccountForAction.id])
+                if (deleteResult.success) {
+                    deletedTasksCount = deleteResult.data?.deleted_count || 0
+                    console.log(`Deleted ${deletedTasksCount} pending tasks`)
+                } else {
+                    deleteErrorMessages.push(deleteResult.message)
+                }
+            } catch (error) {
+                deleteErrorMessages.push(`Lỗi khi xóa tasks: ${error.message}`)
+            }
+            
+            // Then, update account status to suspended
+            const { default: updateTiktokAccountStatus } = await import('@/server/actions/tiktok-account/updateTiktokAccountStatus')
             const result = await updateTiktokAccountStatus([selectedAccountForAction.id], 'suspended')
             
             if (result.success) {
                 console.log('Account stopped successfully')
-                setDialogMessage(`Tài khoản ${selectedAccountForAction.username} đã được dừng thành công!`)
+                let successMessage = `Tài khoản ${selectedAccountForAction.username} đã được dừng thành công!`
+                if (deletedTasksCount > 0) {
+                    successMessage += ` Đã xóa ${deletedTasksCount} pending tasks.`
+                }
+                setDialogMessage(successMessage)
                 setShowSuccessDialog(true)
                 // Refresh the data
                 if (onRefresh) {
@@ -713,6 +734,15 @@ const TiktokAccountListTable = ({
                 console.error('Failed to stop account:', result.message)
                 setDialogMessage(`Không thể dừng tài khoản ${selectedAccountForAction.username}: ${result.message}`)
                 setShowErrorDialog(true)
+            }
+            
+            if (deleteErrorMessages.length > 0) {
+                console.error('Some tasks deletion failed:', deleteErrorMessages)
+                // Show warning if tasks deletion failed but account was suspended
+                if (result.success) {
+                    setDialogMessage(`Tài khoản đã được dừng nhưng một số tasks không thể xóa: ${deleteErrorMessages.join(', ')}`)
+                    setShowErrorDialog(true)
+                }
             }
         } catch (error) {
             console.error('Error stopping account:', error)
