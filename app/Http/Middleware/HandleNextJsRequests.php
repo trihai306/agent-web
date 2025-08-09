@@ -75,6 +75,8 @@ class HandleNextJsRequests
         return in_array($origin, [
             'http://localhost:3000',
             'http://127.0.0.1:3000',
+            'http://localhost:3001',
+            'http://127.0.0.1:3001',
             'http://agent-ai.test',
             'https://agent-ai.test',
         ]);
@@ -89,10 +91,12 @@ class HandleNextJsRequests
         $allowedOrigins = [
             'http://localhost:3000',
             'http://127.0.0.1:3000', 
+            'http://localhost:3001',
+            'http://127.0.0.1:3001',
             'http://agent-ai.test',
             'https://agent-ai.test',
         ];
 
-        return in_array($origin, $allowedOrigins) ? $origin : 'http://localhost:3000';
+        return in_array($origin, $allowedOrigins) ? $origin : 'http://localhost:3001';
     }
 }
