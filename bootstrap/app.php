@@ -13,10 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Add global middleware for handling Next.js requests
+        $middleware->web(append: [
+            \App\Http\Middleware\HandleNextJsRequests::class,
+        ]);
+
         // Register custom middlewares
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'role' => \App\Http\Middleware\CheckRole::class,
+            'nextjs' => \App\Http\Middleware\HandleNextJsRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

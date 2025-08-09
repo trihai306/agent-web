@@ -19,11 +19,26 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:3000'],
+    'allowed_origins' => [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'https://api.lionsoftware.cloud',
+    ],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        '*',
+        'RSC',
+        'Next-Url',
+        'Next-Router-State-Tree',
+        'Next-Pathname-Index',
+        'Next-Action',
+        'Content-Type',
+        'Accept',
+        'Authorization',
+        'X-Requested-With',
+    ],
 
     'exposed_headers' => [],
 

@@ -13,6 +13,22 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Handle Next.js RSC Headers
+    RewriteCond %{HTTP:RSC} .
+    RewriteRule .* - [E=HTTP_RSC:%{HTTP:RSC}]
+    
+    RewriteCond %{HTTP:Next-Url} .
+    RewriteRule .* - [E=HTTP_NEXT_URL:%{HTTP:Next-Url}]
+    
+    RewriteCond %{HTTP:Next-Router-State-Tree} .
+    RewriteRule .* - [E=HTTP_NEXT_ROUTER_STATE_TREE:%{HTTP:Next-Router-State-Tree}]
+    
+    RewriteCond %{HTTP:Next-Pathname-Index} .
+    RewriteRule .* - [E=HTTP_NEXT_PATHNAME_INDEX:%{HTTP:Next-Pathname-Index}]
+    
+    RewriteCond %{HTTP:Next-Action} .
+    RewriteRule .* - [E=HTTP_NEXT_ACTION:%{HTTP:Next-Action}]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
