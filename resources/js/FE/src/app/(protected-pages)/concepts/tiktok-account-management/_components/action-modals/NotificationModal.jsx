@@ -20,6 +20,8 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
         say_hi_from: 1,
         say_hi_to: 3
     })
+    
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
@@ -37,14 +39,34 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'notification',
-                name: config.name,
-                config: config
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: config.name,
+                    type: action?.type || 'notification',
+                    parameters: {
+                        name: config.name,
+                        description: config.name,
+                        count_from: config.count_from,
+                        count_to: config.count_to,
+                        gap_from: config.gap_from,
+                        gap_to: config.gap_to,
+                        count_follow: config.count_follow,
+                        follow_from: config.follow_from,
+                        follow_to: config.follow_to,
+                        count_say_hi: config.count_say_hi,
+                        say_hi_from: config.say_hi_from,
+                        say_hi_to: config.say_hi_to
+                    }
+                }
+                await onSave(action, saveData)
+            } catch (error) {
+                console.error('Error saving notification config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
     }
 
@@ -270,6 +292,8 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
                             type="button"
                             variant="solid"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu cấu hình
                         </Button>

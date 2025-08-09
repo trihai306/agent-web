@@ -64,9 +64,35 @@
     },
     "bulkAction": {
         "selected": "Đã chọn {count} tài khoản",
-        "delete": "Xóa",
+        "activate": "Kích hoạt",
+        "pause": "Tạm dừng",
         "suspend": "Tạm khóa",
-        "clear": "Bỏ chọn"
+        "delete": "Xóa",
+        "clear": "Bỏ chọn",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "activateSuccess": "Đã kích hoạt {count} tài khoản thành công",
+        "pauseSuccess": "Đã tạm dừng {count} tài khoản thành công"
+    },
+    "tableTools": {
+        "refresh": "Làm mới",
+        "quickFilters": "Lọc nhanh",
+        "status": {
+            "active": "Hoạt động",
+            "inactive": "Không hoạt động",
+            "suspended": "Tạm khóa"
+        },
+        "taskStatus": {
+            "hasPending": "Có task chờ",
+            "noPending": "Không có task"
+        },
+        "sortBy": "Sắp xếp theo",
+        "sort": {
+            "username": "Tên đăng nhập",
+            "createdAt": "Ngày tạo",
+            "tasks": "Số task"
+        },
+        "clearFilters": "Xóa bộ lọc"
     },
     "bulkDeleteConfirm": {
         "title": "Xóa tài khoản đã chọn",

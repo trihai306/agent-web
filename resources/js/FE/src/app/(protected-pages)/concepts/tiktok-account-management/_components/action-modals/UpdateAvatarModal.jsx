@@ -9,11 +9,11 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Update Avatar Form
     const [config, setConfig] = useState({
         name: "Cập nhật Ảnh đại diện",
-        image_source: "",
-        delete_used_images: false,
-        image_paths: [],
-        image_urls: []
+        uploaded_files: [],
+        delete_used_images: false
     })
+    
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
@@ -36,14 +36,48 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'update_avatar',
-                name: config.name,
-                config: config
+    const handleFileUpload = (event) => {
+        const files = Array.from(event.target.files)
+        
+        // Chỉ cho phép ảnh cho avatar
+        const imageFiles = files.filter(file => file.type.startsWith('image/'))
+        
+        if (imageFiles.length > 0) {
+            // Chỉ lấy ảnh đầu tiên cho avatar
+            setConfig(prev => ({
+                ...prev,
+                uploaded_files: [imageFiles[0]]
+            }))
+        }
+    }
+
+    const removeFile = () => {
+        setConfig(prev => ({
+            ...prev,
+            uploaded_files: []
+        }))
+    }
+
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: config.name,
+                    type: action?.type || 'update_avatar',
+                    parameters: {
+                        name: config.name,
+                        description: config.name,
+                        uploaded_files: config.uploaded_files,
+                        delete_used_images: config.delete_used_images
+                    }
+                }
+                await onSave(action, saveData)
+            } catch (error) {
+                console.error('Error saving update avatar config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
     }
 
@@ -81,34 +115,69 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
                         />
                     </div>
                     
-                    {/* Ảnh */}
+                    {/* Upload Ảnh đại diện */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                            Ảnh:
+                            Upload Ảnh đại diện:
                         </label>
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <select 
-                                    value={config.image_source}
-                                    onChange={(e) => handleInputChange('image_source', e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+                                <input
+                                    type="file"
+                                    id="avatar-upload"
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="avatar-upload"
+                                    className="cursor-pointer flex flex-col items-center justify-center text-center"
                                 >
-                                    <option value="random">Chọn nguồn ảnh</option>
-                                    <option value="gallery">Thư viện ảnh</option>
-                                    <option value="camera">Chụp ảnh mới</option>
-                                    <option value="url">Từ URL</option>
-                                    <option value="upload">Tải lên từ máy</option>
-                                </select>
-                                
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-gray-600 dark:text-gray-400 px-3 py-2"
-                                >
-                                    📁
-                                </Button>
+                                    <div className="text-4xl text-gray-400 mb-2">🖼️</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                        <span className="font-medium text-blue-600 hover:text-blue-500">
+                                            Nhấp để chọn ảnh đại diện
+                                        </span>
+                                        <br />
+                                        Chỉ chấp nhận file ảnh (JPG, PNG, GIF...)
+                                    </div>
+                                </label>
                             </div>
+                            
+                            {/* Hiển thị ảnh đã chọn */}
+                            {config.uploaded_files.length > 0 && (
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Ảnh đã chọn:
+                                    </h4>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                                    <span className="text-lg">🖼️</span>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        {config.uploaded_files[0].name}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {(config.uploaded_files[0].size / 1024 / 1024).toFixed(2)} MB
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={removeFile}
+                                                className="text-red-500 hover:text-red-700 px-2 py-1"
+                                            >
+                                                ✕
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             
                             <div>
                                 <Checkbox
@@ -137,6 +206,8 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
                             variant="solid"
                             color="blue-500"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu
                         </Button>

@@ -45,3 +45,10 @@ export async function apiGetContentGroupWithContents(id) {
         method: 'get',
     })
 }
+
+export async function apiGetContentsByGroup(groupId) {
+    return ApiService.fetchDataWithAxios({
+        url: `/content-groups/${groupId}/contents`,
+        method: 'get',  
+    })
+}

@@ -104,6 +104,8 @@ const VerticalMenuContent = (props) => {
                             <AuthorityCheck
                                 userAuthority={userAuthority}
                                 authority={nav.authority}
+                                permissions={nav.permissions || []}
+                                requireAll={nav.requireAll}
                             >
                                 <MenuGroup
                                     key={nav.key}

@@ -14,15 +14,15 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
         post_by_filename: false,
         title: "",
         content: "",
-        image_source: "",
-        image_paths: [],
-        image_urls: [],
+        uploaded_files: [],
         delete_used_images: false,
         auto_cut: false,
         filter_type: "random",
         custom_filters: "",
         add_trending_music: false
     })
+    
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
@@ -47,6 +47,35 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
+    const handleFileUpload = (event) => {
+        const files = Array.from(event.target.files)
+        
+        // Phân loại file theo loại
+        const imageFiles = files.filter(file => file.type.startsWith('image/'))
+        const videoFiles = files.filter(file => file.type.startsWith('video/'))
+        
+        // Nếu có video, chỉ lấy video đầu tiên
+        if (videoFiles.length > 0) {
+            setConfig(prev => ({
+                ...prev,
+                uploaded_files: [videoFiles[0]]
+            }))
+        } else if (imageFiles.length > 0) {
+            // Nếu chỉ có ảnh, có thể chọn nhiều
+            setConfig(prev => ({
+                ...prev,
+                uploaded_files: imageFiles
+            }))
+        }
+    }
+
+    const removeFile = (index) => {
+        setConfig(prev => ({
+            ...prev,
+            uploaded_files: prev.uploaded_files.filter((_, i) => i !== index)
+        }))
+    }
+
     const handleRadioChange = (field, value) => {
         setConfig(prev => ({
             ...prev,
@@ -54,14 +83,35 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'create_post',
-                name: config.name,
-                config: config
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: config.name,
+                    type: action?.type || 'create_post',
+                    parameters: {
+                        name: config.name,
+                        description: config.name,
+                        load_time_from: config.load_time_from,
+                        load_time_to: config.load_time_to,
+                        post_by_filename: config.post_by_filename,
+                        title: config.title,
+                        content: config.content,
+                        uploaded_files: config.uploaded_files,
+                        delete_used_images: config.delete_used_images,
+                        auto_cut: config.auto_cut,
+                        filter_type: config.filter_type,
+                        custom_filters: config.custom_filters,
+                        add_trending_music: config.add_trending_music
+                    }
+                }
+                await onSave(action, saveData)
+            } catch (error) {
+                console.error('Error saving create post config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
     }
 
@@ -167,40 +217,77 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                         
                         {/* Cột phải */}
                         <div className="space-y-6">
-                            {/* Ảnh */}
+                            {/* Upload File */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                    Ảnh:
+                                    Upload File (Ảnh/Video):
                                 </label>
                                 <div className="space-y-3">
-                                    <select 
-                                        value={config.image_source}
-                                        onChange={(e) => handleRadioChange('image_source', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                    >
-                                        <option value="random">Chọn nguồn ảnh</option>
-                                        <option value="gallery">Thư viện ảnh</option>
-                                        <option value="camera">Chụp ảnh mới</option>
-                                        <option value="url">Từ URL</option>
-                                    </select>
-                                    
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-gray-600 dark:text-gray-400"
+                                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                        <input
+                                            type="file"
+                                            id="file-upload"
+                                            multiple
+                                            accept="image/*,video/*"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                        />
+                                        <label
+                                            htmlFor="file-upload"
+                                            className="cursor-pointer flex flex-col items-center justify-center text-center"
                                         >
-                                            📁
-                                        </Button>
+                                            <div className="text-4xl text-gray-400 mb-2">📁</div>
+                                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                <span className="font-medium text-blue-600 hover:text-blue-500">
+                                                    Nhấp để chọn file
+                                                </span>
+                                                <br />
+                                                Video: chỉ chọn 1 file | Ảnh: chọn nhiều file
+                                            </div>
+                                        </label>
                                     </div>
+                                    
+                                    {/* Hiển thị file đã chọn */}
+                                    {config.uploaded_files.length > 0 && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                File đã chọn:
+                                            </h4>
+                                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                {config.uploaded_files.map((file, index) => (
+                                                    <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm">
+                                                                {file.type.startsWith('video/') ? '🎥' : '🖼️'}
+                                                            </span>
+                                                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                                                {file.name}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500">
+                                                                ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => removeFile(index)}
+                                                            className="text-red-500 hover:text-red-700 px-2 py-1"
+                                                        >
+                                                            ✕
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                     
                                     <div className="space-y-2">
                                         <Checkbox
                                             checked={config.delete_used_images}
                                             onChange={(checked) => handleCheckboxChange('delete_used_images', checked)}
                                         >
-                                            Xóa ảnh đã sử dụng
+                                            Xóa file đã sử dụng
                                         </Checkbox>
                                         
                                         <div className="flex items-center gap-2">
@@ -278,6 +365,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                             variant="solid"
                             color="orange-500"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu
                         </Button>

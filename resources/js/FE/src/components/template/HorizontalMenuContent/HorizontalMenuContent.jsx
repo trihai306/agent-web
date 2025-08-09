@@ -28,6 +28,8 @@ const HorizontalMenuContent = (props) => {
                     key={nav.key}
                     userAuthority={userAuthority}
                     authority={nav.authority}
+                    permissions={nav.permissions || []}
+                    requireAll={nav.requireAll}
                 >
                     {nav.subMenu.length > 0 ? (
                         <HorizontalMenuDropdown

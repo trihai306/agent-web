@@ -36,7 +36,13 @@ class TiktokAccountController extends Controller
     #[QueryParameter('filter[username]', description: 'Filter tiktok accounts by username.', example: 'user123')]
     #[QueryParameter('filter[email]', description: 'Filter tiktok accounts by email.', example: 'user@example.com')]
     #[QueryParameter('filter[status]', description: 'Filter tiktok accounts by status.', example: 'active')]
-    #[QueryParameter('sort', description: 'Sort tiktok accounts by `username`, `email`, `created_at`. Prefix with `-` for descending.', example: '-created_at')]
+    #[QueryParameter('filter[task_status]', description: 'Filter tiktok accounts by task status: pending, no_pending.', example: 'pending')]
+    #[QueryParameter('filter[has_pending_tasks]', description: 'Filter accounts that have pending tasks (true/false).', example: 'true')]
+    #[QueryParameter('filter[pending_task_type]', description: 'Filter accounts by pending task type.', example: 'follow_user')]
+    #[QueryParameter('filter[pending_task_priority]', description: 'Filter accounts by pending task priority: low, medium, high.', example: 'high')]
+    #[QueryParameter('filter[pending_task_device_id]', description: 'Filter accounts by device ID in pending tasks.', example: '123')]
+    #[QueryParameter('filter[scenario_id]', description: 'Filter accounts by their assigned scenario ID.', example: '456')]
+    #[QueryParameter('sort', description: 'Sort tiktok accounts by `username`, `email`, `created_at`, `pending_tasks_count`. Prefix with `-` for descending.', example: '-pending_tasks_count')]
     #[QueryParameter('page', description: 'The page number for pagination.', example: 2)]
     #[QueryParameter('per_page', description: 'The number of items per page.', example: 25)]
     public function index(Request $request)
@@ -102,6 +108,7 @@ class TiktokAccountController extends Controller
      * Get a specific tiktok account
      *
      * Retrieves the details of a specific tiktok account by their ID.
+     * Includes related data like pending tasks, running tasks, and statistics.
      * @param  TiktokAccount  $tiktokAccount The tiktok account model instance.
      */
     public function show(TiktokAccount $tiktokAccount)
@@ -110,7 +117,46 @@ class TiktokAccountController extends Controller
         if (!$user->hasRole('admin') && $tiktokAccount->user_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        return response()->json($tiktokAccount);
+
+        // Load relationships and additional data
+        $tiktokAccount->load([
+            'pendingTasks' => function($query) {
+                $query->select('id', 'tiktok_account_id', 'task_type', 'status', 'priority', 'scheduled_at', 'created_at')
+                      ->orderBy('created_at', 'desc')
+                      ->limit(10);
+            },
+            'runningTasks' => function($query) {
+                $query->select('id', 'tiktok_account_id', 'task_type', 'status', 'priority', 'started_at', 'created_at')
+                      ->orderBy('created_at', 'desc')
+                      ->limit(10);
+            },
+            'interactionScenario:id,name'
+        ]);
+
+        // Add computed fields
+        $accountData = $tiktokAccount->toArray();
+        
+        // Add task statistics
+        $accountData['task_statistics'] = [
+            'pending_tasks_count' => $tiktokAccount->pendingTasks->count(),
+            'running_tasks_count' => $tiktokAccount->runningTasks->count(),
+            'total_tasks_count' => $tiktokAccount->accountTasks()->count(),
+            'completed_tasks_count' => $tiktokAccount->accountTasks()->where('status', 'completed')->count(),
+            'failed_tasks_count' => $tiktokAccount->accountTasks()->where('status', 'failed')->count(),
+        ];
+
+        // Add formatted dates
+        $accountData['join_date'] = $tiktokAccount->created_at->format('d/m/Y');
+        $accountData['last_activity'] = $tiktokAccount->last_activity_at ? 
+            $tiktokAccount->last_activity_at->diffForHumans() : 'Chưa có hoạt động';
+
+        // Add display name (use nickname or username)
+        $accountData['display_name'] = $tiktokAccount->nickname ?: $tiktokAccount->username;
+
+        // Add view count estimation (since it's not in DB, we can estimate or set default)
+        $accountData['estimated_views'] = $tiktokAccount->video_count * 1000; // Simple estimation
+
+        return response()->json($accountData);
     }
 
     /**
@@ -268,6 +314,46 @@ class TiktokAccountController extends Controller
         
         return response()->json([
             'data' => $stats
+        ]);
+    }
+
+    /**
+     * Get TikTok account task analysis
+     *
+     * Retrieves detailed task analysis for TikTok accounts including 
+     * pending tasks, running tasks, and task distribution statistics.
+     * 
+     * @response {
+     *   "data": {
+     *     "task_overview": {
+     *       "total_accounts": 156,
+     *       "accounts_with_pending_tasks": 23,
+     *       "accounts_with_running_tasks": 12,
+     *       "accounts_with_no_tasks": 45,
+     *       "idle_accounts": 76
+     *     },
+     *     "task_statistics": {
+     *       "total_pending_tasks": 89,
+     *       "total_running_tasks": 34,
+     *       "total_completed_tasks": 1245,
+     *       "total_failed_tasks": 67,
+     *       "average_success_rate": 94.9
+     *     },
+     *     "task_distribution": [
+     *       {"task_type": "follow_user", "count": 45, "percentage": 35.2},
+     *       {"task_type": "like_video", "count": 32, "percentage": 25.0}
+     *     ]
+     *   }
+     * }
+     */
+    public function taskAnalysis(Request $request)
+    {
+        $user = $request->user();
+        
+        $analysis = $this->tiktokAccountService->getTaskAnalysis($user);
+        
+        return response()->json([
+            'data' => $analysis
         ]);
     }
 }

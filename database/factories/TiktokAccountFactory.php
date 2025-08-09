@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
+use App\Models\InteractionScenario;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TiktokAccount>
@@ -30,6 +31,7 @@ class TiktokAccountFactory extends Factory
             'heart_count' => $this->faker->numberBetween(0, 10000000),
             'video_count' => $this->faker->numberBetween(0, 1000),
             'status' => $this->faker->randomElement(['active', 'inactive', 'suspended']),
+            'scenario_id' => InteractionScenario::inRandomOrder()->first()?->id,
             'notes' => $this->faker->optional()->sentence,
             'last_login_at' => now(),
         ];

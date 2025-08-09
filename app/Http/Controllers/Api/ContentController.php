@@ -41,6 +41,9 @@ class ContentController extends Controller
     #[QueryParameter('per_page', description: 'The number of items per page.', example: 25)]
     public function index(Request $request)
     {
+        // Automatically filter by current user
+        $request->merge(['filter' => array_merge($request->get('filter', []), ['user_id' => auth()->id()])]);
+        
         // A paginated list of content resources.
         return response()->json($this->contentService->getAllContents($request));
     }
@@ -58,8 +61,14 @@ class ContentController extends Controller
     #[QueryParameter('per_page', description: 'The number of items per page.', example: 25)]
     public function getByGroup(Request $request, $groupId)
     {
+        // Check if the content group belongs to the authenticated user
+        $contentGroup = \App\Models\ContentGroup::find($groupId);
+        if (!$contentGroup || $contentGroup->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         // A paginated list of content resources for the specified group.
-        $request->merge(['filter' => ['content_group_id' => $groupId]]);
+        $request->merge(['filter' => ['content_group_id' => $groupId, 'user_id' => auth()->id()]]);
         return response()->json($this->contentService->getAllContents($request));
     }
 

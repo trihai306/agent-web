@@ -1,13 +1,19 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Dialog from '@/components/ui/Dialog'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Switcher from '@/components/ui/Switcher'
-import CommentManager from '../CommentManager'
 
-const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
+const VideoInteractionModal = ({ 
+    isOpen, 
+    onClose, 
+    action, 
+    onSave,
+    onFetchContentGroups,
+    onFetchContentsByGroup 
+}) => {
     // Initialize config based on JSON schema for Random Video Interaction Form
     const [config, setConfig] = useState({
         name: "Tương tác video ngẫu nhiên",
@@ -41,8 +47,19 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         comment_gap_to: 3,
         comment_contents: [],
         user_list: "",
-        content_group: "",
-        content_topic: ""
+        content_group: ""
+    })
+    
+    const [isLoading, setIsLoading] = useState(false)
+    const [loadingContents, setLoadingContents] = useState(false)
+    
+    // State for searchable select
+    const [contentGroupsState, setContentGroupsState] = useState({
+        options: [],
+        hasNextPage: true,
+        isLoading: false,
+        currentPage: 1,
+        searchTerm: ''
     })
 
     const suggestionTypeOptions = [
@@ -50,22 +67,205 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         { value: 'following', label: 'Đang theo dõi' }
     ]
 
-    const contentGroupOptions = [
-        { value: '', label: '-- Chọn nhóm nội dung --' },
-        { value: 'entertainment', label: 'Giải trí' },
-        { value: 'education', label: 'Giáo dục' },
-        { value: 'lifestyle', label: 'Lối sống' }
-    ]
+    // Debounced search function
+    const debounce = useCallback((func, delay) => {
+        let timeoutId
+        return (...args) => {
+            clearTimeout(timeoutId)
+            timeoutId = setTimeout(() => func(...args), delay)
+        }
+    }, [])
 
-    const contentTopicOptions = [
-        { value: '', label: '-- Chọn chủ đề --' },
-        { value: 'music', label: 'Âm nhạc' },
-        { value: 'dance', label: 'Nhảy múa' },
-        { value: 'comedy', label: 'Hài hước' }
-    ]
+    // Function to fetch content groups with search and pagination
+    const fetchContentGroups = useCallback(async (searchTerm = '', page = 1, reset = false) => {
+        if (!onFetchContentGroups) return
+
+        setContentGroupsState(prev => ({ ...prev, isLoading: true }))
+
+        try {
+            const params = {
+                page,
+                per_page: 20,
+                ...(searchTerm && { search: searchTerm })
+            }
+
+            const response = await onFetchContentGroups(params)
+            
+            if (response?.success && response?.data) {
+                const newOptions = response.data.data?.map(group => ({
+                    value: group.id,
+                    label: group.name
+                })) || []
+
+                setContentGroupsState(prev => ({
+                    ...prev,
+                    options: reset ? newOptions : [...prev.options, ...newOptions],
+                    hasNextPage: response.data.current_page < response.data.last_page,
+                    currentPage: response.data.current_page,
+                    searchTerm,
+                    isLoading: false
+                    
+                }))
+            }
+        } catch (error) {
+            console.error('Error fetching content groups:', error)
+            setContentGroupsState(prev => ({ ...prev, isLoading: false }))
+        }
+    }, [onFetchContentGroups])
+
+    // Debounced search
+    const debouncedSearch = useMemo(
+        () => debounce((searchTerm) => {
+            fetchContentGroups(searchTerm, 1, true)
+        }, 300),
+        [debounce, fetchContentGroups]
+    )
+
+    // Handle search input
+    const handleSearch = useCallback((inputValue) => {
+        debouncedSearch(inputValue)
+    }, [debouncedSearch])
+
+    // Handle load more (infinite scroll)
+    const handleLoadMore = useCallback(() => {
+        if (contentGroupsState.hasNextPage && !contentGroupsState.isLoading) {
+            fetchContentGroups(contentGroupsState.searchTerm, contentGroupsState.currentPage + 1, false)
+        }
+    }, [contentGroupsState, fetchContentGroups])
+
+    // Custom MenuList component for infinite scroll
+    const CustomMenuList = useCallback((props) => {
+        const { 
+            children, 
+            className,
+            innerRef,
+            innerProps,
+            // Filter out react-select specific props that shouldn't be passed to DOM
+            clearValue,
+            cx,
+            getStyles,
+            getValue,
+            hasValue,
+            isMulti,
+            isRtl,
+            options,
+            selectOption,
+            selectProps,
+            setValue,
+            theme,
+            ...rest 
+        } = props
+        
+        const handleScroll = (e) => {
+            const { target } = e
+            const bottom = target.scrollHeight - target.scrollTop === target.clientHeight
+            
+            if (bottom && contentGroupsState.hasNextPage && !contentGroupsState.isLoading) {
+                handleLoadMore()
+            }
+        }
+
+        return (
+            <div 
+                ref={innerRef}
+                className={className}
+                {...innerProps}
+                onScroll={handleScroll}
+            >
+                {children}
+                {contentGroupsState.isLoading && (
+                    <div className="px-3 py-2 text-center text-sm text-gray-500">
+                        Đang tải...
+                    </div>
+                )}
+                {!contentGroupsState.hasNextPage && contentGroupsState.options.length > 0 && (
+                    <div className="px-3 py-2 text-center text-xs text-gray-400">
+                        Đã tải hết dữ liệu
+                    </div>
+                )}
+            </div>
+        )
+    }, [contentGroupsState, handleLoadMore])
+
+    // Fetch content groups when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            // Reset state and fetch initial data
+            setContentGroupsState({
+                options: [],
+                hasNextPage: true,
+                isLoading: false,
+                currentPage: 1,
+                searchTerm: ''
+            })
+            fetchContentGroups('', 1, true)
+        }
+    }, [isOpen, fetchContentGroups])
+
+    const fetchContentsByGroup = async (groupId) => {
+        if (!groupId) {
+            setConfig(prev => ({ ...prev, comment_contents: [] }))
+            return
+        }
+        
+        if (onFetchContentsByGroup) {
+            setLoadingContents(true)
+            try {
+                const contents = await onFetchContentsByGroup(groupId)
+                
+                // Ensure we extract only string values, not objects
+                const commentContents = contents.map((content) => {
+                    // If content is already a string, use it
+                    if (typeof content === 'string') {
+                        return content
+                    }
+                    
+                    // If content is an object, extract the text value
+                    let extracted = ''
+                    
+                    // Try different extraction paths based on API structure
+                    if (content.content && content.content.text) {
+                        // Case: {content: {text: 'value'}}
+                        extracted = content.content.text
+                    } else if (content.content && typeof content.content === 'string') {
+                        // Case: {content: 'value'}
+                        extracted = content.content
+                    } else if (content.text) {
+                        // Case: {text: 'value'}
+                        extracted = content.text
+                    } else if (content.title) {
+                        // Case: {title: 'value'}
+                        extracted = content.title
+                    } else if (content.value) {
+                        // Case: {value: 'value'}
+                        extracted = content.value
+                    } else if (content.name) {
+                        // Case: {name: 'value'}
+                        extracted = content.name
+                    }
+                    
+                    return extracted
+                }).filter((text) => {
+                    return typeof text === 'string' && text.trim() !== ''
+                })
+                
+                setConfig(prev => ({ ...prev, comment_contents: commentContents }))
+            } catch (error) {
+                console.error('Error fetching contents:', error)
+                setConfig(prev => ({ ...prev, comment_contents: [] }))
+            } finally {
+                setLoadingContents(false)
+            }
+        }
+    }
 
     const handleSelectChange = (field, value) => {
         setConfig(prev => ({ ...prev, [field]: value }))
+        
+        // If content group is changed, fetch contents for that group
+        if (field === 'content_group') {
+            fetchContentsByGroup(value)
+        }
     }
 
     const handleInputChange = (field, value) => {
@@ -84,21 +284,60 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleCommentContentChange = (contents) => {
-        setConfig(prev => ({
-            ...prev,
-            comment_contents: contents
-        }))
-    }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'random_video_interaction',
-                name: config.name,
-                config: config
+
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: config.name,
+                    type: action?.type || 'random_video_interaction',
+                    parameters: {
+                        name: config.name,
+                        description: config.name,
+                        suggestion_type: config.suggestion_type,
+                        limit_mode: config.limit_mode,
+                        limit_video_from: config.limit_video_from,
+                        limit_video_to: config.limit_video_to,
+                        limit_time_from: config.limit_time_from,
+                        limit_time_to: config.limit_time_to,
+                        view_from: config.view_from,
+                        view_to: config.view_to,
+                        enable_follow: config.enable_follow,
+                        follow_rate: config.follow_rate,
+                        follow_gap_from: config.follow_gap_from,
+                        follow_gap_to: config.follow_gap_to,
+                        enable_favorite: config.enable_favorite,
+                        favorite_rate: config.favorite_rate,
+                        favorite_gap_from: config.favorite_gap_from,
+                        favorite_gap_to: config.favorite_gap_to,
+                        enable_repost: config.enable_repost,
+                        repost_rate: config.repost_rate,
+                        repost_gap_from: config.repost_gap_from,
+                        repost_gap_to: config.repost_gap_to,
+                        enable_emotion: config.enable_emotion,
+                        emotion_rate: config.emotion_rate,
+                        emotion_gap_from: config.emotion_gap_from,
+                        emotion_gap_to: config.emotion_gap_to,
+                        enable_comment: config.enable_comment,
+                        comment_rate: config.comment_rate,
+                        comment_gap_from: config.comment_gap_from,
+                        comment_gap_to: config.comment_gap_to,
+                        comment_contents: Array.isArray(config.comment_contents) 
+                            ? config.comment_contents.map(content => 
+                                typeof content === 'string' ? content : (content.text || content.content || content.value || '')
+                              ).filter(text => typeof text === 'string' && text.trim() !== '')
+                            : [],
+                        content_group: config.content_group
+                    }
+                }
+                await onSave(action, saveData)
+            } catch (error) {
+                console.error('Error saving video interaction config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
     }
 
@@ -151,10 +390,15 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                     Loại gợi ý
                                 </label>
                                 <Select
+                                    instanceId="video-interaction-suggestion-type-select"
                                     value={suggestionTypeOptions.find(opt => opt.value === config.suggestion_type)}
                                     onChange={(option) => handleSelectChange('suggestion_type', option?.value)}
                                     options={suggestionTypeOptions}
                                     placeholder="Chọn loại gợi ý"
+                                    menuPortalTarget={document.body}
+                                    styles={{
+                                        menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                                    }}
                                 />
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     Chọn nguồn video để tương tác: gợi ý hoặc đang theo dõi.
@@ -577,41 +821,49 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="mb-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Nhóm nội dung
+                                                Nhóm nội dung ({config.comment_contents.length} bình luận)
                                             </label>
                                             <Select
-                                                value={contentGroupOptions.find(opt => opt.value === config.content_group)}
-                                                onChange={(option) => handleInputChange('content_group', option?.value || '')}
-                                                options={contentGroupOptions}
+                                                instanceId="video-interaction-content-group-select"
+                                                value={contentGroupsState.options.find(opt => opt.value === config.content_group)}
+                                                onChange={(option) => handleSelectChange('content_group', option?.value || '')}
+                                                options={contentGroupsState.options}
                                                 placeholder="-- Chọn nhóm nội dung --"
+                                                isLoading={contentGroupsState.isLoading && contentGroupsState.options.length === 0}
+                                                isDisabled={false}
+                                                isSearchable={true}
+                                                onInputChange={handleSearch}
+                                                menuPortalTarget={document.body}
+                                                components={{
+                                                    MenuList: CustomMenuList
+                                                }}
+                                                styles={{
+                                                    menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                                                }}
+                                                noOptionsMessage={({ inputValue }) => 
+                                                    inputValue ? `Không tìm thấy "${inputValue}"` : 'Không có dữ liệu'
+                                                }
+                                                loadingMessage={() => 'Đang tải...'}
                                             />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Chủ đề nội dung ({config.comment_contents.length} bình luận)
-                                            </label>
-                                            <Select
-                                                value={contentTopicOptions.find(opt => opt.value === config.content_topic)}
-                                                onChange={(option) => handleInputChange('content_topic', option?.value || '')}
-                                                options={contentTopicOptions}
-                                                placeholder="-- Chọn chủ đề --"
-                                            />
+                                            {loadingContents && (
+                                                <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
+                                                    Đang tải nội dung...
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Comment Manager */}
-                                    <CommentManager
-                                        selectedContentGroup={config.content_group}
-                                        selectedContentTopic={config.content_topic}
-                                        commentContents={config.comment_contents}
-                                        onCommentContentsChange={handleCommentContentChange}
-                                        contentGroupOptions={contentGroupOptions}
-                                        contentTopicOptions={contentTopicOptions}
-                                    />
+                                    {/* Comments loaded from selected group */}
+                                    {config.comment_contents.length > 0 && (
+                                        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                ✅ Đã tải {config.comment_contents.length} bình luận từ nhóm nội dung được chọn
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -633,6 +885,8 @@ const VideoInteractionModal = ({ isOpen, onClose, action, onSave }) => {
                             variant="solid"
                             color="blue-500"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu thay đổi
                         </Button>

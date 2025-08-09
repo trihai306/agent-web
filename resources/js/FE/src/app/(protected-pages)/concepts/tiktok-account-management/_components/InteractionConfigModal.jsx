@@ -16,6 +16,8 @@ import getInteractionScenario from '@/server/actions/interaction-scenario/getInt
 import createScenarioScript from '@/server/actions/scenario-script/createScenarioScript'
 import updateScenarioScript from '@/server/actions/scenario-script/updateScenarioScript'
 import deleteScenarioScript from '@/server/actions/scenario-script/deleteScenarioScript'
+import getContentGroups from '@/server/actions/content/getContentGroups'
+import getContentsByGroup from '@/server/actions/content/getContentsByGroup'
 import {
     ActionConfigModal,
     VideoInteractionModal,
@@ -44,6 +46,9 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
     const [filteredScenarios, setFilteredScenarios] = useState([])
     const [loading, setLoading] = useState(false)
     const [scenarioLoading, setScenarioLoading] = useState(false)
+    
+    // Content groups state
+    const [contentGroups, setContentGroups] = useState([])
     
     // Modal states
     const [showScenarioModal, setShowScenarioModal] = useState(false)
@@ -131,6 +136,57 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
         }
     }
 
+    // Content groups callback functions
+    const handleFetchContentGroups = async (params = {}) => {
+        try {
+            const result = await getContentGroups(params)
+            if (result.success) {
+                // Return the full response for pagination support
+                return result
+            } else {
+                console.error('Failed to fetch content groups:', result.message)
+                return { success: false, message: result.message }
+            }
+        } catch (error) {
+            console.error('Error fetching content groups:', error)
+            return { success: false, message: 'Error fetching content groups' }
+        }
+    }
+
+    // Legacy function for backward compatibility (still used by other modals)
+    const handleFetchContentGroupsLegacy = async () => {
+        try {
+            const result = await getContentGroups()
+            if (result.success) {
+                // result.data is now the direct response from API
+                const groups = result.data?.data || []
+                const formattedGroups = [
+                    { value: '', label: '-- Chọn nhóm nội dung --' },
+                    ...groups.map(group => ({
+                        value: group.id.toString(),
+                        label: group.name
+                    }))
+                ]
+                setContentGroups(formattedGroups)
+            }
+        } catch (error) {
+            console.error('Error fetching content groups:', error)
+        }
+    }
+
+    const handleFetchContentsByGroup = async (groupId) => {
+        try {
+            const result = await getContentsByGroup(groupId)
+            if (result.success) {
+                return result.data?.data || []
+            }
+            return []
+        } catch (error) {
+            console.error('Error fetching contents by group:', error)
+            return []
+        }
+    }
+
     // Load scenario details with scripts
     const loadScenarioDetails = async (scenarioId) => {
         setScenarioLoading(true)
@@ -171,6 +227,19 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
     }
 
     const currentActions = selectedScenario ? actions : []
+    
+    // Helper function to get action name from script
+    const getActionDisplayName = (action) => {
+        try {
+            if (action.script) {
+                const scriptData = JSON.parse(action.script)
+                return scriptData.name || scriptData.parameters?.name || action.name || action.action_name
+            }
+        } catch (error) {
+            console.warn('Failed to parse script for action:', action.id, error)
+        }
+        return action.name || action.action_name
+    }
     
     // Scenario CRUD functions
     const handleAddScenario = () => {
@@ -482,11 +551,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 const scriptData = {
                     scenario_id: selectedScenario.id,
                     order: actions.length + 1,
-                    script: JSON.stringify({
-                        action_type: action.actionId,
-                        name: action.name,
-                        config: config
-                    })
+                    script: JSON.stringify(config)
                 }
                 
                 const result = await createScenarioScript(scriptData)
@@ -511,11 +576,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
             } else {
                 // Cập nhật script hiện có
                 const scriptData = {
-                    script: JSON.stringify({
-                        action_type: action.actionId,
-                        name: action.name,
-                        config: config
-                    })
+                    script: JSON.stringify(config)
                 }
                 
                 const result = await updateScenarioScript(action.id, scriptData)
@@ -824,7 +885,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                             </div>
                                         ) : currentActions.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {currentActions.map((action) => (
+                                                {currentActions.map((action, index) => (
                                                     <div 
                                                         key={action.id}
                                                         className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-white dark:bg-gray-900 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
@@ -833,14 +894,14 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                                             <div className="flex-1">
                                                                 <div className="flex items-center gap-3 mb-2">
                                                                     <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-semibold">
-                                                                        {action.id}
+                                                                        {index + 1}
                                                                     </span>
                                                                     <h6 className="font-semibold text-gray-900 dark:text-gray-100">
-                                                                        {action.name || action.action_name}
+                                                                        {getActionDisplayName(action)}
                                                                     </h6>
                                                                 </div>
                                                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                    Hành động #{action.id}
+                                                                    Hành động #{index + 1} (ID: {action.id})
                                                                     {action.description && (
                                                                         <div className="mt-1 text-xs text-gray-400">
                                                                             {action.description}
@@ -871,7 +932,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                                         ) : (
                                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-8 text-center bg-gray-50 dark:bg-gray-800/50">
                                                 <div className="text-gray-500 dark:text-gray-400">
-                                                    {t('noActions')}
+                                                    Chưa có hành động nào
                                                 </div>
                                             </div>
                                         )}
@@ -1063,6 +1124,8 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 }}
                 action={configuringAction}
                 onSave={handleVideoInteractionSave}
+                onFetchContentGroups={handleFetchContentGroups}
+                onFetchContentsByGroup={handleFetchContentsByGroup}
             />
 
             {/* Specific Video Interaction Modal */}
@@ -1096,6 +1159,8 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 }}
                 action={configuringAction}
                 onSave={handleUserVideoInteractionSave}
+                onFetchContentGroups={handleFetchContentGroups}
+                onFetchContentsByGroup={handleFetchContentsByGroup}
             />
 
             {/* Random Live Interaction Modal */}
@@ -1181,7 +1246,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 onClose={() => setShowDeleteScenarioDialog(false)}
                 onRequestClose={() => setShowDeleteScenarioDialog(false)}
                 width={400}
-                className="z-[80]"
+                className="z-[90]"
             >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                     <h5 className="font-bold text-red-600">{t('deleteDialog.scenarioTitle')}</h5>
@@ -1223,18 +1288,18 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                 onClose={() => setShowDeleteActionDialog(false)}
                 onRequestClose={() => setShowDeleteActionDialog(false)}
                 width={400}
-                className="z-[80]"
+                className="z-[90]"
             >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-600">
-                    <h5 className="font-bold text-red-600">{t('deleteDialog.actionTitle')}</h5>
+                    <h5 className="font-bold text-red-600">Xác nhận xóa hành động</h5>
                 </div>
                 
                 <div className="p-4">
                     <p className="text-gray-700 dark:text-gray-300">
-                        {t('deleteDialog.actionContent')} <strong>"{deletingAction?.name}"</strong>?
+                        Bạn có chắc chắn muốn xóa hành động <strong>"{deletingAction ? getActionDisplayName(deletingAction) : ''}"</strong>?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        {t('deleteDialog.actionWarning')}
+                        Hành động này không thể hoàn tác.
                     </p>
                 </div>
 
@@ -1245,7 +1310,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                             variant="default"
                             onClick={() => setShowDeleteActionDialog(false)}
                         >
-                            {t('deleteDialog.cancel')}
+                            Hủy
                         </Button>
                         <Button
                             type="button"
@@ -1253,7 +1318,7 @@ const InteractionConfigModal = ({ isOpen, onClose }) => {
                             className="bg-red-500 hover:bg-red-600"
                             onClick={confirmDeleteAction}
                         >
-                            {t('deleteDialog.deleteAction')}
+                            Xóa hành động
                         </Button>
                     </div>
                 </div>

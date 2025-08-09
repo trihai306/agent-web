@@ -255,6 +255,7 @@ const GroupCommentManager = ({ isOpen, onClose }) => {
                                         Chọn nhóm nội dung
                                     </label>
                                     <Select
+                                        instanceId="group-comment-manager-select"
                                         value={contentGroupOptions.find(opt => opt.value === selectedGroup?.id)}
                                         onChange={(option) => {
                                             const group = contentGroups.find(g => g.id === option?.value)

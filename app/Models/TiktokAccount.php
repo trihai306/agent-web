@@ -27,11 +27,16 @@ class TiktokAccount extends Model
         'status',
         'notes',
         'proxy_id',
+        'scenario_id',
+        'two_factor_enabled',
+        'two_factor_backup_codes',
         'last_login_at',
         'last_activity_at',
     ];
 
     protected $casts = [
+        'two_factor_enabled' => 'boolean',
+        'two_factor_backup_codes' => 'array',
         'last_login_at' => 'datetime',
         'last_activity_at' => 'datetime',
     ];
@@ -71,8 +76,28 @@ class TiktokAccount extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function proxy()
+    // public function proxy()
+    // {
+    //     return $this->belongsTo(Proxy::class);
+    // }
+
+    public function interactionScenario()
     {
-        return $this->belongsTo(Proxy::class);
+        return $this->belongsTo(InteractionScenario::class, 'scenario_id');
+    }
+
+    public function accountTasks()
+    {
+        return $this->hasMany(AccountTask::class);
+    }
+
+    public function pendingTasks()
+    {
+        return $this->hasMany(AccountTask::class)->where('status', 'pending');
+    }
+
+    public function runningTasks()
+    {
+        return $this->hasMany(AccountTask::class)->where('status', 'running');
     }
 }

@@ -19,9 +19,11 @@ class AccountTaskFactory extends Factory
      */
     public function definition(): array
     {
+        $account = TiktokAccount::inRandomOrder()->first();
+        
         return [
-            'tiktok_account_id' => TiktokAccount::inRandomOrder()->first()->id ?? null,
-            'interaction_scenario_id' => InteractionScenario::inRandomOrder()->first()->id ?? null,
+            'tiktok_account_id' => $account?->id,
+            'interaction_scenario_id' => $account?->scenario_id, // Sử dụng scenario của account
             'device_id' => Device::inRandomOrder()->first()->id ?? null,
             'task_type' => $this->faker->randomElement(['like', 'comment', 'follow', 'share']),
             'parameters' => json_encode(['url' => $this->faker->url]),

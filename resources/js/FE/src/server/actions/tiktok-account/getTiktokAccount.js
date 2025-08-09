@@ -1,6 +1,6 @@
 'use server'
 
-import { apiGetTiktokAccount } from '@/services/tiktok-account/TiktokAccountService'
+import { apiGetTiktokAccount } from '@/services/tiktokAccount/TiktokAccountService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
 
 export default async function getTiktokAccount(id) {
@@ -10,16 +10,16 @@ export default async function getTiktokAccount(id) {
             
             return {
                 success: true,
-                data: response.data,
-                message: 'Tiktok account retrieved successfully'
+                data: response,
+                message: 'TikTok account retrieved successfully'
             }
         } catch (error) {
-            console.error('Error fetching tiktok account:', error)
+            console.error('Error fetching TikTok account:', error)
             return {
                 success: false,
-                message: error.response?.data?.message || 'Failed to fetch tiktok account',
+                message: error.response?.data?.message || 'Failed to fetch TikTok account',
                 data: null
             }
         }
     })
-} 
+}

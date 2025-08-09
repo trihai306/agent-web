@@ -2,6 +2,7 @@
 
 import { apiUpdateDeviceStatus } from '@/services/device/DeviceService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 export default async function updateDeviceStatus(ids, status) {
     return withAuthCheck(async () => {
@@ -13,12 +14,7 @@ export default async function updateDeviceStatus(ids, status) {
                 data: response,
             }
         } catch (error) {
-            console.error("Error updating device status:", error)
-            
-            return {
-                success: false,
-                message: error.response?.data?.message || "An unexpected error occurred while updating device status.",
-            }
+            return handleServerActionError(error, "An unexpected error occurred while updating device status.")
         }
     })
 }

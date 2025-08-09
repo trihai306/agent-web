@@ -1,10 +1,12 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import TiktokAccountListProvider from './_components/TiktokAccountListProvider'
 import TiktokAccountListTable from './_components/TiktokAccountListTable'
 import TiktokAccountListActionTools from './_components/TiktokAccountListActionTools'
+import TiktokAccountListPagination from './_components/TiktokAccountListPagination'
 import DashboardHeader from './_components/DashboardHeader'
 import QuickActions from './_components/QuickActions'
 import InteractionConfigModal from './_components/InteractionConfigModal'
@@ -15,6 +17,7 @@ import { useTranslations } from 'next-intl'
 
 const TiktokAccountManagementClient = ({ data, params }) => {
     const t = useTranslations('tiktokAccountManagement')
+    const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [showInteractionConfigModal, setShowInteractionConfigModal] = useState(false)
     
@@ -23,9 +26,19 @@ const TiktokAccountManagementClient = ({ data, params }) => {
 
     const handleRefresh = async () => {
         setIsLoading(true)
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        setIsLoading(false)
+        try {
+            // Use router.refresh() to trigger server component re-render
+            // This will re-fetch data from getTiktokAccounts() without full page reload
+            router.refresh()
+            
+            // Set loading to false after a short delay to show refresh feedback
+            setTimeout(() => {
+                setIsLoading(false)
+            }, 500)
+        } catch (error) {
+            console.error('Error refreshing data:', error)
+            setIsLoading(false)
+        }
     }
 
     const handleSettings = () => {
@@ -128,9 +141,17 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                             tiktokAccountListTotal={data?.total || 0}
                             page={parseInt(params.page) || 1}
                             per_page={parseInt(params.per_page) || 10}
+                            onRefresh={handleRefresh}
                         />
                                     </div>
                                 </AdaptiveCard>
+                                
+                                {/* Pagination - Outside the card */}
+                                <TiktokAccountListPagination
+                                    tiktokAccountListTotal={data?.total || 0}
+                                    page={parseInt(params.page) || 1}
+                                    per_page={parseInt(params.per_page) || 10}
+                                />
                             </div>
 
                             {/* Quick Actions Sidebar - Takes 1 column */}

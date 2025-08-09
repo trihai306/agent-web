@@ -15,6 +15,11 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
+     * The guard name for Spatie Permission
+     */
+    protected $guard_name = 'sanctum';
+
+    /**
      * The fields that are searchable.
      *
      * @var array

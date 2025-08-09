@@ -3,6 +3,7 @@
 import { apiUpdateTiktokAccount } from '@/services/tiktok-account/TiktokAccountService'
 import { revalidatePath } from 'next/cache'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 export default async function updateTiktokAccount(id, data) {
     return withAuthCheck(async () => {
@@ -16,11 +17,7 @@ export default async function updateTiktokAccount(id, data) {
                 message: 'Tiktok account updated successfully'
             }
         } catch (error) {
-            console.error('Error updating tiktok account:', error)
-            return {
-                success: false,
-                message: error.response?.data?.message || 'Failed to update tiktok account'
-            }
+            return handleServerActionError(error, 'Failed to update tiktok account')
         }
     })
 } 

@@ -19,10 +19,10 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             DetailedPermissionSeeder::class, // Add detailed permissions
             TransactionSeeder::class,
-            TiktokAccountSeeder::class,
-            InteractionScenarioSeeder::class,
-            DeviceSeeder::class,
-            AccountTaskSeeder::class,
+            InteractionScenarioSeeder::class, // Tạo scenarios trước
+            DeviceSeeder::class, // Tạo devices trước
+            TiktokAccountSeeder::class, // Tạo accounts sau khi có scenarios
+            AccountTaskSeeder::class, // Tạo tasks cuối cùng
         ]);
     }
 }

@@ -1,102 +1,457 @@
 'use client'
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Tag from '@/components/ui/Tag'
+import Badge from '@/components/ui/Badge'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
+import Table from '@/components/ui/Table'
+import Pagination from '@/components/ui/Pagination'
+import Select from '@/components/ui/Select'
+import Checkbox from '@/components/ui/Checkbox'
+import {
+    useReactTable,
+    getCoreRowModel,
+    getExpandedRowModel,
+    flexRender,
+} from '@tanstack/react-table'
 import { useTiktokAccountListStore } from '../_store/tiktokAccountListStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
-import { TbEye, TbEdit, TbTrash, TbPlayerStop, TbListCheck } from 'react-icons/tb'
+import { 
+    TbEye, 
+    TbEdit, 
+    TbTrash, 
+    TbListCheck, 
+    TbClock,
+    TbX,
+    TbPhone,
+    TbMail,
+    TbPlayerPlay,
+    TbPlayerStop,
+    TbCalendar,
+    TbDevices,
+    TbTarget,
+    TbCircleCheck,
+    TbChevronDown,
+    TbChevronRight
+} from 'react-icons/tb'
 import TiktokAccountListTableTools from './TiktokAccountListTableTools'
-import dayjs from 'dayjs'
+import AccountDetailModal from './AccountDetailModal'
 import Dialog from '@/components/ui/Dialog'
-import TiktokAccountDetail from './TiktokAccountDetail'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
 import { useTranslations } from 'next-intl'
 
 
-const statusColor = {
-    active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
-    inactive: 'bg-gray-200 dark:bg-gray-200 text-gray-900 dark:text-gray-900',
-    suspended: 'bg-red-200 dark:bg-red-200 text-gray-900 dark:text-gray-900',
+// Enhanced status configurations
+const statusConfig = {
+    active: {
+        color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+        icon: TbCircleCheck,
+        label: 'Hoạt động'
+    },
+    inactive: {
+        color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
+        icon: TbClock,
+        label: 'Tạm dừng'
+    },
+    suspended: {
+        color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+        icon: TbX,
+        label: 'Đình chỉ'
+    },
+    running: {
+        color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+        icon: TbEye,
+        label: 'Đang chạy'
+    }
 }
 
-const UsernameColumn = ({ row, onViewDetail }) => {
+const taskStatusConfig = {
+    pending: {
+        color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+        icon: TbClock,
+        label: 'Chờ xử lý'
+    },
+    no_pending: {
+        color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+        icon: TbCircleCheck,
+        label: 'Hoàn thành'
+    }
+}
+
+// Expanded Row Content Component
+const ExpandedRowContent = ({ row }) => {
     return (
-        <div className="flex items-center">
-            <Avatar size={40} shape="circle">
-                {row.username ? row.username[0].toUpperCase() : 'T'}
-            </Avatar>
-            <div
-                className={`hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100 cursor-pointer`}
-                onClick={() => onViewDetail(row)}
-            >
-                {row.username}
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Thông tin cá nhân */}
+                <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                        Thông tin cá nhân
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                        {row.displayName && (
+                            <div className="flex items-center gap-2">
+                                <TbEye className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Tên hiển thị:</span>
+                                <span className="text-gray-900 dark:text-gray-100">{row.displayName}</span>
+                            </div>
+                        )}
+                        {(row.joinDate || row.created_at) && (
+                            <div className="flex items-center gap-2">
+                                <TbCalendar className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Ngày tham gia:</span>
+                                <span className="text-gray-900 dark:text-gray-100">
+                                    {dayjs(row.joinDate || row.created_at).format('DD/MM/YYYY')}
+                                </span>
+                            </div>
+                        )}
+                        {row.location && (
+                            <div className="flex items-center gap-2">
+                                <TbTarget className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Địa điểm:</span>
+                                <span className="text-gray-900 dark:text-gray-100">{row.location}</span>
+                            </div>
+                        )}
+                        {(row.phone || row.phone_number) && (
+                            <div className="flex items-center gap-2">
+                                <TbPhone className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Điện thoại:</span>
+                                <span className="text-gray-900 dark:text-gray-100">{row.phone || row.phone_number}</span>
+                            </div>
+                        )}
+                        {row.email && (
+                            <div className="flex items-center gap-2">
+                                <TbMail className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                                <span className="text-gray-900 dark:text-gray-100">{row.email}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Thống kê */}
+                <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                        Thống kê
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center">
+                            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                {row.followers || '0'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Followers</div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center">
+                            <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                                {row.likes || '0'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Likes</div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center">
+                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                                {row.videos || '0'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Videos</div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center">
+                            <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                {row.views || '0'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Views</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Thiết bị & Kịch bản */}
+                <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                        Thiết bị & Kịch bản
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                        {row.device_name && (
+                            <div className="flex items-center gap-2">
+                                <TbDevices className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Thiết bị:</span>
+                                <span className="text-gray-900 dark:text-gray-100">{row.device_name}</span>
+                            </div>
+                        )}
+                        {row.scenario_name && (
+                            <div className="flex items-center gap-2">
+                                <TbListCheck className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Kịch bản:</span>
+                                <span className="text-gray-900 dark:text-gray-100">{row.scenario_name}</span>
+                            </div>
+                        )}
+                        {row.last_activity && (
+                            <div className="flex items-center gap-2">
+                                <TbClock className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600 dark:text-gray-400">Hoạt động cuối:</span>
+                                <span className="text-gray-900 dark:text-gray-100">
+                                    {dayjs(row.last_activity).fromNow()}
+                                </span>
+                            </div>
+                        )}
+                        {row.notes && (
+                            <div className="mt-2">
+                                <span className="text-gray-600 dark:text-gray-400 text-xs">Ghi chú:</span>
+                                <div className="text-gray-900 dark:text-gray-100 text-xs mt-1 p-2 bg-white dark:bg-gray-700 rounded border">
+                                    {row.notes}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     )
 }
 
-const ActionColumn = ({ row, onViewDetail, onStopRunning, onViewTasks, onEdit, onDelete }) => {
-    const t = useTranslations('tiktokAccountManagement.table')
+// Enhanced User Info Column with username, email and status
+const UserInfoColumn = ({ row, onViewDetail }) => {
+    const statusInfo = statusConfig[row.status] || statusConfig.inactive
+    const StatusIcon = statusInfo.icon
     
     return (
         <div className="flex items-center gap-3">
-            {/* Dừng chạy */}
-            <Tooltip title={t('stopRunning')}>
+            <div className="relative">
+                <Avatar size={44} shape="circle" className="bg-gradient-to-br from-blue-500 to-purple-600">
+                    {row.username ? row.username[0].toUpperCase() : 'T'}
+                </Avatar>
+                {/* Status indicator */}
+                <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 ${
+                    row.status === 'active' ? 'bg-green-500' :
+                    row.status === 'running' ? 'bg-blue-500' :
+                    row.status === 'suspended' ? 'bg-red-500' : 'bg-gray-400'
+                }`} />
+            </div>
+            <div className="flex-1 min-w-0">
                 <div
-                    className="text-xl cursor-pointer select-none font-semibold"
-                    role="button"
-                    onClick={() => onStopRunning(row)}
-                >
-                    <TbPlayerStop />
-                </div>
-            </Tooltip>
-
-            {/* Xem */}
-            <Tooltip title={t('view')}>
-                <div
-                    className="text-xl cursor-pointer select-none font-semibold"
-                    role="button"
+                    className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
                     onClick={() => onViewDetail(row)}
                 >
-                    <TbEye />
+                    @{row.username}
                 </div>
+                {row.displayName && (
+                    <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                        {row.displayName}
+                    </div>
+                )}
+                {row.email && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500 truncate mt-0.5">
+                        <TbMail className="w-3 h-3 flex-shrink-0" />
+                        {row.email}
+                    </div>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <StatusIcon className="w-3 h-3" />
+                        <span>{statusInfo.label}</span>
+                    </div>
+                    {row.pending_tasks_count > 0 && (
+                        <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs px-1.5 py-0.5">
+                            {row.pending_tasks_count} task{row.pending_tasks_count > 1 ? 's' : ''}
+                        </Badge>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// Enhanced Action Column with better UX
+const ActionColumn = ({ row, onViewDetail, onViewTasks, onEdit, onDelete, onStart, onStop }) => {
+    const t = useTranslations('tiktokAccountManagement.table')
+    const hasPendingTasks = row.pending_tasks_count > 0
+    
+    return (
+        <div className="flex items-center gap-1">
+            {/* Start/Stop Button */}
+            {!hasPendingTasks ? (
+                <Tooltip title="Chạy">
+                    <button
+                        className="p-2 rounded-lg text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
+                        onClick={() => onStart(row)}
+                    >
+                        <TbPlayerPlay className="w-4 h-4" />
+                    </button>
+                </Tooltip>
+            ) : (
+                <Tooltip title="Dừng">
+                    <button
+                        className="p-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                        onClick={() => onStop(row)}
+                    >
+                        <TbPlayerStop className="w-4 h-4" />
+                    </button>
+                </Tooltip>
+            )}
+
+            {/* View Details */}
+            <Tooltip title="Xem chi tiết">
+                <button
+                    className="p-2 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                    onClick={() => onViewDetail(row)}
+                >
+                    <TbEye className="w-4 h-4" />
+                </button>
             </Tooltip>
 
             {/* Tasks */}
-            <Tooltip title={t('tasks')}>
-                <div
-                    className="text-xl cursor-pointer select-none font-semibold"
-                    role="button"
+            <Tooltip title={`Xem tasks ${row.pending_tasks_count > 0 ? `(${row.pending_tasks_count} pending)` : ''}`}>
+                <button
+                    className={`p-2 rounded-lg transition-all duration-200 relative ${
+                        row.pending_tasks_count > 0 
+                            ? 'text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20' 
+                            : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
                     onClick={() => onViewTasks(row)}
                 >
-                    <TbListCheck />
-                </div>
+                    <TbListCheck className="w-4 h-4" />
+                    {row.pending_tasks_count > 0 && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center">
+                            {row.pending_tasks_count > 9 ? '9+' : row.pending_tasks_count}
+                        </span>
+                    )}
+                </button>
             </Tooltip>
 
-            {/* Sửa */}
-            <Tooltip title={t('edit')}>
-                <div
-                    className="text-xl cursor-pointer select-none font-semibold"
-                    role="button"
+            {/* Edit */}
+            <Tooltip title="Chỉnh sửa">
+                <button
+                    className="p-2 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
                     onClick={() => onEdit(row)}
                 >
-                    <TbEdit />
-                </div>
+                    <TbEdit className="w-4 h-4" />
+                </button>
             </Tooltip>
 
-            {/* Xóa */}
-            <Tooltip title={t('delete')}>
-                <div
-                    className="text-xl cursor-pointer select-none font-semibold"
-                    role="button"
+            {/* Delete */}
+            <Tooltip title="Xóa">
+                <button
+                    className="p-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
                     onClick={() => onDelete(row)}
                 >
-                    <TbTrash />
-                </div>
+                    <TbTrash className="w-4 h-4" />
+                </button>
             </Tooltip>
+        </div>
+    )
+}
+
+// Enhanced Status Column
+const StatusColumn = ({ row }) => {
+    const statusInfo = statusConfig[row.status] || statusConfig.inactive
+    const StatusIcon = statusInfo.icon
+    
+    return (
+        <div className="flex items-center gap-2">
+            <Badge className={`${statusInfo.color} flex items-center gap-1.5 px-2.5 py-1`}>
+                <StatusIcon className="w-3.5 h-3.5" />
+                <span className="font-medium">{statusInfo.label}</span>
+            </Badge>
+        </div>
+    )
+}
+
+// Task Status Column
+const TaskStatusColumn = ({ row }) => {
+    const hasPendingTasks = row.pending_tasks_count > 0
+    const taskInfo = hasPendingTasks ? taskStatusConfig.pending : taskStatusConfig.no_pending
+    const TaskIcon = taskInfo.icon
+    
+    return (
+        <div className="flex items-center gap-2">
+            <Badge className={`${taskInfo.color} flex items-center gap-1.5 px-2.5 py-1`}>
+                <TaskIcon className="w-3.5 h-3.5" />
+                <span className="font-medium">
+                    {hasPendingTasks ? `${row.pending_tasks_count} pending` : 'Hoàn thành'}
+                </span>
+            </Badge>
+        </div>
+    )
+}
+
+// Contact Info Column
+const ContactColumn = ({ row, type }) => {
+    const value = type === 'email' ? row.email : row.phone_number
+    const Icon = type === 'email' ? TbMail : TbPhone
+    
+    if (!value) {
+        return <span className="text-gray-400 dark:text-gray-500">-</span>
+    }
+    
+    return (
+        <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <span className="text-sm text-gray-900 dark:text-gray-100 truncate max-w-[200px]" title={value}>
+                {value}
+            </span>
+        </div>
+    )
+}
+
+// Device & Scenario Column
+const DeviceScenarioColumn = ({ row }) => {
+    return (
+        <div className="space-y-1">
+            {row.device_id && (
+                <div className="flex items-center gap-1.5 text-xs">
+                    <TbDevices className="w-3 h-3 text-blue-500" />
+                    <span className="text-gray-600 dark:text-gray-400">Device: {row.device_id}</span>
+                </div>
+            )}
+            {row.scenario_id && (
+                <div className="flex items-center gap-1.5 text-xs">
+                    <TbTarget className="w-3 h-3 text-purple-500" />
+                    <span className="text-gray-600 dark:text-gray-400">Scenario: {row.scenario_id}</span>
+                </div>
+            )}
+            {!row.device_id && !row.scenario_id && (
+                <span className="text-gray-400 dark:text-gray-500 text-xs">Chưa cấu hình</span>
+            )}
+        </div>
+    )
+}
+
+// Notes Column with truncation
+const NotesColumn = ({ row }) => {
+    const notes = row.notes
+    if (!notes) {
+        return <span className="text-gray-400 dark:text-gray-500">-</span>
+    }
+    
+    const truncated = notes.length > 50 ? notes.substring(0, 50) + '...' : notes
+    
+    return (
+        <Tooltip title={notes.length > 50 ? notes : undefined}>
+            <span className="text-sm text-gray-900 dark:text-gray-100 cursor-help">
+                {truncated}
+            </span>
+        </Tooltip>
+    )
+}
+
+// Date Column with relative time
+const DateColumn = ({ row, field = 'created_at' }) => {
+    const date = row[field]
+    if (!date) return <span className="text-gray-400 dark:text-gray-500">-</span>
+    
+    const formattedDate = dayjs(date).format('DD/MM/YYYY')
+    const relativeTime = dayjs(date).fromNow()
+    
+    return (
+        <div className="flex items-center gap-2">
+            <TbCalendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <div className="text-sm">
+                <div className="text-gray-900 dark:text-gray-100">{formattedDate}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{relativeTime}</div>
+            </div>
         </div>
     )
 }
@@ -105,22 +460,39 @@ const TiktokAccountListTable = ({
     tiktokAccountListTotal,
     page = 1,
     per_page = 10,
+    onRefresh,
 }) => {
     const router = useRouter()
     const t = useTranslations('tiktokAccountManagement.table')
     const tDetail = useTranslations('tiktokAccountManagement.detail')
+    
+    // Enhanced column definitions with expanding feature
     const allColumns = [
-        { header: t('username'), accessorKey: 'username' },
-        { header: t('email'), accessorKey: 'email' },
-        { header: t('phone'), accessorKey: 'phone_number' },
-        { header: t('status'), accessorKey: 'status' },
-        { header: t('notes'), accessorKey: 'notes' },
-        { header: t('createdDate'), accessorKey: 'created_at' },
+        { header: 'Thông tin người dùng', accessorKey: 'user_info', sortable: true },
+        { header: 'Số điện thoại', accessorKey: 'phone_number', sortable: false },
+        { header: 'Trạng thái', accessorKey: 'status', sortable: true },
+        { header: 'Task Status', accessorKey: 'task_status', sortable: true },
+        { header: 'Device & Scenario', accessorKey: 'device_scenario', sortable: false },
+        { header: 'Ghi chú', accessorKey: 'notes', sortable: false },
+        { header: 'Ngày tạo', accessorKey: 'created_at', sortable: true },
+        { header: 'Cập nhật', accessorKey: 'updated_at', sortable: true },
     ]
 
-    const [visibleColumns, setVisibleColumns] = useState(allColumns.map(c => c.accessorKey))
+    const [visibleColumns, setVisibleColumns] = useState([
+        'user_info', 'status', 'task_status', 'device_scenario', 'created_at'
+    ])
+    
+    const [expandedRows, setExpandedRows] = useState(new Set())
     const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
     const [selectedTiktokAccountForDetail, setSelectedTiktokAccountForDetail] = useState(null)
+    
+    // Dialog states
+    const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false)
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+    const [showErrorDialog, setShowErrorDialog] = useState(false)
+    const [dialogMessage, setDialogMessage] = useState('')
+    const [selectedAccountForAction, setSelectedAccountForAction] = useState(null)
+    const [isProcessing, setIsProcessing] = useState(false)
 
     const tiktokAccountList = useTiktokAccountListStore((state) => state.tiktokAccountList)
     const selectedTiktokAccount = useTiktokAccountListStore((state) => state.selectedTiktokAccount)
@@ -140,30 +512,100 @@ const TiktokAccountListTable = ({
         setSelectedTiktokAccountForDetail(null)
     }
 
-    const handleStopRunning = (tiktokAccount) => {
-        // TODO: Implement stop running logic
-        console.log('Stop running for account:', tiktokAccount)
-        // Có thể gọi API để dừng các hoạt động đang chạy
-    }
+    // Enhanced action handlers
 
     const handleViewTasks = (tiktokAccount) => {
-        // TODO: Implement view tasks logic
-        console.log('View tasks for account:', tiktokAccount)
-        // Có thể mở modal hoặc navigate đến trang tasks
+        console.log('View tasks for account:', tiktokAccount.username)
+        // Navigate to tasks page or open tasks modal
+        // router.push(`/concepts/tiktok-account-management/${tiktokAccount.id}/tasks`)
     }
 
     const handleEdit = (tiktokAccount) => {
-        // TODO: Implement edit logic
-        console.log('Edit account:', tiktokAccount)
-        // Có thể mở modal edit hoặc navigate đến trang edit
+        console.log('Edit account:', tiktokAccount.username)
+        // Open edit modal or navigate to edit page
+        // setEditingAccount(tiktokAccount)
+        // setIsEditModalOpen(true)
     }
 
-    const handleDelete = (tiktokAccount) => {
-        // TODO: Implement delete logic
-        console.log('Delete account:', tiktokAccount)
-        // Có thể hiển thị confirmation dialog trước khi xóa
+    const handleDelete = async (tiktokAccount) => {
         if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${tiktokAccount.username}?`)) {
-            // Gọi API xóa
+            try {
+                console.log('Deleting account:', tiktokAccount.username)
+                // Call API to delete account
+                // await deleteTiktokAccount(tiktokAccount.id)
+                // Refresh data after successful deletion
+            } catch (error) {
+                console.error('Error deleting account:', error)
+            }
+        }
+    }
+
+    const handleStart = async (tiktokAccount) => {
+        try {
+            console.log('Starting account:', tiktokAccount.username)
+            // Import the updateTiktokAccountStatus function
+            const { default: updateTiktokAccountStatus } = await import('@/server/actions/tiktok-account/updateTiktokAccountStatus')
+            
+            const result = await updateTiktokAccountStatus([tiktokAccount.id], 'active')
+            
+            if (result.success) {
+                console.log('Account started successfully')
+                // Refresh the data
+                if (onRefresh) {
+                    onRefresh()
+                }
+            } else {
+                console.error('Failed to start account:', result.message)
+                setDialogMessage(`Không thể khởi động tài khoản ${tiktokAccount.username}: ${result.message}`)
+                setShowErrorDialog(true)
+            }
+        } catch (error) {
+            console.error('Error starting account:', error)
+            setDialogMessage(`Có lỗi xảy ra khi khởi động tài khoản ${tiktokAccount.username}`)
+            setShowErrorDialog(true)
+        } finally {
+            setIsProcessing(false)
+        }
+    }
+
+    const handleStop = (tiktokAccount) => {
+        setSelectedAccountForAction(tiktokAccount)
+        setShowStopConfirmDialog(true)
+    }
+
+    const confirmStop = async () => {
+        if (!selectedAccountForAction) return
+        
+        setIsProcessing(true)
+        setShowStopConfirmDialog(false)
+        
+        try {
+            console.log('Stopping account:', selectedAccountForAction.username)
+            // Import the updateTiktokAccountStatus function
+            const { default: updateTiktokAccountStatus } = await import('@/server/actions/tiktok-account/updateTiktokAccountStatus')
+            
+            const result = await updateTiktokAccountStatus([selectedAccountForAction.id], 'suspended')
+            
+            if (result.success) {
+                console.log('Account stopped successfully')
+                setDialogMessage(`Tài khoản ${selectedAccountForAction.username} đã được dừng thành công!`)
+                setShowSuccessDialog(true)
+                // Refresh the data
+                if (onRefresh) {
+                    onRefresh()
+                }
+            } else {
+                console.error('Failed to stop account:', result.message)
+                setDialogMessage(`Không thể dừng tài khoản ${selectedAccountForAction.username}: ${result.message}`)
+                setShowErrorDialog(true)
+            }
+        } catch (error) {
+            console.error('Error stopping account:', error)
+            setDialogMessage(`Có lỗi xảy ra khi dừng tài khoản ${selectedAccountForAction.username}`)
+            setShowErrorDialog(true)
+        } finally {
+            setIsProcessing(false)
+            setSelectedAccountForAction(null)
         }
     }
 
@@ -175,92 +617,131 @@ const TiktokAccountListTable = ({
         }
     }
     
+    const toggleRowExpansion = (rowId) => {
+        const newExpandedRows = new Set(expandedRows)
+        if (newExpandedRows.has(rowId)) {
+            newExpandedRows.delete(rowId)
+        } else {
+            newExpandedRows.add(rowId)
+        }
+        setExpandedRows(newExpandedRows)
+    }
+    
     const columns = useMemo(
         () => {
             const baseColumns = [
                 {
-                    header: t('username'),
-                    accessorKey: 'username',
+                    id: 'expander',
+                    header: '',
                     cell: (props) => {
                         const row = props.row.original
-                        return <UsernameColumn row={row} onViewDetail={() => handleViewDetails(row)} />
+                        const rowId = row.id || row.username || props.row.id
+                        const isExpanded = expandedRows.has(rowId)
+                        return (
+                            <button
+                                onClick={() => toggleRowExpansion(rowId)}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
+                            >
+                                {isExpanded ? (
+                                    <TbChevronDown className="w-4 h-4" />
+                                ) : (
+                                    <TbChevronRight className="w-4 h-4" />
+                                )}
+                            </button>
+                        )
+                    },
+                    size: 40,
+                },
+                {
+                    header: 'Thông tin người dùng',
+                    accessorKey: 'user_info',
+                    cell: (props) => {
+                        const row = props.row.original
+                        return <UserInfoColumn row={row} onViewDetail={() => handleViewDetails(row)} />
                     },
                 },
                 {
-                    header: t('email'),
-                    accessorKey: 'email',
-                },
-                {
-                    header: t('phone'),
+                    header: 'Số điện thoại',
                     accessorKey: 'phone_number',
                     cell: (props) => {
-                        const phone = props.row.original.phone_number
-                        return <span>{phone || '-'}</span>
+                        const row = props.row.original
+                        return <ContactColumn row={row} type="phone" />
                     }
                 },
                 {
-                    header: t('status'),
+                    header: 'Trạng thái',
                     accessorKey: 'status',
                     cell: (props) => {
                         const row = props.row.original
-                        return (
-                            <div className="flex items-center">
-                                <Tag className={statusColor[row.status]}>
-                                    <span className="capitalize">{row.status}</span>
-                                </Tag>
-                            </div>
-                        )
+                        return <StatusColumn row={row} />
                     },
                 },
                 {
-                    header: t('notes'),
+                    header: 'Task Status',
+                    accessorKey: 'task_status',
+                    cell: (props) => {
+                        const row = props.row.original
+                        return <TaskStatusColumn row={row} />
+                    },
+                },
+                {
+                    header: 'Device & Scenario',
+                    accessorKey: 'device_scenario',
+                    cell: (props) => {
+                        const row = props.row.original
+                        return <DeviceScenarioColumn row={row} />
+                    },
+                },
+                {
+                    header: 'Ghi chú',
                     accessorKey: 'notes',
                     cell: (props) => {
-                        const notes = props.row.original.notes
-                        return <span>{notes ? (notes.length > 50 ? notes.substring(0, 50) + '...' : notes) : '-'}</span>
+                        const row = props.row.original
+                        return <NotesColumn row={row} />
                     }
                 },
                 {
-                    header: t('createdDate'),
+                    header: 'Ngày tạo',
                     accessorKey: 'created_at',
                     cell: (props) => {
-                        return <span>{dayjs(props.row.original.created_at).format('DD/MM/YYYY')}</span>
+                        const row = props.row.original
+                        return <DateColumn row={row} field="created_at" />
+                    }
+                },
+                {
+                    header: 'Cập nhật',
+                    accessorKey: 'updated_at',
+                    cell: (props) => {
+                        const row = props.row.original
+                        return <DateColumn row={row} field="updated_at" />
                     }
                 },
             ]
             
             const actionColumn = {
-                header: '',
+                header: 'Thao tác',
                 id: 'action',
                 cell: (props) => (
                     <ActionColumn
                         row={props.row.original}
                         onViewDetail={() => handleViewDetails(props.row.original)}
-                        onStopRunning={() => handleStopRunning(props.row.original)}
                         onViewTasks={() => handleViewTasks(props.row.original)}
                         onEdit={() => handleEdit(props.row.original)}
                         onDelete={() => handleDelete(props.row.original)}
+                        onStart={() => handleStart(props.row.original)}
+                        onStop={() => handleStop(props.row.original)}
                     />
                 ),
             }
 
-            return [...baseColumns.filter(col => visibleColumns.includes(col.accessorKey)), actionColumn]
+            return [...baseColumns.filter(col => 
+                col.id === 'expander' || visibleColumns.includes(col.accessorKey)
+            ), actionColumn]
         }, 
-        [visibleColumns, handleViewDetails, handleStopRunning, handleViewTasks, handleEdit, handleDelete],
+        [visibleColumns, expandedRows, handleViewDetails, handleViewTasks, handleEdit, handleDelete, toggleRowExpansion],
     )
 
-    const handlePaginationChange = (page) => {
-        onAppendQueryParams({
-            page: String(page),
-        })
-    }
 
-    const handleSelectChange = (value) => {
-        onAppendQueryParams({
-            per_page: String(value),
-            page: '1',
-        })
-    }
 
     const handleSort = (sort) => {
         onAppendQueryParams({
@@ -281,53 +762,253 @@ const TiktokAccountListTable = ({
         }
     }
 
+    // Custom table with expanding rows
+    const table = useReactTable({
+        data: tiktokAccountList,
+        columns,
+        state: {
+            expanded: Object.fromEntries(Array.from(expandedRows).map(id => [id, true])),
+        },
+        getCoreRowModel: getCoreRowModel(),
+        getExpandedRowModel: getExpandedRowModel(),
+        getRowId: (row) => row.id || row.username || `row-${Math.random()}`,
+    })
+
+    const { Tr, Th, Td, THead, TBody } = Table
+
     return (
         <div>
-            <TiktokAccountListTableTools columns={columns} selectableColumns={allColumns} onColumnToggle={onColumnToggle} />
-            <DataTable
-                selectable
-                columns={columns}
-                data={tiktokAccountList}
-                noData={tiktokAccountList.length === 0}
-                skeletonAvatarColumns={[0]}
-                skeletonAvatarProps={{ width: 28, height: 28 }}
-                loading={isInitialLoading}
-                pagingData={{
-                    total: tiktokAccountListTotal,
-                    pageIndex: page,
-                    pageSize: per_page,
-                }}
-                checkboxChecked={(row) =>
-                    selectedTiktokAccount.some((selected) => selected.id === row.id)
-                }
-                onPaginationChange={handlePaginationChange}
-                onSelectChange={handleSelectChange}
-                onSort={handleSort}
-                onCheckBoxChange={handleRowSelect}
-                onIndeterminateCheckBoxChange={handleAllRowSelect}
-            />
-            <Dialog
+            <TiktokAccountListTableTools columns={columns} selectableColumns={allColumns} onColumnToggle={onColumnToggle} onRefresh={onRefresh} />
+            
+            <div className="overflow-x-auto">
+                <Table>
+                    <THead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <Tr key={headerGroup.id}>
+                                <Th className="w-12">
+                                    <Checkbox
+                                        checked={selectedTiktokAccount.length === tiktokAccountList.length && tiktokAccountList.length > 0}
+                                        onChange={(checked) => handleAllRowSelect(checked, table.getRowModel().rows)}
+                                    />
+                                </Th>
+                                {headerGroup.headers.map((header) => (
+                                    <Th key={header.id} colSpan={header.colSpan}>
+                                        {flexRender(
+                                            header.column.columnDef.header,
+                                            header.getContext()
+                                        )}
+                                    </Th>
+                                ))}
+                            </Tr>
+                        ))}
+                    </THead>
+                    <TBody>
+                        {isInitialLoading ? (
+                            // Loading skeleton
+                            Array.from({ length: per_page }).map((_, index) => (
+                                <Tr key={`skeleton-${index}`}>
+                                    <Td className="w-12">
+                                        <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                    </Td>
+                                    <Td className="w-8">
+                                        <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                    </Td>
+                                    <Td>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-11 h-11 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                                            <div className="space-y-2">
+                                                <div className="w-24 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                                <div className="w-32 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                            </div>
+                                        </div>
+                                    </Td>
+                                    {Array.from({ length: columns.length - 3 }).map((_, cellIndex) => (
+                                        <Td key={cellIndex}>
+                                            <div className="w-16 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                        </Td>
+                                    ))}
+                                </Tr>
+                            ))
+                        ) : tiktokAccountList.length === 0 ? (
+                            // Empty state
+                            <Tr>
+                                <Td colSpan={columns.length + 1} className="text-center py-12">
+                                    <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                                        <TbEye className="w-12 h-12 mb-4 opacity-50" />
+                                        <p className="text-lg font-medium mb-2">Không có tài khoản nào</p>
+                                        <p className="text-sm">Hãy thêm tài khoản TikTok để bắt đầu quản lý</p>
+                                    </div>
+                                </Td>
+                            </Tr>
+                        ) : (
+                            // Data rows
+                            table.getRowModel().rows.map((row) => {
+                                const rowId = row.original.id || row.original.username || row.id
+                                const isExpanded = expandedRows.has(rowId)
+                                return (
+                                    <React.Fragment key={rowId}>
+                                        <Tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <Td className="w-12">
+                                                <Checkbox
+                                                    checked={selectedTiktokAccount.some(selected => selected.id === row.original.id)}
+                                                    onChange={(checked) => handleRowSelect(checked, row.original)}
+                                                />
+                                            </Td>
+                                            {row.getVisibleCells().map((cell) => (
+                                                <Td key={cell.id}>
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )}
+                                                </Td>
+                                            ))}
+                                        </Tr>
+                                        {isExpanded && (
+                                            <Tr key={`${rowId}-expanded`}>
+                                                <Td colSpan={columns.length + 1} className="p-0">
+                                                    <ExpandedRowContent row={row.original} />
+                                                </Td>
+                                            </Tr>
+                                        )}
+                                    </React.Fragment>
+                                )
+                            })
+                        )}
+                    </TBody>
+                </Table>
+            </div>
+
+
+
+            {/* Enhanced Account Detail Modal */}
+            <AccountDetailModal
                 isOpen={isDetailViewOpen}
                 onClose={handleCloseDetailView}
-                onRequestClose={handleCloseDetailView}
+                account={selectedTiktokAccountForDetail}
+            />
+
+            {/* Stop Confirmation Dialog */}
+            <Dialog
+                isOpen={showStopConfirmDialog}
+                onClose={() => setShowStopConfirmDialog(false)}
+                onRequestClose={() => setShowStopConfirmDialog(false)}
+                width={400}
+                className="z-[70]"
             >
-                {selectedTiktokAccountForDetail && (
-                    <div className="flex flex-col h-full">
-                        <div className="p-4 border-b border-gray-200 dark:border-gray-600">
-                            <h5 className="font-bold">{tDetail('title')}</h5>
+                <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                            <TbPlayerStop className="w-5 h-5 text-red-600 dark:text-red-400" />
                         </div>
-                        <div className="p-4 overflow-y-auto">
-                           <TiktokAccountDetail tiktokAccount={selectedTiktokAccountForDetail} />
-                        </div>
-                        <div className="p-4 text-right border-t border-gray-200 dark:border-gray-600">
-                            <Button
-                                onClick={handleCloseDetailView}
-                            >
-                                {tDetail('close')}
-                            </Button>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Xác nhận dừng tài khoản
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Hành động này sẽ dừng tất cả các task đang chạy
+                            </p>
                         </div>
                     </div>
-                )}
+                    
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        Bạn có chắc chắn muốn dừng tài khoản{' '}
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                            {selectedAccountForAction?.username}
+                        </span>
+                        ?
+                    </p>
+                    
+                    <div className="flex justify-end gap-3">
+                        <Button
+                            variant="default"
+                            onClick={() => setShowStopConfirmDialog(false)}
+                            disabled={isProcessing}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            variant="solid"
+                            color="red-500"
+                            onClick={confirmStop}
+                            loading={isProcessing}
+                            disabled={isProcessing}
+                        >
+                            Dừng tài khoản
+                        </Button>
+                    </div>
+                </div>
+            </Dialog>
+
+            {/* Success Dialog */}
+            <Dialog
+                isOpen={showSuccessDialog}
+                onClose={() => setShowSuccessDialog(false)}
+                onRequestClose={() => setShowSuccessDialog(false)}
+                width={400}
+                className="z-[70]"
+            >
+                <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                            <TbCircleCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Thành công
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        {dialogMessage}
+                    </p>
+                    
+                    <div className="flex justify-end">
+                        <Button
+                            variant="solid"
+                            color="green-500"
+                            onClick={() => setShowSuccessDialog(false)}
+                        >
+                            Đóng
+                        </Button>
+                    </div>
+                </div>
+            </Dialog>
+
+            {/* Error Dialog */}
+            <Dialog
+                isOpen={showErrorDialog}
+                onClose={() => setShowErrorDialog(false)}
+                onRequestClose={() => setShowErrorDialog(false)}
+                width={400}
+                className="z-[70]"
+            >
+                <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                            <TbX className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Có lỗi xảy ra
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        {dialogMessage}
+                    </p>
+                    
+                    <div className="flex justify-end">
+                        <Button
+                            variant="solid"
+                            color="red-500"
+                            onClick={() => setShowErrorDialog(false)}
+                        >
+                            Đóng
+                        </Button>
+                    </div>
+                </div>
             </Dialog>
         </div>
     )

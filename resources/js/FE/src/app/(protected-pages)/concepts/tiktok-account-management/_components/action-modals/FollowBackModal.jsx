@@ -6,17 +6,14 @@ import Input from '@/components/ui/Input'
 
 const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
     const [config, setConfig] = useState({
-        // Cấu hình cơ bản - chuyển sang flat structure
-        name: action?.name || 'Theo dõi lại',
-        
-        // Số lượng user
+        name: 'Theo dõi lại',
         user_count_from: 1,
         user_count_to: 1,
-        
-        // Giãn cách thời gian
         interval_from: 3,
         interval_to: 5
     })
+    
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
@@ -27,14 +24,28 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'follow_back',
-                name: config.name,
-                config: config
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: config.name,
+                    type: action?.type || 'follow_back',
+                    parameters: {
+                        name: config.name,
+                        description: config.name,
+                        user_count_from: config.user_count_from,
+                        user_count_to: config.user_count_to,
+                        interval_from: config.interval_from,
+                        interval_to: config.interval_to
+                    }
+                }
+                await onSave(action, saveData)
+            } catch (error) {
+                console.error('Error saving follow back config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
     }
 
@@ -49,7 +60,7 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
             isOpen={isOpen}
             onClose={handleClose}
             onRequestClose={handleClose}
-            width={400}
+            width={450}
             className="z-[80]"
         >
             <div className="flex flex-col">
@@ -67,8 +78,8 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                         </label>
                         <Input
                             value={config.name}
-                            disabled
-                            className="bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            className="border-gray-300 dark:border-gray-600"
                         />
                     </div>
                     
@@ -83,7 +94,7 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                                 min="1"
                                 value={config.user_count_from}
                                 onChange={(e) => handleInputChange('user_count_from', e.target.value)}
-                                className="w-16 text-center border-gray-300 dark:border-gray-600"
+                                className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-gray-500 font-medium">-</span>
                             <Input
@@ -91,7 +102,7 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                                 min="1"
                                 value={config.user_count_to}
                                 onChange={(e) => handleInputChange('user_count_to', e.target.value)}
-                                className="w-16 text-center border-gray-300 dark:border-gray-600"
+                                className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-sm text-gray-500">user</span>
                         </div>
@@ -108,7 +119,7 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                                 min="1"
                                 value={config.interval_from}
                                 onChange={(e) => handleInputChange('interval_from', e.target.value)}
-                                className="w-16 text-center border-gray-300 dark:border-gray-600"
+                                className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-gray-500 font-medium">-</span>
                             <Input
@@ -116,7 +127,7 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                                 min="1"
                                 value={config.interval_to}
                                 onChange={(e) => handleInputChange('interval_to', e.target.value)}
-                                className="w-16 text-center border-gray-300 dark:border-gray-600"
+                                className="w-20 text-center border-gray-300 dark:border-gray-600"
                             />
                             <span className="text-sm text-gray-500">giây</span>
                         </div>
@@ -138,6 +149,8 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                             variant="solid"
                             color="blue-500"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu
                         </Button>

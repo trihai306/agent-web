@@ -11,6 +11,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
         selection_type: "random",
         name_type: "vietnamese"
     })
+    
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
@@ -26,14 +28,26 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'change_name',
-                name: config.name,
-                config: config
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: config.name,
+                    type: action?.type || 'change_name',
+                    parameters: {
+                        name: config.name,
+                        description: config.name,
+                        selection_type: config.selection_type,
+                        name_type: config.name_type
+                    }
+                }
+                await onSave(action, saveData)
+            } catch (error) {
+                console.error('Error saving change name config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
     }
 
@@ -133,6 +147,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
                             variant="solid"
                             color="blue-500"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu
                         </Button>

@@ -2,6 +2,7 @@
 
 import { apiDeleteDevices } from '@/services/device/DeviceService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 export default async function deleteDevices(ids) {
     return withAuthCheck(async () => {
@@ -13,12 +14,7 @@ export default async function deleteDevices(ids) {
                 data: response,
             }
         } catch (error) {
-            console.error("Error deleting devices:", error)
-            
-            return {
-                success: false,
-                message: error.response?.data?.message || "An unexpected error occurred while deleting devices.",
-            }
+            return handleServerActionError(error, "An unexpected error occurred while deleting devices.")
         }
     })
 }

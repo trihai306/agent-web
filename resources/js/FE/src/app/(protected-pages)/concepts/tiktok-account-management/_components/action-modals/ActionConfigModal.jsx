@@ -21,6 +21,8 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
         say_hi_count_from: 1,
         say_hi_count_to: 3
     })
+    
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
         setConfig(prev => ({
@@ -38,16 +40,36 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
-    const handleSave = () => {
-        if (onSave) {
-            const saveData = {
-                action_type: action?.type || 'notification',
-                name: action?.name || 'Đọc thông báo',
-                config: config
+    const handleSave = async () => {
+        if (onSave && !isLoading) {
+            setIsLoading(true)
+            try {
+                const saveData = {
+                    name: action?.name || 'Đọc thông báo',
+                    type: action?.type || 'notification',
+                    parameters: {
+                        name: action?.name || 'Đọc thông báo',
+                        description: action?.name || 'Đọc thông báo',
+                        notification_count_from: config.notification_count_from,
+                        notification_count_to: config.notification_count_to,
+                        time_interval_from: config.time_interval_from,
+                        time_interval_to: config.time_interval_to,
+                        follow_back_enabled: config.follow_back_enabled,
+                        follow_back_count_from: config.follow_back_count_from,
+                        follow_back_count_to: config.follow_back_count_to,
+                        say_hi_enabled: config.say_hi_enabled,
+                        say_hi_count_from: config.say_hi_count_from,
+                        say_hi_count_to: config.say_hi_count_to
+                    }
+                }
+                await onSave(action, saveData)
+                // onClose() được gọi từ parent component sau khi save thành công
+            } catch (error) {
+                console.error('Error saving action config:', error)
+            } finally {
+                setIsLoading(false)
             }
-            onSave(action, saveData)
         }
-        // onClose() được gọi từ parent component sau khi save thành công
     }
 
     const handleClose = () => {
@@ -267,6 +289,8 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
                             variant="solid"
                             color="blue-500"
                             onClick={handleSave}
+                            loading={isLoading}
+                            disabled={isLoading}
                         >
                             Lưu thay đổi
                         </Button>

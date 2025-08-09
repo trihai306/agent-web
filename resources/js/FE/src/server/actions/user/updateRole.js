@@ -3,6 +3,7 @@
 
 import { apiUpdateRole } from '@/services/user/RolesService'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 /**
  * Server Action to update a role.
@@ -18,9 +19,7 @@ export default async function updateRole(id, data) {
                 data: response.data,
             }
         } catch (error) {
-            console.error("Error updating role:", error)
-            
-            // Handle validation errors
+            // Handle validation errors before using handleServerActionError
             if (error.response?.status === 422) {
                 const validationErrors = error.response.data?.errors || {}
                 const errorMessages = Object.values(validationErrors).flat()
@@ -31,10 +30,7 @@ export default async function updateRole(id, data) {
                 }
             }
             
-            return {
-                success: false,
-                message: error.response?.data?.message || "An unexpected error occurred while updating role.",
-            }
+            return handleServerActionError(error, "An unexpected error occurred while updating role.")
         }
     })
 }

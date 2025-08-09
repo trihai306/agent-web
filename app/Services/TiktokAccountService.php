@@ -20,7 +20,101 @@ class TiktokAccountService
 
     public function getAll(Request $request)
     {
-        return (new BaseQuery($this->repository->getModel()->newQuery(), $request))->paginate();
+        $query = $this->repository->getModel()->newQuery();
+        
+        // Chỉ đếm pending tasks
+        $query->withCount([
+            'pendingTasks as pending_tasks_count'
+        ]);
+
+        // Load scenario của account và pending tasks với device
+        $query->with([
+            'interactionScenario', // Scenario của account
+            'pendingTasks' => function($query) {
+                $query->with(['device'])
+                      ->orderBy('priority', 'desc')
+                      ->orderBy('created_at', 'asc');
+            }
+        ]);
+
+        // Xử lý filter theo task status (chỉ pending)
+        $this->applyTaskFilters($query, $request);
+
+        $result = (new BaseQuery($query, $request))->paginate();
+        
+        // Thêm thông tin phân tích task cho mỗi account
+        if ($result->items()) {
+            $result->getCollection()->transform(function ($account) {
+                return $this->addTaskAnalysis($account);
+            });
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Apply task-related filters to the query (chỉ cho pending tasks)
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Request $request
+     * @return void
+     */
+    private function applyTaskFilters($query, Request $request)
+    {
+        // Filter theo has_pending_tasks
+        if ($request->has('filter.has_pending_tasks')) {
+            $hasPendingTasks = filter_var($request->input('filter.has_pending_tasks'), FILTER_VALIDATE_BOOLEAN);
+            if ($hasPendingTasks) {
+                $query->whereHas('pendingTasks');
+            } else {
+                $query->whereDoesntHave('pendingTasks');
+            }
+        }
+
+        // Filter theo task_type trong pending tasks
+        if ($request->has('filter.pending_task_type')) {
+            $taskType = $request->input('filter.pending_task_type');
+            $query->whereHas('pendingTasks', function($q) use ($taskType) {
+                $q->where('task_type', $taskType);
+            });
+        }
+
+        // Filter theo priority trong pending tasks
+        if ($request->has('filter.pending_task_priority')) {
+            $priority = $request->input('filter.pending_task_priority');
+            $query->whereHas('pendingTasks', function($q) use ($priority) {
+                $q->where('priority', $priority);
+            });
+        }
+
+        // Filter theo device_id trong pending tasks
+        if ($request->has('filter.pending_task_device_id')) {
+            $deviceId = $request->input('filter.pending_task_device_id');
+            $query->whereHas('pendingTasks', function($q) use ($deviceId) {
+                $q->where('device_id', $deviceId);
+            });
+        }
+
+        // Filter theo scenario_id của account
+        if ($request->has('filter.scenario_id')) {
+            $scenarioId = $request->input('filter.scenario_id');
+            $query->where('scenario_id', $scenarioId);
+        }
+
+        // Filter theo task_status (chỉ pending hoặc no_pending)
+        if ($request->has('filter.task_status')) {
+            $taskStatus = $request->input('filter.task_status');
+            
+            switch ($taskStatus) {
+                case 'pending':
+                    $query->whereHas('pendingTasks');
+                    break;
+                    
+                case 'no_pending':
+                    $query->whereDoesntHave('pendingTasks');
+                    break;
+            }
+        }
     }
 
     /**
@@ -291,6 +385,121 @@ class TiktokAccountService
     }
 
     /**
+     * Add task analysis information to TikTok account
+     *
+     * @param TiktokAccount $account
+     * @return TiktokAccount
+     */
+    private function addTaskAnalysis($account)
+    {
+        // Chỉ xử lý pending tasks
+        $pendingTasks = $account->pendingTasks ?? collect();
+        $pendingTasksCount = $account->pending_tasks_count ?? 0;
+
+        // Thông tin tổng quan về pending tasks
+        $taskSummary = [
+            'pending_tasks_count' => $pendingTasksCount,
+            'has_pending_tasks' => $pendingTasksCount > 0,
+        ];
+
+        // Trạng thái hiện tại của account
+        $currentStatus = $pendingTasksCount > 0 ? 'has_pending_tasks' : 'no_pending_tasks';
+
+        // Thông tin scenario của account (1 account = 1 scenario)
+        $accountScenario = null;
+        if ($account->interactionScenario) {
+            $accountScenario = [
+                'id' => $account->interactionScenario->id,
+                'name' => $account->interactionScenario->name,
+                'description' => $account->interactionScenario->description ?? null,
+            ];
+        }
+
+        // Thông tin chi tiết về pending tasks
+        $pendingTasksInfo = [];
+        $linkedDevices = [];
+        
+        foreach ($pendingTasks as $task) {
+            $pendingTasksInfo[] = [
+                'id' => $task->id,
+                'task_type' => $task->task_type,
+                'priority' => $task->priority,
+                'created_at' => $task->created_at,
+                'scheduled_at' => $task->scheduled_at,
+                'parameters' => $task->parameters,
+                'retry_count' => $task->retry_count,
+                'max_retries' => $task->max_retries,
+                'device' => $task->device ? [
+                    'id' => $task->device->id,
+                    'name' => $task->device->name,
+                    'device_id' => $task->device->device_id ?? null,
+                    'status' => $task->device->status ?? null,
+                ] : null,
+            ];
+
+            // Thu thập thông tin devices liên kết
+            if ($task->device && !in_array($task->device->id, array_column($linkedDevices, 'id'))) {
+                $linkedDevices[] = [
+                    'id' => $task->device->id,
+                    'name' => $task->device->name,
+                    'device_id' => $task->device->device_id ?? null,
+                    'status' => $task->device->status ?? null,
+                ];
+            }
+        }
+
+        // Thêm thông tin phân tích vào account
+        $account->task_analysis = [
+            'summary' => $taskSummary,
+            'current_status' => $currentStatus,
+            'account_scenario' => $accountScenario, // Scenario của account
+            'pending_tasks' => $pendingTasksInfo,
+            'linked_devices' => $linkedDevices,
+            'next_task' => $pendingTasksInfo[0] ?? null, // Task có priority cao nhất
+        ];
+
+        return $account;
+    }
+
+    /**
+     * Determine account task status based on current tasks
+     *
+     * @param TiktokAccount $account
+     * @return string
+     */
+    private function determineAccountTaskStatus($account)
+    {
+        if ($account->running_tasks_count > 0) {
+            return 'running';
+        }
+        
+        if ($account->pending_tasks_count > 0) {
+            return 'pending';
+        }
+        
+        if ($account->total_tasks_count == 0) {
+            return 'no_tasks';
+        }
+        
+        // Kiểm tra task gần nhất
+        $latestTask = $account->accountTasks->first();
+        if ($latestTask) {
+            switch ($latestTask->status) {
+                case 'completed':
+                    return 'idle_completed';
+                case 'failed':
+                    return 'idle_failed';
+                case 'cancelled':
+                    return 'idle_cancelled';
+                default:
+                    return 'idle';
+            }
+        }
+        
+        return 'idle';
+    }
+
+    /**
      * Get human readable action description
      *
      * @param AccountTask $task
@@ -362,5 +571,124 @@ class TiktokAccountService
             $days = floor($diff / 1440);
             return $days . ' ngày trước';
         }
+    }
+
+    /**
+     * Get comprehensive task analysis for user's TikTok accounts
+     *
+     * @param \App\Models\User $user
+     * @return array
+     */
+    public function getTaskAnalysis($user)
+    {
+        $accountQuery = TiktokAccount::query();
+        
+        // Nếu không phải admin, chỉ lấy tài khoản của user hiện tại
+        if (!$user->hasRole('admin')) {
+            $accountQuery->where('user_id', $user->id);
+        }
+
+        $accountIds = $accountQuery->pluck('id');
+        
+        // Task overview - thống kê accounts theo trạng thái task
+        $totalAccounts = $accountQuery->count();
+        
+        $accountsWithPendingTasks = $accountQuery->whereHas('accountTasks', function($q) {
+            $q->where('status', 'pending');
+        })->count();
+        
+        $accountsWithRunningTasks = $accountQuery->whereHas('accountTasks', function($q) {
+            $q->where('status', 'running');
+        })->count();
+        
+        $accountsWithNoTasks = $accountQuery->whereDoesntHave('accountTasks')->count();
+        
+        $idleAccounts = $accountQuery->whereHas('accountTasks')
+            ->whereDoesntHave('accountTasks', function($q) {
+                $q->whereIn('status', ['running', 'pending']);
+            })->count();
+
+        // Task statistics - thống kê chi tiết về tasks
+        $taskQuery = AccountTask::whereIn('tiktok_account_id', $accountIds);
+        
+        $totalPendingTasks = (clone $taskQuery)->where('status', 'pending')->count();
+        $totalRunningTasks = (clone $taskQuery)->where('status', 'running')->count();
+        $totalCompletedTasks = (clone $taskQuery)->where('status', 'completed')->count();
+        $totalFailedTasks = (clone $taskQuery)->where('status', 'failed')->count();
+        
+        $totalFinishedTasks = $totalCompletedTasks + $totalFailedTasks;
+        $averageSuccessRate = $totalFinishedTasks > 0 
+            ? round(($totalCompletedTasks / $totalFinishedTasks) * 100, 1)
+            : 0;
+
+        // Task distribution - phân bố theo loại task
+        $taskDistribution = (clone $taskQuery)
+            ->selectRaw('task_type, COUNT(*) as count')
+            ->groupBy('task_type')
+            ->orderByDesc('count')
+            ->get()
+            ->map(function($item) use ($taskQuery) {
+                $totalTasks = $taskQuery->count();
+                $percentage = $totalTasks > 0 ? round(($item->count / $totalTasks) * 100, 1) : 0;
+                
+                return [
+                    'task_type' => $item->task_type,
+                    'count' => $item->count,
+                    'percentage' => $percentage
+                ];
+            });
+
+        // Priority distribution - phân bố theo độ ưu tiên
+        $priorityDistribution = (clone $taskQuery)
+            ->selectRaw('priority, COUNT(*) as count')
+            ->groupBy('priority')
+            ->get()
+            ->map(function($item) use ($taskQuery) {
+                $totalTasks = $taskQuery->count();
+                $percentage = $totalTasks > 0 ? round(($item->count / $totalTasks) * 100, 1) : 0;
+                
+                return [
+                    'priority' => $item->priority,
+                    'count' => $item->count,
+                    'percentage' => $percentage
+                ];
+            });
+
+        // Recent task trends - xu hướng task trong 7 ngày qua
+        $recentTrends = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $dayTasks = (clone $taskQuery)
+                ->whereDate('created_at', $date->toDateString())
+                ->count();
+                
+            $recentTrends[] = [
+                'date' => $date->format('Y-m-d'),
+                'day_name' => $date->format('l'),
+                'task_count' => $dayTasks
+            ];
+        }
+
+        return [
+            'task_overview' => [
+                'total_accounts' => $totalAccounts,
+                'accounts_with_pending_tasks' => $accountsWithPendingTasks,
+                'accounts_with_running_tasks' => $accountsWithRunningTasks,
+                'accounts_with_no_tasks' => $accountsWithNoTasks,
+                'idle_accounts' => $idleAccounts,
+                'active_accounts' => $accountsWithPendingTasks + $accountsWithRunningTasks,
+            ],
+            'task_statistics' => [
+                'total_pending_tasks' => $totalPendingTasks,
+                'total_running_tasks' => $totalRunningTasks,
+                'total_completed_tasks' => $totalCompletedTasks,
+                'total_failed_tasks' => $totalFailedTasks,
+                'total_tasks' => $taskQuery->count(),
+                'average_success_rate' => $averageSuccessRate,
+            ],
+            'task_distribution' => $taskDistribution,
+            'priority_distribution' => $priorityDistribution,
+            'recent_trends' => $recentTrends,
+        ];
     }
 }

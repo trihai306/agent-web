@@ -3,6 +3,7 @@
 import { apiCreateTiktokAccount } from '@/services/tiktok-account/TiktokAccountService'
 import { revalidatePath } from 'next/cache'
 import { withAuthCheck } from '@/utils/withAuthCheck'
+import { handleServerActionError } from '@/utils/serverActionErrorHandler'
 
 export default async function createTiktokAccount(data) {
     return withAuthCheck(async () => {
@@ -16,11 +17,7 @@ export default async function createTiktokAccount(data) {
                 message: 'Tiktok account created successfully'
             }
         } catch (error) {
-            console.error('Error creating tiktok account:', error)
-            return {
-                success: false,
-                message: error.response?.data?.message || 'Failed to create tiktok account'
-            }
+            return handleServerActionError(error, 'Failed to create tiktok account')
         }
     })
 } 

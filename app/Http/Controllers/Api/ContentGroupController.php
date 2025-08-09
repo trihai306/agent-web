@@ -40,6 +40,9 @@ class ContentGroupController extends Controller
     #[QueryParameter('per_page', description: 'The number of items per page.', example: 25)]
     public function index(Request $request)
     {
+        // Automatically filter by current user
+        $request->merge(['filter' => array_merge($request->get('filter', []), ['user_id' => auth()->id()])]);
+        
         // A paginated list of content group resources.
         return response()->json($this->contentGroupService->getAllContentGroups($request));
     }
@@ -77,6 +80,11 @@ class ContentGroupController extends Controller
      */
     public function show(ContentGroup $contentGroup)
     {
+        // Check if the content group belongs to the authenticated user
+        if ($contentGroup->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         // The requested content group resource.
         return response()->json($contentGroup->load(['user', 'contents'])->loadCount('contents'));
     }
@@ -89,6 +97,11 @@ class ContentGroupController extends Controller
      */
     public function update(Request $request, ContentGroup $contentGroup)
     {
+        // Check if the content group belongs to the authenticated user
+        if ($contentGroup->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         $validated = $request->validate([
             /**
              * The new name of the content group.
@@ -111,6 +124,11 @@ class ContentGroupController extends Controller
      */
     public function destroy(ContentGroup $contentGroup)
     {
+        // Check if the content group belongs to the authenticated user
+        if ($contentGroup->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         $this->contentGroupService->deleteContentGroup($contentGroup);
 
         return response()->json(null, 204);

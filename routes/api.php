@@ -116,6 +116,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:devices.create');
     Route::get('tiktok-accounts/stats', [\App\Http\Controllers\Api\TiktokAccountController::class, 'stats'])
         ->middleware('permission:tiktok-accounts.view');
+    Route::get('tiktok-accounts/task-analysis', [\App\Http\Controllers\Api\TiktokAccountController::class, 'taskAnalysis'])
+        ->middleware('permission:tiktok-accounts.view');
     Route::get('tiktok-accounts/recent-activities', [\App\Http\Controllers\Api\TiktokAccountController::class, 'recentActivities'])
         ->middleware('permission:tiktok-accounts.view');
     Route::apiResource('tiktok-accounts', \App\Http\Controllers\Api\TiktokAccountController::class)
