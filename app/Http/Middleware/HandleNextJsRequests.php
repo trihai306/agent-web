@@ -75,7 +75,8 @@ class HandleNextJsRequests
         return in_array($origin, [
             'http://localhost:3000',
             'http://127.0.0.1:3000',
-            'https://api.lionsoftware.cloud'
+            'http://agent-ai.test',
+            'https://agent-ai.test',
         ]);
     }
 
@@ -88,7 +89,8 @@ class HandleNextJsRequests
         $allowedOrigins = [
             'http://localhost:3000',
             'http://127.0.0.1:3000', 
-            'https://api.lionsoftware.cloud'
+            'http://agent-ai.test',
+            'https://agent-ai.test',
         ];
 
         return in_array($origin, $allowedOrigins) ? $origin : 'http://localhost:3000';
