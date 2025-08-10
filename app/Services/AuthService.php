@@ -29,8 +29,7 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
-        // Auto-generate login token on registration (default 24h expiry)
-        $user->generateLoginToken();
+        // Note: Login token is generated only when explicitly requested
 
         $tokenResult = $user->createToken('api-token');
         $token = $tokenResult->plainTextToken;
@@ -62,8 +61,10 @@ class AuthService
 
         $user = $this->userService->findUserByEmailOrPhone($login);
 
-        // Auto-regenerate login token on successful login (default 24h expiry)
-        $user->generateLoginToken();
+        // Auto-generate login token if user doesn't have one
+        if (!$user->hasLoginToken()) {
+            $user->generateLoginToken();
+        }
 
         $tokenResult = $user->createToken('api-token');
         $token = $tokenResult->plainTextToken;
@@ -114,13 +115,13 @@ class AuthService
     }
 
     /**
-     * Generate login token for user
+     * Generate permanent login token for user
+     * Returns existing token if available, otherwise creates new one
      *
      * @param string $login
-     * @param int $expirationHours
      * @return array
      */
-    public function generateLoginToken(string $login, int $expirationHours = 24): array
+    public function generateLoginToken(string $login): array
     {
         $user = $this->userService->findUserByEmailOrPhone($login);
         
@@ -130,12 +131,11 @@ class AuthService
             ]);
         }
 
-        $loginToken = $user->generateLoginToken($expirationHours);
+        $loginToken = $user->generateLoginToken();
 
         return [
             'user' => $user,
             'login_token' => $loginToken,
-            'expires_at' => $user->login_token_expires_at,
         ];
     }
 
@@ -155,8 +155,7 @@ class AuthService
             ]);
         }
 
-        // Clear the login token after successful use
-        $user->clearLoginToken();
+        // Note: Login token is permanent and not cleared after use
 
         // Create API token for the session
         $tokenResult = $user->createToken('api-token');

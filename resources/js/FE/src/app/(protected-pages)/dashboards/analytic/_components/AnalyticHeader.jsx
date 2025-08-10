@@ -14,7 +14,7 @@ const AnalyticHeader = ({ selectedPeriod, onSelectedPeriodChange }) => {
                 <h4 className="mb-1">Analytic overview</h4>
                 <p>Explore the metrics to understand trends and drive.</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" suppressHydrationWarning>
                 <span>Show by:</span>
                 <Select
                     instanceId="period"

@@ -17,6 +17,14 @@ export default async function getAnalyticDashboard() {
                 data: resp,
             }
         } catch (error) {
+            // Re-throw 401 errors so withAuthCheck can handle them
+            if (error?.response?.status === 401 || 
+                error?.status === 401 || 
+                (error.name === 'AxiosError' && error?.response?.status === 401)) {
+                console.log("Re-throwing 401 error for withAuthCheck to handle")
+                throw error
+            }
+            
             // This catch block now only handles non-authentication errors.
             console.error("Error fetching analytics dashboard:", error)
             return {

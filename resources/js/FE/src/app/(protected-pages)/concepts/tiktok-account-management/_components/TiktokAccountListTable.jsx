@@ -1,5 +1,5 @@
 'use client'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Tag from '@/components/ui/Tag'
 import Badge from '@/components/ui/Badge'
@@ -19,6 +19,9 @@ import { useTiktokAccountListStore } from '../_store/tiktokAccountListStore'
 import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
+import { useTiktokAccountTableReload } from '@/utils/hooks/useRealtime'
+// Import test utility for debugging
+import '@/utils/testEcho'
 import { 
     TbEye, 
     TbEdit, 
@@ -176,18 +179,22 @@ const ExpandedRowContent = ({ row }) => {
                         Thiết bị & Kịch bản
                     </h4>
                     <div className="space-y-2 text-sm">
-                        {row.device_name && (
+                        {(row.device?.name || row.device?.device_name || row.device_id) && (
                             <div className="flex items-center gap-2">
                                 <TbDevices className="w-4 h-4 text-gray-400" />
                                 <span className="text-gray-600 dark:text-gray-400">Thiết bị:</span>
-                                <span className="text-gray-900 dark:text-gray-100">{row.device_name}</span>
+                                <span className="text-gray-900 dark:text-gray-100">
+                                    {row.device?.name || row.device?.device_name || `Device #${row.device_id}`}
+                                </span>
                             </div>
                         )}
-                        {row.scenario_name && (
+                        {(row.interaction_scenario?.name || row.interactionScenario?.name || row.scenario_id) && (
                             <div className="flex items-center gap-2">
                                 <TbListCheck className="w-4 h-4 text-gray-400" />
                                 <span className="text-gray-600 dark:text-gray-400">Kịch bản:</span>
-                                <span className="text-gray-900 dark:text-gray-100">{row.scenario_name}</span>
+                                <span className="text-gray-900 dark:text-gray-100">
+                                    {row.interaction_scenario?.name || row.interactionScenario?.name || `Scenario #${row.scenario_id}`}
+                                </span>
                             </div>
                         )}
                         {row.last_activity && (
@@ -400,22 +407,37 @@ const ContactColumn = ({ row, type }) => {
 
 // Device & Scenario Column
 const DeviceScenarioColumn = ({ row }) => {
+    const deviceName = row.device?.name || row.device?.device_name || `Device #${row.device_id}`
+    const scenarioName = row.interaction_scenario?.name || row.interactionScenario?.name || `Scenario #${row.scenario_id}`
+    
     return (
-        <div className="space-y-1">
+        <div className="space-y-2 min-w-[200px]">
             {row.device_id && (
-                <div className="flex items-center gap-1.5 text-xs">
-                    <TbDevices className="w-3 h-3 text-blue-500" />
-                    <span className="text-gray-600 dark:text-gray-400">Device: {row.device_id}</span>
+                <div className="flex items-start gap-2">
+                    <TbDevices className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Device:</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 break-words" title={`Device ID: ${row.device_id}`}>
+                            {deviceName}
+                        </div>
+                    </div>
                 </div>
             )}
             {row.scenario_id && (
-                <div className="flex items-center gap-1.5 text-xs">
-                    <TbTarget className="w-3 h-3 text-purple-500" />
-                    <span className="text-gray-600 dark:text-gray-400">Scenario: {row.scenario_id}</span>
+                <div className="flex items-start gap-2">
+                    <TbTarget className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Scenario:</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 break-words" title={`Scenario ID: ${row.scenario_id}`}>
+                            {scenarioName}
+                        </div>
+                    </div>
                 </div>
             )}
             {!row.device_id && !row.scenario_id && (
-                <span className="text-gray-400 dark:text-gray-500 text-xs">Chưa cấu hình</span>
+                <div className="flex items-center justify-center h-12">
+                    <span className="text-gray-400 dark:text-gray-500 text-sm italic">Chưa cấu hình</span>
+                </div>
             )}
         </div>
     )
@@ -468,6 +490,9 @@ const TiktokAccountListTable = ({
     const t = useTranslations('tiktokAccountManagement.table')
     const tDetail = useTranslations('tiktokAccountManagement.detail')
     
+    // Realtime hook for table reload
+    const { listenToTableReload, stopListeningToTableReload, debugEchoStatus } = useTiktokAccountTableReload()
+    
     // Enhanced column definitions with expanding feature
     const allColumns = [
         { header: 'Thông tin người dùng', accessorKey: 'user_info', sortable: true },
@@ -500,6 +525,7 @@ const TiktokAccountListTable = ({
     
     // Dialog states
     const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false)
+    const [showStartConfirmDialog, setShowStartConfirmDialog] = useState(false)
     const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
     const [showSuccessDialog, setShowSuccessDialog] = useState(false)
     const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -514,6 +540,78 @@ const TiktokAccountListTable = ({
     const setSelectAllTiktokAccount = useTiktokAccountListStore((state) => state.setSelectAllTiktokAccount)
 
     const { onAppendQueryParams } = useAppendQueryParams()
+
+    // Listen to realtime table reload events
+    useEffect(() => {
+        console.log('🚀 [TiktokAccountListTable] Setting up realtime listeners...')
+        
+        // Debug Echo status first
+        const echoStatus = debugEchoStatus();
+        console.log('🔍 [TiktokAccountListTable] Echo status check result:', echoStatus);
+        
+        const handleTableReload = (data) => {
+            console.group('🔄 [TiktokAccountListTable] Socket Event Received')
+            console.log('📅 Timestamp:', new Date().toLocaleString())
+            console.log('📦 Event Data:', data)
+            console.log('📋 Event Message:', data?.message || 'No message')
+            console.log('⏰ Event Timestamp:', data?.timestamp || 'No timestamp')
+            
+            // Call onRefresh to reload the table data
+            if (onRefresh) {
+                console.log('🔄 Calling onRefresh to reload table data...')
+                onRefresh()
+                console.log('✅ onRefresh called successfully')
+            } else {
+                console.warn('⚠️ onRefresh function not available')
+            }
+            
+            // Show notification if message is provided
+            if (data.message) {
+                console.log('📢 Displaying reload message:', data.message)
+                // You can add toast notification here if needed
+            }
+            
+            console.groupEnd()
+        }
+
+        // Start listening to reload events
+        console.log('👂 Starting to listen for table reload events...')
+        const result = listenToTableReload(handleTableReload)
+        
+        if (result && result.isRetry) {
+            console.warn('⚠️ Echo not ready, will retry when available...')
+            
+            // Set up a retry mechanism
+            const retryInterval = setInterval(() => {
+                console.log('🔄 [TiktokAccountListTable] Retrying to set up listener...')
+                const retryResult = result.retry()
+                
+                if (retryResult && !retryResult.isRetry) {
+                    console.log('✅ [TiktokAccountListTable] Successfully set up listener on retry')
+                    clearInterval(retryInterval)
+                }
+            }, 3000) // Retry every 3 seconds
+            
+            // Cleanup retry interval on unmount
+            return () => {
+                clearInterval(retryInterval)
+                console.log('🧹 [TiktokAccountListTable] Cleaned up retry interval')
+            }
+        } else if (result) {
+            console.log('✅ Successfully set up realtime listener')
+        } else {
+            console.warn('⚠️ Failed to set up realtime listener')
+        }
+        
+        // Cleanup on unmount
+        return () => {
+            console.log('🧹 [TiktokAccountListTable] Cleaning up realtime listeners...')
+            if (result && !result.isRetry) {
+                stopListeningToTableReload()
+                console.log('✅ Realtime listener cleaned up')
+            }
+        }
+    }, [listenToTableReload, stopListeningToTableReload, onRefresh])
 
     const handleViewDetails = (tiktokAccount) => {
         setSelectedTiktokAccountForDetail(tiktokAccount)
@@ -653,17 +751,32 @@ const TiktokAccountListTable = ({
         setShowDeleteConfirmDialog(true)
     }
 
-    const handleStart = async (tiktokAccount) => {
+    const handleStart = (tiktokAccount) => {
+        setSelectedAccountForAction(tiktokAccount)
+        setShowStartConfirmDialog(true)
+    }
+
+    const handleStop = (tiktokAccount) => {
+        setSelectedAccountForAction(tiktokAccount)
+        setShowStopConfirmDialog(true)
+    }
+
+    const confirmStart = async () => {
+        if (!selectedAccountForAction) return
+        
+        setIsProcessing(true)
+        setShowStartConfirmDialog(false)
+        
         try {
-            console.log('Running scenario for account:', tiktokAccount.username)
+            console.log('Running scenario for account:', selectedAccountForAction.username)
             // Import the run scenario server action
             const { default: runTiktokAccountScenario } = await import('@/server/actions/tiktok-account/runTiktokAccountScenario')
             
-            const result = await runTiktokAccountScenario(tiktokAccount.id)
+            const result = await runTiktokAccountScenario(selectedAccountForAction.id)
             
             if (result.success) {
                 console.log('Created tasks from scenario successfully', result.data)
-                setDialogMessage(`Đã tạo tasks cho tài khoản ${tiktokAccount.username} theo kịch bản liên kết.`)
+                setDialogMessage(`Đã tạo tasks cho tài khoản ${selectedAccountForAction.username} theo kịch bản liên kết.`)
                 setShowSuccessDialog(true)
                 // Refresh the data
                 if (onRefresh) {
@@ -671,21 +784,16 @@ const TiktokAccountListTable = ({
                 }
             } else {
                 console.error('Failed to run scenario:', result.message)
-                setDialogMessage(`Không thể tạo tasks cho tài khoản ${tiktokAccount.username}: ${result.message}`)
+                setDialogMessage(`Không thể tạo tasks cho tài khoản ${selectedAccountForAction.username}: ${result.message}`)
                 setShowErrorDialog(true)
             }
         } catch (error) {
             console.error('Error running scenario:', error)
-            setDialogMessage(`Có lỗi xảy ra khi tạo tasks cho tài khoản ${tiktokAccount.username}`)
+            setDialogMessage(`Có lỗi xảy ra khi tạo tasks cho tài khoản ${selectedAccountForAction.username}`)
             setShowErrorDialog(true)
         } finally {
             setIsProcessing(false)
         }
-    }
-
-    const handleStop = (tiktokAccount) => {
-        setSelectedAccountForAction(tiktokAccount)
-        setShowStopConfirmDialog(true)
     }
 
     const confirmStop = async () => {
@@ -864,6 +972,8 @@ const TiktokAccountListTable = ({
                 {
                     header: 'Device & Scenario',
                     accessorKey: 'device_scenario',
+                    size: 250,
+                    minSize: 200,
                     cell: (props) => {
                         const row = props.row.original
                         return <DeviceScenarioColumn row={row} />
@@ -1064,6 +1174,60 @@ const TiktokAccountListTable = ({
                 account={selectedTiktokAccountForDetail}
             />
 
+            {/* Start Confirmation Dialog */}
+            <Dialog
+                isOpen={showStartConfirmDialog}
+                onClose={() => setShowStartConfirmDialog(false)}
+                onRequestClose={() => setShowStartConfirmDialog(false)}
+                width={400}
+                className="z-[70]"
+            >
+                <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                            <TbPlayerPlay className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Xác nhận chạy kịch bản
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Hành động này không thể hoàn tác
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        Bạn có chắc chắn muốn chạy kịch bản cho tài khoản{' '}
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                            {selectedAccountForAction?.username}
+                        </span>?
+                        <br />
+                        <small className="text-gray-500 dark:text-gray-400">
+                            Hệ thống sẽ tạo tasks theo kịch bản đã liên kết với tài khoản này.
+                        </small>
+                    </p>
+                    
+                    <div className="flex justify-end gap-3">
+                        <Button
+                            variant="default"
+                            onClick={() => setShowStartConfirmDialog(false)}
+                            disabled={isProcessing}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            variant="solid"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={confirmStart}
+                            loading={isProcessing}
+                        >
+                            Chạy kịch bản
+                        </Button>
+                    </div>
+                </div>
+            </Dialog>
+
             {/* Stop Confirmation Dialog */}
             <Dialog
                 isOpen={showStopConfirmDialog}
@@ -1174,7 +1338,7 @@ const TiktokAccountListTable = ({
                 onClose={() => setShowSuccessDialog(false)}
                 onRequestClose={() => setShowSuccessDialog(false)}
                 width={400}
-                className="z-[70]"
+                className="z-[80]"
             >
                 <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
@@ -1210,7 +1374,7 @@ const TiktokAccountListTable = ({
                 onClose={() => setShowErrorDialog(false)}
                 onRequestClose={() => setShowErrorDialog(false)}
                 width={400}
-                className="z-[70]"
+                className="z-[80]"
             >
                 <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">

@@ -5,7 +5,6 @@ import Button from '@/components/ui/Button'
 import getTiktokAccountRecentActivities from '@/server/actions/tiktok-account/getTiktokAccountRecentActivities'
 import { 
     HiOutlinePlay as Play,
-    HiOutlinePause as Pause,
     HiOutlineX as Square,
     HiOutlineUsers as Users,
     HiOutlineLightningBolt as Zap
@@ -72,13 +71,6 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
             icon: Play,
             color: 'bg-green-500 hover:bg-green-600',
             description: 'Khởi động kịch bản cho tài khoản đã chọn'
-        },
-        {
-            id: 'pause',
-            label: 'Tạm dừng',
-            icon: Pause,
-            color: 'bg-yellow-500 hover:bg-yellow-600',
-            description: 'Tạm dừng các tác vụ đang chạy'
         },
         {
             id: 'stop',

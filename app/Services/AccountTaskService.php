@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AccountTask;
 use App\Queries\BaseQuery;
 use App\Repositories\AccountTaskRepositoryInterface;
+use App\Events\TaskDispatchedToDevice;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -133,6 +134,10 @@ class AccountTaskService
             try {
                 $task = $this->accountTaskRepository->create($taskData);
                 $createdTasks[] = $task;
+                
+                // Dispatch event for real-time updates
+                event(new TaskDispatchedToDevice($task));
+                \Log::info('TaskDispatchedToDevice event fired for task:', ['task_id' => $task->id, 'device_key' => $task->device_id]);
             } catch (\Exception $e) {
                 \Log::error('Failed to create AccountTask:', ['error' => $e->getMessage(), 'data' => $taskData]);
                 throw $e;

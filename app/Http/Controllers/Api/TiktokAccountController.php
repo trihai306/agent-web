@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\TiktokAccount;
 use App\Services\TiktokAccountService;
+use App\Events\StopTaskOnDevice;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
@@ -193,17 +194,17 @@ class TiktokAccountController extends Controller
              * The new email associated with the tiktok account.
              * @example newuser@example.com
              */
-            'email' => 'sometimes|string|email|max:255|unique:tiktok_accounts,email,'.$tiktokAccount->id,
+            'email' => 'sometimes|nullable|string|email|max:255|unique:tiktok_accounts,email,'.$tiktokAccount->id,
             /**
              * The new password for the tiktok account.
              * @example newpassword123
              */
-            'password' => 'sometimes|string|min:6',
+            'password' => 'sometimes|nullable|string|min:6',
             /**
              * The new phone number associated with the tiktok account.
              * @example 0123456789
              */
-            'phone_number' => 'sometimes|string|max:255',
+            'phone_number' => 'sometimes|nullable|string|max:255',
             /**
              * The new status of the tiktok account.
              * @example inactive
@@ -213,7 +214,7 @@ class TiktokAccountController extends Controller
              * Additional notes about the tiktok account.
              * @example Updated notes about the account
              */
-            'notes' => 'sometimes|string|max:1000',
+            'notes' => 'sometimes|nullable|string|max:1000',
             /**
              * Whether two-factor authentication is enabled.
              * @example true
@@ -223,8 +224,31 @@ class TiktokAccountController extends Controller
              * Backup codes for two-factor authentication.
              * @example ["ABCD1234", "EFGH5678", "IJKL9012"]
              */
-            'two_factor_backup_codes' => 'sometimes|array',
+            'two_factor_backup_codes' => 'sometimes|nullable|array',
             'two_factor_backup_codes.*' => 'string|max:255',
+            /**
+             * Additional fields that exist in database
+             */
+            'nickname' => 'sometimes|nullable|string|max:255',
+            'avatar_url' => 'sometimes|nullable|string|max:255',
+            'follower_count' => 'sometimes|nullable|integer|min:0',
+            'following_count' => 'sometimes|nullable|integer|min:0',
+            'heart_count' => 'sometimes|nullable|integer|min:0',
+            'video_count' => 'sometimes|nullable|integer|min:0',
+            'bio_signature' => 'sometimes|nullable|string|max:1000',
+            'device_id' => 'sometimes|nullable|integer|exists:devices,id',
+            'scenario_id' => 'sometimes|nullable|integer|exists:interaction_scenarios,id',
+            'proxy_id' => 'sometimes|nullable|integer',
+            /**
+             * Additional fields from frontend (will be ignored if not in database)
+             */
+            'display_name' => 'sometimes|nullable|string|max:255',
+            'proxy_ip' => 'sometimes|nullable|string|max:255',
+            'proxy_port' => 'sometimes|nullable|integer|min:1|max:65535',
+            'proxy_username' => 'sometimes|nullable|string|max:255',
+            'proxy_password' => 'sometimes|nullable|string|max:255',
+            'device_info' => 'sometimes|nullable|string|max:1000',
+            'tags' => 'sometimes|nullable|array',
         ]);
 
         $updatedTiktokAccount = $this->tiktokAccountService->updateTiktokAccount($tiktokAccount, $validated);
@@ -850,9 +874,10 @@ class TiktokAccountController extends Controller
         $accountIds = $request->input('account_ids');
 
         try {
-            // Get accounts that belong to the user
+            // Get accounts that belong to the user with their devices
             $accounts = TiktokAccount::where('user_id', $user->id)
                 ->whereIn('id', $accountIds)
+                ->with('device')
                 ->get();
 
             if ($accounts->isEmpty()) {
@@ -863,6 +888,7 @@ class TiktokAccountController extends Controller
             }
 
             $deletedCount = 0;
+            $devicesNotified = [];
 
             foreach ($accounts as $account) {
                 // Delete all pending tasks for this account
@@ -871,6 +897,13 @@ class TiktokAccountController extends Controller
                     ->delete();
                 
                 $deletedCount += $deleted;
+                
+                // Fire StopTaskOnDevice event if account has a device and tasks were deleted
+                if ($deleted > 0 && $account->device && !in_array($account->device->id, $devicesNotified)) {
+                    event(new StopTaskOnDevice($account->device));
+                    $devicesNotified[] = $account->device->id;
+                    \Log::info("Fired StopTaskOnDevice event for device: {$account->device->device_id}");
+                }
             }
 
             return response()->json([
@@ -878,7 +911,8 @@ class TiktokAccountController extends Controller
                 'message' => "Đã xóa {$deletedCount} pending tasks thành công",
                 'data' => [
                     'deleted_count' => $deletedCount,
-                    'processed_accounts' => $accounts->count()
+                    'processed_accounts' => $accounts->count(),
+                    'devices_notified' => count($devicesNotified)
                 ]
             ]);
 

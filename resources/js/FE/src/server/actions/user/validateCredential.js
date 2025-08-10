@@ -1,31 +1,17 @@
 'use server'
+import { apiSignIn } from '@/services/auth/AuthService'
 import appConfig from '@/configs/app.config'
-import { secureFetch } from '@/utils/apiUtils'
 
 const validateCredential = async (values) => {
     const { login, password } = values
 
     try {
-        console.log('🔍 validateCredential: Attempting login to:', `${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`)
+        console.log('🔍 validateCredential: Attempting login with axios')
         
-        // Use secure fetch with proper SSL and CORS handling
-        const response = await secureFetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`, {
-            method: 'POST',
-            body: JSON.stringify({ login, password }),
-        })
-
-        if (!response.ok) {
-            console.error('❌ Login API request failed:', {
-                status: response.status,
-                statusText: response.statusText,
-                url: `${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`
-            })
-            return null
-        }
+        // Use apiSignIn which uses axios through ApiService
+        const data = await apiSignIn({ login, password })
         
-        console.log('✅ Login API request successful:', response.status)
-
-        const data = await response.json()
+        console.log('✅ Login API request successful with axios')
 
         if (data && data.user && data.token) {
             let userObject = data.user
@@ -40,17 +26,21 @@ const validateCredential = async (values) => {
                 }
             }
 
-            // Fetch user permissions after successful login
+            // Fetch user permissions after successful login using axios
             try {
-                const permissionsResponse = await secureFetch(`${appConfig.API_BASE_URL}${appConfig.apiPrefix}/profile/permissions`, {
-                    method: 'GET',
+                const { apiGetProfile } = await import('@/services/auth/AuthService')
+                
+                // Create a temporary API call for permissions with the token
+                const ApiService = await import('@/services/ApiService')
+                const permissionsData = await ApiService.default.fetchData({
+                    url: '/profile/permissions',
+                    method: 'get',
                     headers: {
                         Authorization: `Bearer ${data.token}`,
                     },
                 })
 
-                if (permissionsResponse.ok) {
-                    const permissionsData = await permissionsResponse.json()
+                if (permissionsData && permissionsData.permissions) {
                     userObject.permissions = permissionsData.permissions
                 } else {
                     console.warn('Failed to fetch user permissions')
@@ -64,15 +54,15 @@ const validateCredential = async (values) => {
             return {
                 ...userObject,
                 token: data.token,
+                login_token: data.login_token,
             }
         }
         return null
     } catch (error) {
-        console.error('❌ Authentication request failed:', {
+        console.error('❌ Authentication request failed with axios:', {
             message: error.message,
             name: error.name,
             stack: error.stack,
-            url: `${appConfig.API_BASE_URL}${appConfig.apiPrefix}/login`
         })
         return null
     }

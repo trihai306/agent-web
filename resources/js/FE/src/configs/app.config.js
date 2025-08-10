@@ -1,6 +1,6 @@
 const appConfig = {
     apiPrefix: '/api',
-    API_BASE_URL: 'https://api.lionsoftware.cloud',
+    API_BASE_URL: 'http://agent-ai.test',
     authenticatedEntryPath: '/dashboards/analytic',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'vi',

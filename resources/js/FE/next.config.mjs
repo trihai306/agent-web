@@ -10,6 +10,15 @@ let nextConfig = {
     // Use the correct property name for external packages
     serverExternalPackages: [],
     
+    // Environment variables
+    env: {
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+        NEXT_PUBLIC_REVERB_APP_KEY: process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'xynwukcprjb0jctqndga',
+        NEXT_PUBLIC_REVERB_HOST: process.env.NEXT_PUBLIC_REVERB_HOST || 'localhost',
+        NEXT_PUBLIC_REVERB_PORT: process.env.NEXT_PUBLIC_REVERB_PORT || '8080',
+        NEXT_PUBLIC_REVERB_SCHEME: process.env.NEXT_PUBLIC_REVERB_SCHEME || 'http',
+    },
+    
     // For SSL issues in development, we'll handle this differently
     // since env config is not allowed for NODE_TLS_REJECT_UNAUTHORIZED
 };

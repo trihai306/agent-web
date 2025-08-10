@@ -11,7 +11,6 @@ import {
     TbTrash, 
     TbX,
     TbPlayerPlay,
-    TbPlayerPause,
     TbPlayerStop,
     TbRefresh,
     TbSortAscending,
@@ -101,25 +100,7 @@ const TiktokAccountListBulkActionTools = () => {
         setShowStartConfirmation(false)
     }
 
-    const onBulkPause = async () => {
-        const tiktokAccountIds = selectedTiktokAccount.map((tiktokAccount) => tiktokAccount.id)
-        const result = await updateTiktokAccountStatus(tiktokAccountIds, 'inactive')
-        if (result.success) {
-            toast.push(
-                <Notification title={t('success')} type="success" closable>
-                    {t('pauseSuccess', { count: selectedTiktokAccount.length })}
-                </Notification>
-            )
-            setSelectAllTiktokAccount([])
-            router.refresh()
-        } else {
-            toast.push(
-                <Notification title={t('error')} type="danger" closable>
-                    {result.message}
-                </Notification>
-            )
-        }
-    }
+
 
     const onClearSelection = () => {
         setSelectAllTiktokAccount([])
@@ -157,25 +138,40 @@ const TiktokAccountListBulkActionTools = () => {
             let deletedTasksCount = 0
             let deleteErrorMessages = []
             
-            // First, delete all pending tasks
+            let statusUpdateSuccess = false
+            
+            // First, update account status to suspended (most important)
+            try {
+                const result = await updateTiktokAccountStatus(tiktokAccountIds, 'suspended')
+                if (result.success) {
+                    statusUpdateSuccess = true
+                    console.log(`Successfully updated ${selectedTiktokAccount.length} accounts to suspended status`)
+                } else {
+                    deleteErrorMessages.push(`Lỗi cập nhật trạng thái: ${result.message}`)
+                }
+            } catch (error) {
+                deleteErrorMessages.push(`Lỗi cập nhật trạng thái: ${error.message}`)
+            }
+            
+            // Then, delete all pending tasks (secondary action)
             try {
                 const deleteResult = await deletePendingTasks(tiktokAccountIds)
                 if (deleteResult.success) {
                     deletedTasksCount = deleteResult.data?.deleted_count || 0
-                    console.log(`Deleted ${deletedTasksCount} pending tasks`)
+                    const devicesNotified = deleteResult.data?.devices_notified || 0
+                    console.log(`Deleted ${deletedTasksCount} pending tasks and notified ${devicesNotified} devices`)
                 } else {
-                    deleteErrorMessages.push(deleteResult.message)
+                    deleteErrorMessages.push(`Lỗi xóa tasks: ${deleteResult.message}`)
                 }
             } catch (error) {
                 deleteErrorMessages.push(`Lỗi khi xóa tasks: ${error.message}`)
             }
             
-            // Then, update account status to suspended
-            const result = await updateTiktokAccountStatus(tiktokAccountIds, 'suspended')
-            if (result.success) {
-                let successMessage = result.message
+            // Show results
+            if (statusUpdateSuccess) {
+                let successMessage = `Đã dừng ${selectedTiktokAccount.length} tài khoản`
                 if (deletedTasksCount > 0) {
-                    successMessage += ` và đã xóa ${deletedTasksCount} pending tasks`
+                    successMessage += ` và xóa ${deletedTasksCount} pending tasks`
                 }
                 
                 toast.push(
@@ -188,7 +184,7 @@ const TiktokAccountListBulkActionTools = () => {
             } else {
                 toast.push(
                     <Notification title="Error" type="danger" closable>
-                        {result.message}
+                        Không thể cập nhật trạng thái tài khoản
                     </Notification>
                 )
             }
@@ -230,15 +226,6 @@ const TiktokAccountListBulkActionTools = () => {
                         onClick={onBulkStart}
                     >
                         {t('activate')}
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="solid"
-                        className="bg-yellow-500 hover:bg-yellow-400"
-                        icon={<TbPlayerPause />}
-                        onClick={onBulkPause}
-                    >
-                        {t('pause')}
                     </Button>
                     <Button
                         size="sm"
@@ -325,7 +312,7 @@ const TiktokAccountListBulkActionTools = () => {
             >
                 <h5 className="mb-4">{tStart('title')}</h5>
                 <p>
-                    {tStart('message', { count: selectedTiktokAccount.length })}
+                    {tStart('content', { count: selectedTiktokAccount.length })}
                 </p>
                 <div className="text-right mt-6">
                     <Button

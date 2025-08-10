@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
+use App\Models\Device;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,36 +19,72 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-// Public channel for general notifications
-Broadcast::channel('notifications', function () {
-    return true;
-});
-
-// Private channel for user-specific notifications
 Broadcast::channel('user.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;
 });
 
-// Channel for real-time updates on specific resources
-Broadcast::channel('tiktok-accounts.{accountId}', function ($user, $accountId) {
-    // Check if user has permission to view this account
-    return $user->can('view', \App\Models\TiktokAccount::find($accountId));
-});
-
-// Channel for transaction updates
-Broadcast::channel('transactions.{userId}', function ($user, $userId) {
+Broadcast::channel('user.{userId}.datatable.{tableId}', function ($user, $userId, $tableId) {
+    // Ensure the authenticated user can only listen to their own channel
     return (int) $user->id === (int) $userId;
 });
 
-// Channel for device status updates
-Broadcast::channel('devices.{deviceId}', function ($user, $deviceId) {
-    // Check if user has permission to view this device
-    return $user->can('view', \App\Models\Device::find($deviceId));
+/*
+|--------------------------------------------------------------------------
+| Device Channels
+|--------------------------------------------------------------------------
+*/
+
+// Channel cho device cụ thể - chấp nhận cả device.id (số) và device_id (chuỗi)
+Broadcast::channel('device.{identifier}', function ($user, $identifier) {
+    // Tìm device theo device_id trước, nếu không có thì tìm theo id
+    $device = Device::where('device_id', $identifier)->first();
+
+    // Không tìm thấy thiết bị
+    if (!$device) {
+        return false;
+    }
+    return $user->id === $device->user_id;
 });
 
-// Channel for account task updates
-Broadcast::channel('account-tasks.{taskId}', function ($user, $taskId) {
-    // Check if user has permission to view this task
-    return $user->can('view', \App\Models\AccountTask::find($taskId));
+/*
+|--------------------------------------------------------------------------
+| Admin Channels
+|--------------------------------------------------------------------------
+*/
+
+
+// Channel cho admin theo dõi thống kê realtime
+Broadcast::channel('admin.dashboard', function ($user) {
+    return $user->hasRole('admin') || $user->hasRole('super-admin') ? [
+        'id' => $user->id,
+        'name' => $user->name,
+        'role' => $user->getRoleNames()->first(),
+    ] : false;
 });
 
+/*
+|--------------------------------------------------------------------------
+| Notification Channels
+|--------------------------------------------------------------------------
+*/
+
+// Channel cho thông báo realtime
+Broadcast::channel('notifications.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+// Channel cho thông báo hệ thống
+Broadcast::channel('system.notifications', function ($user) {
+    return true; // Tất cả user đã xác thực đều có thể nhận thông báo hệ thống
+});
+
+/*
+|--------------------------------------------------------------------------
+| TikTok Account Management Channels
+|--------------------------------------------------------------------------
+*/
+
+// Public channel cho TikTok account table reload events
+Broadcast::channel('tiktok-accounts', function () {
+    return true; // Public channel - không cần authentication
+});

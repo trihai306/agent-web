@@ -1,144 +1,158 @@
+// lib/echo.js
+// Dùng cho Next.js (client-side) + Laravel Reverb
+
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
-// Make Pusher available globally for Laravel Echo (only on client-side)
+// Bắt buộc cho Echo khi dùng chuẩn Pusher/Reverb
 if (typeof window !== 'undefined') {
-    window.Pusher = Pusher;
+  window.Pusher = Pusher;
 }
 
 let echoInstance = null;
 
 /**
- * Initialize Laravel Echo with Reverb configuration
+ * Config cố định cho kết nối Reverb
  */
-export const initializeEcho = (authToken) => {
-    // Only initialize on client-side
-    if (typeof window === 'undefined') {
-        return null;
-    }
+function readConfig() {
+  const key = 'xynwukcprjb0jctqndga';
+  const wsHost = '127.0.0.1';
+  const port = 8080;
+  const scheme = 'http';
+  const apiUrl = 'http://agent-ai.test';
 
-    if (echoInstance) {
-        return echoInstance;
-    }
+  const useTLS = scheme === 'https';
+  const enabledTransports = useTLS ? ['wss'] : ['ws']; // local http → chỉ ws; https → chỉ wss
 
+  return { key, wsHost, port, useTLS, enabledTransports, apiUrl };
+}
+
+/**
+ * Lấy auth token từ NextAuth session
+ */
+async function getAuthToken() {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const { getSession } = await import('next-auth/react');
+    const session = await getSession();
+    console.log('session: ', session);
+    return session?.accessToken || null;
+  } catch (error) {
+    console.warn('[Echo] Could not get auth token:', error);
+    return null;
+  }
+}
+
+/**
+ * Khởi tạo Echo (singleton). Tự động lấy authToken từ NextAuth session.
+ */
+export const initializeEcho = async (manualToken = null) => {
+  // Chỉ chạy trên client
+  if (typeof window === 'undefined') return null;
+
+  if (echoInstance) return echoInstance;
+
+  const { key, wsHost, port, useTLS, enabledTransports, apiUrl } = readConfig();
+  
+  // Lấy token từ NextAuth session hoặc sử dụng token thủ công
+  const authToken = manualToken || await getAuthToken();
+
+  echoInstance = new Echo({
+    broadcaster: 'pusher',      // Sử dụng 'pusher' thay vì 'reverb'
+    key,
+    wsHost,
+    wsPort: port,
+    wssPort: port,
+    forceTLS: useTLS,
+    enabledTransports,          // tránh thử sai giao thức gây lỗi "Invalid frame header"
+    disableStats: true,         // Tắt stats để tránh lỗi
+    cluster: 'mt1',             // Thêm cluster cho pusher (bắt buộc)
+    authEndpoint: `${apiUrl.replace(/\/$/, '')}/api/broadcasting/auth`,
+    auth: {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    },
+  });
+
+  // Debug tiện tra cứu khi local
+  if (process.env.NODE_ENV === 'development') {
     try {
-        echoInstance = new Echo({
-            broadcaster: 'reverb',
-            key: process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'app-key',
-            wsHost: process.env.NEXT_PUBLIC_REVERB_HOST || 'localhost',
-            wsPort: process.env.NEXT_PUBLIC_REVERB_PORT || 8080,
-            wssPort: process.env.NEXT_PUBLIC_REVERB_PORT || 8080,
-            forceTLS: process.env.NEXT_PUBLIC_REVERB_SCHEME === 'https',
-            enabledTransports: ['ws', 'wss'],
-            auth: {
-                headers: {
-                    Authorization: `Bearer ${authToken}`,
-                },
-            },
-            authEndpoint: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/broadcasting/auth`,
-        });
-
-        // Add connection event listeners
-        echoInstance.connector.pusher.connection.bind('connected', () => {
-            console.log('✅ Echo connected to Reverb server');
-        });
-
-        echoInstance.connector.pusher.connection.bind('disconnected', () => {
-            console.log('❌ Echo disconnected from Reverb server');
-        });
-
-        echoInstance.connector.pusher.connection.bind('error', (error) => {
-            console.error('❌ Echo connection error:', error);
-        });
-
-        return echoInstance;
-    } catch (error) {
-        console.error('Failed to initialize Echo:', error);
-        return null;
-    }
-};
-
-/**
- * Get the current Echo instance
- */
-export const getEcho = () => {
-    return echoInstance;
-};
-
-/**
- * Disconnect Echo
- */
-export const disconnectEcho = () => {
-    if (echoInstance) {
-        echoInstance.disconnect();
-        echoInstance = null;
-        console.log('Echo disconnected');
-    }
-};
-
-/**
- * Listen to a public channel
- */
-export const listenToChannel = (channelName, eventName, callback) => {
-    if (typeof window === 'undefined') {
-        return null;
+      // eslint-disable-next-line no-underscore-dangle
+      const clientVersion = Pusher.VERSION || 'unknown';
+      const proto = useTLS ? 'wss' : 'ws';
+      const url = `${proto}://${wsHost}:${port}/app/${key}?protocol=7&client=js&version=${clientVersion}&flash=false`;
+      // URL này chỉ để bạn nhìn nhanh xem client đang trỏ đi đâu
+      // (KHÔNG phải url phải gọi trực tiếp)
+      console.log('[Echo] Connecting to:', url);
+    } catch (e) {
+      // ignore
     }
 
-    if (!echoInstance) {
-        console.warn('Echo not initialized. Call initializeEcho() first.');
-        return null;
-    }
-
-    return echoInstance.channel(channelName).listen(eventName, callback);
-};
-
-/**
- * Listen to a private channel
- */
-export const listenToPrivateChannel = (channelName, eventName, callback) => {
-    if (typeof window === 'undefined') {
-        return null;
-    }
-
-    if (!echoInstance) {
-        console.warn('Echo not initialized. Call initializeEcho() first.');
-        return null;
-    }
-
-    return echoInstance.private(channelName).listen(eventName, callback);
-};
-
-/**
- * Leave a channel
- */
-export const leaveChannel = (channelName) => {
-    if (typeof window === 'undefined' || !echoInstance) {
-        return;
-    }
-
-    echoInstance.leaveChannel(channelName);
-};
-
-/**
- * Leave all channels
- */
-export const leaveAllChannels = () => {
-    if (typeof window === 'undefined' || !echoInstance) {
-        return;
-    }
-
-    // Get all channels and leave them
-    Object.keys(echoInstance.connector.channels).forEach(channelName => {
-        echoInstance.leaveChannel(channelName);
+    // Lắng lỗi kết nối
+    echoInstance.connector.pusher.connection.bind('error', (err) => {
+      console.error('[Echo] connection error:', err);
     });
+  }
+
+  return echoInstance;
+};
+
+/** Lấy instance hiện tại */
+export const getEcho = () => echoInstance;
+
+/** Ngắt kết nối và xoá singleton */
+export const disconnectEcho = () => {
+  if (echoInstance) {
+    echoInstance.disconnect();
+    echoInstance = null;
+  }
+};
+
+/** Lắng public channel */
+export const listenToChannel = async (channelName, eventName, callback) => {
+  if (typeof window === 'undefined') return null;
+  
+  // Tự động khởi tạo Echo nếu chưa có
+  if (!echoInstance) {
+    await initializeEcho();
+  }
+  
+  if (!echoInstance) return null;
+  return echoInstance.channel(channelName).listen(eventName, callback);
+};
+
+/** Lắng private channel */
+export const listenToPrivateChannel = async (channelName, eventName, callback) => {
+  if (typeof window === 'undefined') return null;
+  
+  // Tự động khởi tạo Echo nếu chưa có
+  if (!echoInstance) {
+    await initializeEcho();
+  }
+  
+  if (!echoInstance) return null;
+  return echoInstance.private(channelName).listen(eventName, callback);
+};
+
+/** Rời 1 channel */
+export const leaveChannel = (channelName) => {
+  if (typeof window === 'undefined' || !echoInstance) return;
+  echoInstance.leaveChannel(channelName);
+};
+
+/** Rời tất cả channel */
+export const leaveAllChannels = () => {
+  if (typeof window === 'undefined' || !echoInstance) return;
+  const channels = Object.keys(echoInstance.connector.channels || {});
+  channels.forEach((name) => echoInstance.leaveChannel(name));
 };
 
 export default {
-    initializeEcho,
-    getEcho,
-    disconnectEcho,
-    listenToChannel,
-    listenToPrivateChannel,
-    leaveChannel,
-    leaveAllChannels,
+  initializeEcho,
+  getEcho,
+  disconnectEcho,
+  listenToChannel,
+  listenToPrivateChannel,
+  leaveChannel,
+  leaveAllChannels,
 };

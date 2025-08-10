@@ -79,6 +79,13 @@
         "suspend": "暂停",
         "confirmText": "是的，暂停它们"
     },
+    "bulkStartConfirm": {
+        "title": "启动选中的账户",
+        "content": "您确定要为 {{count}} 个选中的 TikTok 账户启动运行场景吗？",
+        "cancel": "取消",
+        "start": "启动",
+        "confirmText": "是的，启动它们"
+    },
     "deleteConfirm": {
         "title": "删除 TikTok 账户",
         "content": "您确定要删除这个 TikTok 账户吗？此操作无法撤销。",

@@ -70,7 +70,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
             return
         }
 
-        // Execute other actions directly (pause doesn't need confirmation)
+        // Execute other actions directly
         await executeQuickAction(actionType)
     }
 
@@ -113,51 +113,51 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                     }
                     break
                     
-                case 'pause':
-                    // Tạm dừng - set status to inactive
-                    const pauseResult = await updateTiktokAccountStatus(accountIds, 'inactive')
-                    if (pauseResult.success) {
-                        console.log('Paused accounts successfully')
-                        handleRefresh()
-                    } else {
-                        console.error('Failed to pause accounts:', pauseResult.message)
-                    }
-                    break
-                    
                 case 'stop':
-                    // Dừng - delete all pending tasks and set status to suspended
+                    // Dừng - update status to suspended and delete all pending tasks
                     const { default: deletePendingTasks } = await import('@/server/actions/tiktok-account/deletePendingTasks')
                     
                     let deletedTasksCount = 0
                     let deleteErrorMessages = []
+                    let statusUpdateSuccess = false
                     
-                    // First, delete all pending tasks
+                    // First, update account status to suspended (most important)
+                    try {
+                        const stopResult = await updateTiktokAccountStatus(accountIds, 'suspended')
+                        if (stopResult.success) {
+                            statusUpdateSuccess = true
+                            console.log(`Successfully updated ${selectedAccounts.length} accounts to suspended status`)
+                        } else {
+                            console.error('Failed to update account status:', stopResult.message)
+                            deleteErrorMessages.push(`Lỗi cập nhật trạng thái: ${stopResult.message}`)
+                        }
+                    } catch (error) {
+                        console.error('Error updating account status:', error)
+                        deleteErrorMessages.push(`Lỗi cập nhật trạng thái: ${error.message}`)
+                    }
+                    
+                    // Then, delete all pending tasks (secondary action)
                     try {
                         const deleteResult = await deletePendingTasks(accountIds)
                         if (deleteResult.success) {
                             deletedTasksCount = deleteResult.data?.deleted_count || 0
-                            console.log(`Deleted ${deletedTasksCount} pending tasks`)
+                            const devicesNotified = deleteResult.data?.devices_notified || 0
+                            console.log(`Deleted ${deletedTasksCount} pending tasks and notified ${devicesNotified} devices`)
                         } else {
-                            deleteErrorMessages.push(deleteResult.message)
+                            deleteErrorMessages.push(`Lỗi xóa tasks: ${deleteResult.message}`)
                         }
                     } catch (error) {
                         deleteErrorMessages.push(`Lỗi khi xóa tasks: ${error.message}`)
                     }
                     
-                    // Then, update account status to suspended
-                    const stopResult = await updateTiktokAccountStatus(accountIds, 'suspended')
-                    if (stopResult.success) {
-                        console.log('Stopped accounts successfully')
-                        if (deletedTasksCount > 0) {
-                            console.log(`Đã dừng ${selectedAccounts.length} tài khoản và xóa ${deletedTasksCount} pending tasks`)
-                        }
+                    // Show results
+                    if (statusUpdateSuccess) {
+                        console.log(`Đã dừng ${selectedAccounts.length} tài khoản${deletedTasksCount > 0 ? ` và xóa ${deletedTasksCount} pending tasks` : ''}`)
                         handleRefresh()
-                    } else {
-                        console.error('Failed to stop accounts:', stopResult.message)
                     }
                     
                     if (deleteErrorMessages.length > 0) {
-                        console.error('Some tasks deletion failed:', deleteErrorMessages)
+                        console.error('Some operations failed:', deleteErrorMessages)
                     }
                     break
                     

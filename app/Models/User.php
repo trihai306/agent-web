@@ -54,8 +54,7 @@ class User extends Authenticatable
         'password',
         'balance',
         'status',
-        'login_token',
-        'login_token_expires_at',
+        'login_token'
     ];
 
     /**
@@ -150,18 +149,33 @@ class User extends Authenticatable
     }
 
     /**
-     * Generate a new login token for the user.
+     * Check if the user has a login token.
      *
-     * @param int $expirationHours
+     * @return bool
+     */
+    public function hasLoginToken(): bool
+    {
+        return !empty($this->login_token);
+    }
+
+    /**
+     * Generate a permanent login token for the user.
+     * Only creates a new token if no token exists.
+     *
      * @return string
      */
-    public function generateLoginToken(int $expirationHours = 24): string
+    public function generateLoginToken(): string
     {
+        // If user already has a login token, return the existing one
+        if ($this->hasLoginToken()) {
+            return $this->login_token;
+        }
+
+        // Generate new permanent token only if no token exists
         $token = bin2hex(random_bytes(32));
         
         $this->update([
             'login_token' => $token,
-            'login_token_expires_at' => now()->addHours($expirationHours),
         ]);
 
         return $token;
@@ -175,9 +189,7 @@ class User extends Authenticatable
      */
     public function isValidLoginToken(string $token): bool
     {
-        return $this->login_token === $token 
-            && $this->login_token_expires_at 
-            && $this->login_token_expires_at->isFuture();
+        return $this->login_token === $token;
     }
 
     /**
@@ -189,7 +201,6 @@ class User extends Authenticatable
     {
         $this->update([
             'login_token' => null,
-            'login_token_expires_at' => null,
         ]);
     }
 }

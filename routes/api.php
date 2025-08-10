@@ -184,5 +184,63 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Broadcasting auth route (outside of auth middleware)
 Route::post('/broadcasting/auth', function (Request $request) {
+    // Kiểm tra user đã đăng nhập
+    if (!$request->user()) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+    // Lấy channel name từ request
+    $channelName = $request->input('channel_name');
+    
+    // Xác thực cho private channels
+    if (str_starts_with($channelName, 'private-')) {
+        // Tạo auth string cho Pusher/Reverb
+        $socketId = $request->input('socket_id');
+        $appKey = config('reverb.apps.0.key', 'xynwukcprjb0jctqndga');
+        $appSecret = config('reverb.apps.0.secret', 'your-secret-key');
+        
+        $stringToSign = $socketId . ':' . $channelName;
+        $signature = hash_hmac('sha256', $stringToSign, $appSecret);
+        $auth = $appKey . ':' . $signature;
+        
+        return response()->json([
+            'auth' => $auth,
+            'channel_data' => json_encode([
+                'user_id' => $request->user()->id,
+                'user_info' => [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                ]
+            ])
+        ]);
+    }
+    
+    // Cho presence channels
+    if (str_starts_with($channelName, 'presence-')) {
+        $socketId = $request->input('socket_id');
+        $appKey = config('reverb.apps.0.key', 'xynwukcprjb0jctqndga');
+        $appSecret = config('reverb.apps.0.secret', 'your-secret-key');
+        
+        $channelData = json_encode([
+            'user_id' => $request->user()->id,
+            'user_info' => [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+            ]
+        ]);
+        
+        $stringToSign = $socketId . ':' . $channelName . ':' . $channelData;
+        $signature = hash_hmac('sha256', $stringToSign, $appSecret);
+        $auth = $appKey . ':' . $signature;
+        
+        return response()->json([
+            'auth' => $auth,
+            'channel_data' => $channelData
+        ]);
+    }
+    
+    // Default response cho public channels
     return response()->json(['auth' => '']);
 })->middleware('auth:sanctum');

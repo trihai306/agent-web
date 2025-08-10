@@ -3,6 +3,7 @@
 
 import { UnauthorizedError } from '@/errors'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 /**
  * A higher-order function that wraps a server action's logic to provide centralized authentication checking.
@@ -10,9 +11,12 @@ import { redirect } from 'next/navigation'
  * @returns The result of the actionLogic, or redirects on authentication failure.
  */
 export async function withAuthCheck(actionLogic) {
+    console.log('withAuthCheck: Starting execution')
     try {
         // Execute the actual logic
-        return await actionLogic()
+        const result = await actionLogic()
+        console.log('withAuthCheck: Action completed successfully')
+        return result
     } catch (error) {
         // Log the error for debugging
         console.log('withAuthCheck caught error:', {
@@ -20,12 +24,21 @@ export async function withAuthCheck(actionLogic) {
             message: error.message,
             isUnauthorizedError: error instanceof UnauthorizedError,
             status: error?.response?.status,
-            isAxiosError: error.name === 'AxiosError'
+            isAxiosError: error.name === 'AxiosError',
+            fullError: error
         })
         
         // If it's the specific error we're looking for, redirect.
-        if (error instanceof UnauthorizedError) {
-            console.log('Redirecting to /force-logout due to UnauthorizedError')
+        if (error instanceof UnauthorizedError || 
+            (error.name === 'AxiosError' && error?.response?.status === 401) ||
+            error?.status === 401) {
+            console.log('401 Unauthorized detected - performing redirect')
+            
+            // Clear any cached data
+            revalidatePath('/', 'layout')
+            
+            // Redirect to force logout page
+            // This should work in server actions
             redirect('/force-logout')
         }
         

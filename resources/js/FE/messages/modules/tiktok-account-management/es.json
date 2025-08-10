@@ -82,6 +82,13 @@
         "suspend": "Suspender",
         "confirmText": "Sí, suspenderlas"
     },
+    "bulkStartConfirm": {
+        "title": "Iniciar Cuentas Seleccionadas",
+        "content": "¿Está seguro de que desea iniciar la ejecución de escenarios para {{count}} cuenta(s) de TikTok seleccionada(s)?",
+        "cancel": "Cancelar",
+        "start": "Iniciar",
+        "confirmText": "Sí, iniciarlas"
+    },
     "deleteConfirm": {
         "title": "Eliminar Cuenta de TikTok",
         "content": "¿Está seguro de que desea eliminar esta cuenta de TikTok? Esta acción no se puede deshacer.",

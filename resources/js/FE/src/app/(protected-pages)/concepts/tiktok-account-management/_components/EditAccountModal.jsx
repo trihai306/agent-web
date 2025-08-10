@@ -155,15 +155,70 @@ const EditAccountModal = ({
         if (onSave && !isLoading) {
             setIsLoading(true)
             try {
-                // Prepare data for saving (exclude empty passwords)
-                const saveData = { ...formData }
-                if (!saveData.password.trim()) {
-                    delete saveData.password
-                }
-                if (!saveData.proxy_password.trim()) {
-                    delete saveData.proxy_password
+                // Prepare data for saving - only include non-empty fields
+                const saveData = {}
+                
+                // Always include username as it's required
+                if (formData.username && formData.username.trim()) {
+                    saveData.username = formData.username.trim()
                 }
                 
+                // Only include other fields if they have values
+                if (formData.display_name && formData.display_name.trim()) {
+                    saveData.display_name = formData.display_name.trim()
+                }
+                if (formData.nickname && formData.nickname.trim()) {
+                    saveData.nickname = formData.nickname.trim()
+                }
+                if (formData.email && formData.email.trim()) {
+                    saveData.email = formData.email.trim()
+                }
+                if (formData.phone_number && formData.phone_number.trim()) {
+                    saveData.phone_number = formData.phone_number.trim()
+                }
+                if (formData.password && formData.password.trim()) {
+                    saveData.password = formData.password.trim()
+                }
+                if (formData.status) {
+                    saveData.status = formData.status
+                }
+                if (formData.notes && formData.notes.trim()) {
+                    saveData.notes = formData.notes.trim()
+                }
+                if (formData.proxy_ip && formData.proxy_ip.trim()) {
+                    saveData.proxy_ip = formData.proxy_ip.trim()
+                }
+                if (formData.proxy_port && formData.proxy_port.toString().trim()) {
+                    saveData.proxy_port = parseInt(formData.proxy_port)
+                }
+                if (formData.proxy_username && formData.proxy_username.trim()) {
+                    saveData.proxy_username = formData.proxy_username.trim()
+                }
+                if (formData.proxy_password && formData.proxy_password.trim()) {
+                    saveData.proxy_password = formData.proxy_password.trim()
+                }
+                if (formData.device_info && formData.device_info.trim()) {
+                    saveData.device_info = formData.device_info.trim()
+                }
+                if (formData.device_id && formData.device_id.toString().trim()) {
+                    saveData.device_id = parseInt(formData.device_id)
+                }
+                if (formData.scenario_id && formData.scenario_id.toString().trim()) {
+                    saveData.scenario_id = parseInt(formData.scenario_id)
+                }
+                
+                // Handle boolean fields
+                saveData.two_factor_enabled = formData.two_factor_enabled
+                
+                // Handle array fields
+                if (formData.two_factor_backup_codes && Array.isArray(formData.two_factor_backup_codes) && formData.two_factor_backup_codes.length > 0) {
+                    saveData.two_factor_backup_codes = formData.two_factor_backup_codes.filter(code => code && code.trim())
+                }
+                if (formData.tags && Array.isArray(formData.tags) && formData.tags.length > 0) {
+                    saveData.tags = formData.tags.filter(tag => tag && tag.trim())
+                }
+                
+                console.log('Prepared save data:', saveData)
                 await onSave(account.id, saveData)
                 // onClose() will be called from parent component after successful save
             } catch (error) {

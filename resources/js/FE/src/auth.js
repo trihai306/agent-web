@@ -8,5 +8,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         signIn: appConfig.unAuthenticatedEntryPath,
         error: appConfig.unAuthenticatedEntryPath,
     },
+    session: {
+        strategy: 'jwt',
+        maxAge: 24 * 60 * 60, // 24 hours
+    },
+    debug: process.env.NODE_ENV === 'development',
     ...authConfig,
 })

@@ -10,10 +10,40 @@ const ForceLogoutPage = () => {
     const router = useRouter()
     
     useEffect(() => {
-        // Thực hiện signOut, sau khi xong sẽ redirect về trang đăng nhập
-        signOut({ redirect: false }).then(() => {
-            router.push(appConfig.unAuthenticatedEntryPath)
-        })
+        const performCompleteLogout = async () => {
+            try {
+                // Clear all local storage and session storage
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.clear()
+                }
+                if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.clear()
+                }
+                
+                // Clear any cookies that might contain user data
+                if (typeof document !== 'undefined') {
+                    // Clear all cookies by setting them to expire
+                    document.cookie.split(";").forEach((c) => {
+                        const eqPos = c.indexOf("=")
+                        const name = eqPos > -1 ? c.substr(0, eqPos) : c
+                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/"
+                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname
+                    })
+                }
+                
+                // Thực hiện signOut để xóa hết session NextAuth
+                await signOut({ redirect: false })
+                
+                // Redirect về trang đăng nhập
+                router.push(appConfig.unAuthenticatedEntryPath)
+            } catch (error) {
+                console.error('Error during complete logout:', error)
+                // Fallback: force redirect anyway
+                window.location.href = appConfig.unAuthenticatedEntryPath
+            }
+        }
+        
+        performCompleteLogout()
     }, [router])
 
     // Hiển thị một thông báo loading trong khi chờ

@@ -138,7 +138,11 @@ class TiktokAccountService
      */
     public function updateTiktokAccount(TiktokAccount $tiktokAccount, array $data)
     {
-        return $this->repository->update($tiktokAccount, $data);
+        // Filter data to only include fields that exist in the model's fillable array
+        $fillableFields = $tiktokAccount->getFillable();
+        $filteredData = array_intersect_key($data, array_flip($fillableFields));
+        
+        return $this->repository->update($tiktokAccount, $filteredData);
     }
 
     /**

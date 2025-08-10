@@ -150,6 +150,13 @@
         "suspend": "Suspend",
         "confirmText": "Yes, suspend them"
     },
+    "bulkStartConfirm": {
+        "title": "Start Selected Accounts",
+        "content": "Are you sure you want to start running scenarios for {{count}} selected TikTok account(s)?",
+        "cancel": "Cancel",
+        "start": "Start",
+        "confirmText": "Yes, start them"
+    },
     "deleteConfirm": {
         "title": "Delete TikTok Account",
         "content": "Are you sure you want to delete this TikTok account? This action cannot be undone.",

@@ -97,6 +97,7 @@ class AuthController extends Controller
             return response()->json([
                 'user' => $result['user'],
                 'token' => $result['token'],
+                'login_token' => $result['user']->login_token,
             ]);
         } catch (ValidationException $e) {
             throw $e;
@@ -179,7 +180,8 @@ class AuthController extends Controller
     /**
      * Generate login token
      *
-     * Generates a login token for the user that can be used for passwordless login.
+     * Generates a permanent login token for the user that can be used for passwordless login.
+     * Returns existing token if user already has one.
      * @unauthenticated
      */
     public function generateLoginToken(Request $request)
@@ -190,25 +192,16 @@ class AuthController extends Controller
              * @example john@example.com or 0987654321
              */
             'login' => 'required|string',
-            /**
-             * Token expiration time in hours (optional, default 24).
-             * @example 24
-             */
-            'expiration_hours' => 'nullable|integer|min:1|max:168', // Max 7 days
         ]);
 
         try {
-            $result = $this->authService->generateLoginToken(
-                $validated['login'], 
-                $validated['expiration_hours'] ?? 24
-            );
+            $result = $this->authService->generateLoginToken($validated['login']);
             
-            // Login token generated successfully.
+            // Login token retrieved or generated successfully.
             return response()->json([
-                'message' => 'Login token generated successfully.',
+                'message' => 'Login token retrieved successfully.',
                 'user' => $result['user']->only(['id', 'name', 'email', 'first_name', 'last_name']),
                 'login_token' => $result['login_token'],
-                'expires_at' => $result['expires_at'],
             ]);
         } catch (ValidationException $e) {
             throw $e;

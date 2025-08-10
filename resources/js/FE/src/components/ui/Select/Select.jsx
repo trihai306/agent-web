@@ -8,6 +8,7 @@ import { HiChevronDown, HiX } from 'react-icons/hi'
 import DefaultOption from './Option'
 import Spinner from '../Spinner/Spinner'
 import { CONTROL_SIZES } from '../utils/constants'
+import { useState, useEffect } from 'react'
 
 const DefaultDropdownIndicator = () => {
     return (
@@ -57,6 +58,32 @@ function Select(props) {
     const isSelectInvalid = invalid || formItemInvalid
 
     const selectClass = cn(`select select-${selectSize}`, className)
+
+    // Prevent SSR hydration mismatch by only rendering on client
+    const [isClient, setIsClient] = useState(false)
+
+    useEffect(() => {
+        setIsClient(true)
+    }, [])
+
+    // Show a placeholder during SSR to prevent hydration mismatch
+    if (!isClient) {
+        return (
+            <div className={selectClass}>
+                <div className={cn(
+                    'select-control',
+                    CONTROL_SIZES[selectSize].minH,
+                    'bg-gray-100 dark:bg-gray-700',
+                    'flex items-center justify-between px-3'
+                )}>
+                    <span className="text-gray-400">
+                        {rest.placeholder || 'Select...'}
+                    </span>
+                    <HiChevronDown className="text-gray-400" />
+                </div>
+            </div>
+        )
+    }
 
     return (
         <Component

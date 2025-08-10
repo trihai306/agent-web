@@ -4,7 +4,7 @@ import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import Link from 'next/link'
 import signOut from '@/server/actions/auth/handleSignOut'
-import useCurrentSession from '@/utils/hooks/useCurrentSession'
+import { useSession } from 'next-auth/react'
 import {
     PiUserDuotone,
     PiGearDuotone,
@@ -31,7 +31,10 @@ const dropdownItemList = [
 ]
 
 const _UserDropdown = () => {
-    const { session } = useCurrentSession()
+    const { data: session, status } = useSession()
+
+    // Debug logging
+    console.log('UserDropdown session:', { session, status })
 
     const handleSignOut = async () => {
         await signOut()
