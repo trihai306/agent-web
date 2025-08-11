@@ -39,12 +39,12 @@ const Example = () => {
     const [open, setOpen] = useState(false)
 
     const handleClose = () => {
-        console.log('Close')
+        // console.log('Close')
         setOpen(false)
     }
 
     const handleConfirm = () => {
-        console.log('Confirm')
+        // console.log('Confirm')
         setOpen(false)
     }
 

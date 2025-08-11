@@ -187,7 +187,7 @@ const RoleForm = ({ mode = 'add', role, onClose }) => {
             if (response.success) {
                 setPermissions(response.list || [])
                 setTotalPermissions(response.total || 0)
-                console.log(`Loaded ${response.list?.length || 0} permissions (page ${page}/${Math.ceil((response.total || 0) / perPage)})`)
+                // console.log(`Loaded ${response.list?.length || 0} permissions (page ${page}/${Math.ceil((response.total || 0) / perPage)})`)
             } else {
                 console.error('Failed to fetch permissions:', response.message)
                 setPermissions([])
@@ -241,8 +241,8 @@ const RoleForm = ({ mode = 'add', role, onClose }) => {
 
     useEffect(() => {
         if (role && allPermissions.length > 0) {
-            console.log('Setting form data for role:', role);
-            console.log('Role permissions:', role.permissions);
+            // console.log('Setting form data for role:', role);
+            // console.log('Role permissions:', role.permissions);
             
             const permissionIds = role.permissions?.map(p => {
                 // Handle both cases: permission object with id, or just permission name
@@ -260,7 +260,7 @@ const RoleForm = ({ mode = 'add', role, onClose }) => {
                 return null;
             }).filter(Boolean) || [];
             
-            console.log('Mapped permission IDs:', permissionIds);
+            // console.log('Mapped permission IDs:', permissionIds);
             
             reset({ 
                 name: role.name, 
@@ -288,7 +288,7 @@ const RoleForm = ({ mode = 'add', role, onClose }) => {
                 permissions: values.permissions.map(id => allPermissions.find(p => p.id === id)?.name).filter(Boolean)
             };
 
-            console.log('Submitting role data:', data); // Debug log
+            // console.log('Submitting role data:', data); // Debug log
 
             let result
             if (mode === 'add') {

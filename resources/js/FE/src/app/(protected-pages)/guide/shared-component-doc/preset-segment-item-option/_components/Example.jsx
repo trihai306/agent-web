@@ -13,7 +13,7 @@ const Example = () => {
     const [value, setValue] = useState([roles[0].value])
 
     const handleChange = (val) => {
-        console.log('val', val)
+        // console.log('val', val)
         setValue(val)
     }
 

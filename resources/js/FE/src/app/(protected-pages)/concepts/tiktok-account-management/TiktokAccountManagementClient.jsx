@@ -75,7 +75,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
     }
 
     const executeQuickAction = async (actionType) => {
-        console.log(`Performing ${actionType} on accounts:`, selectedAccounts)
+        // // console.log(`Performing ${actionType} on accounts:`, selectedAccounts)
         setIsLoading(true)
         
         try {
@@ -94,7 +94,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                             const result = await runTiktokAccountScenario(account.id)
                             if (result.success) {
                                 successCount++
-                                console.log(`Created tasks for account ${account.username}`)
+                                // // console.log(`Created tasks for account ${account.username}`)
                             } else {
                                 errorMessages.push(`${account.username}: ${result.message}`)
                             }
@@ -104,7 +104,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                     }
                     
                     if (successCount > 0) {
-                        console.log(`Successfully created tasks for ${successCount} accounts`)
+                        // // console.log(`Successfully created tasks for ${successCount} accounts`)
                         handleRefresh()
                     }
                     
@@ -126,7 +126,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                         const stopResult = await updateTiktokAccountStatus(accountIds, 'suspended')
                         if (stopResult.success) {
                             statusUpdateSuccess = true
-                            console.log(`Successfully updated ${selectedAccounts.length} accounts to suspended status`)
+                            // // console.log(`Successfully updated ${selectedAccounts.length} accounts to suspended status`)
                         } else {
                             console.error('Failed to update account status:', stopResult.message)
                             deleteErrorMessages.push(`Lỗi cập nhật trạng thái: ${stopResult.message}`)
@@ -142,7 +142,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                         if (deleteResult.success) {
                             deletedTasksCount = deleteResult.data?.deleted_count || 0
                             const devicesNotified = deleteResult.data?.devices_notified || 0
-                            console.log(`Deleted ${deletedTasksCount} pending tasks and notified ${devicesNotified} devices`)
+                            // // console.log(`Deleted ${deletedTasksCount} pending tasks and notified ${devicesNotified} devices`)
                         } else {
                             deleteErrorMessages.push(`Lỗi xóa tasks: ${deleteResult.message}`)
                         }
@@ -152,7 +152,7 @@ const TiktokAccountManagementClient = ({ data, params }) => {
                     
                     // Show results
                     if (statusUpdateSuccess) {
-                        console.log(`Đã dừng ${selectedAccounts.length} tài khoản${deletedTasksCount > 0 ? ` và xóa ${deletedTasksCount} pending tasks` : ''}`)
+                        // // console.log(`Đã dừng ${selectedAccounts.length} tài khoản${deletedTasksCount > 0 ? ` và xóa ${deletedTasksCount} pending tasks` : ''}`)
                         handleRefresh()
                     }
                     

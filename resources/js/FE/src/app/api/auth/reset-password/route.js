@@ -5,7 +5,7 @@ export async function POST() {
         /** implement reset password logic here */
         return NextResponse.json(true)
     } catch (error) {
-        console.log(error)
+        // // // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

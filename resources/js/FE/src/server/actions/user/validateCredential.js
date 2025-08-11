@@ -6,12 +6,12 @@ const validateCredential = async (values) => {
     const { login, password } = values
 
     try {
-        console.log('🔍 validateCredential: Attempting login with axios')
+        // console.log('🔍 validateCredential: Attempting login with axios')
         
         // Use apiSignIn which uses axios through ApiService
         const data = await apiSignIn({ login, password })
         
-        console.log('✅ Login API request successful with axios')
+        // console.log('✅ Login API request successful with axios')
 
         if (data && data.user && data.token) {
             let userObject = data.user

@@ -17,11 +17,11 @@ const Checkable = () => {
     })
 
     const handleAction = (cellProps) => {
-        console.log('Action clicked', cellProps)
+        // console.log('Action clicked', cellProps)
     }
 
     const handleBatchAction = () => {
-        console.log('selectedRows', selectedRows)
+        // console.log('selectedRows', selectedRows)
     }
 
     const columns = useMemo(
@@ -63,7 +63,7 @@ const Checkable = () => {
     }
 
     const handleRowSelect = (checked, row) => {
-        console.log('row', row)
+        // console.log('row', row)
         if (checked) {
             setSelectedRows((prevData) => {
                 if (!prevData.includes(row.name)) {
@@ -82,7 +82,7 @@ const Checkable = () => {
     }
 
     const handleAllRowSelect = (checked, rows) => {
-        console.log('rows', rows)
+        // console.log('rows', rows)
         if (checked) {
             const originalRows = rows.map((row) => row.original)
             const selectedIds = []

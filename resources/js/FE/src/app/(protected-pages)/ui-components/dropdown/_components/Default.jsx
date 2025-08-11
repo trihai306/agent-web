@@ -9,11 +9,11 @@ const Default = () => {
     ]
 
     const onDropdownItemClick = (eventKey, e) => {
-        console.log('Dropdown Item Clicked', eventKey, e)
+        // console.log('Dropdown Item Clicked', eventKey, e)
     }
 
     const onDropdownClick = (e) => {
-        console.log('Dropdown Clicked', e)
+        // console.log('Dropdown Clicked', e)
     }
 
     return (

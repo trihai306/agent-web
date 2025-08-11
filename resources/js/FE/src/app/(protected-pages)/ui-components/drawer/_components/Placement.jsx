@@ -19,7 +19,7 @@ const Placement = () => {
     }
 
     const onDrawerClose = (e) => {
-        console.log('onDrawerClose', e)
+        // console.log('onDrawerClose', e)
         setIsOpen(false)
     }
 

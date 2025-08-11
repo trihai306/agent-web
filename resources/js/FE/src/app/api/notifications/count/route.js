@@ -8,7 +8,7 @@ export async function GET() {
         )
         return NextResponse.json({ count: unreadNotification.length })
     } catch (error) {
-        console.log(error)
+        // // // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

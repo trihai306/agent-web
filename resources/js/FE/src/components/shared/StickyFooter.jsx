@@ -18,7 +18,7 @@ const StickyFooter = (props) => {
         const cachedRef = ref.current
         const observer = new IntersectionObserver(
             ([e]) => {
-                console.log(
+                // console.log(
                     'e.intersectionRatio < 1',
                     e.intersectionRatio,
                     e.intersectionRatio < 1,

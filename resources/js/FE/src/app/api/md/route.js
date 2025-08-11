@@ -18,7 +18,7 @@ export async function GET(request) {
 
         return NextResponse.json({ content: md })
     } catch (error) {
-        console.log(error)
+        // // // console.log(error)
         return NextResponse.json(
             { error: 'Failed to get markdown' },
             { status: 500 },

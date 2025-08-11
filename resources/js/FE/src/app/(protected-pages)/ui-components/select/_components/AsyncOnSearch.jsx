@@ -37,7 +37,7 @@ const AsyncOnSearch = () => {
         return inputValue
     }
 
-    console.log(_)
+    // console.log(_)
 
     return (
         <div>

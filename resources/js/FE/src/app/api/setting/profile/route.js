@@ -5,7 +5,7 @@ export async function GET() {
     try {
         return NextResponse.json(profileData)
     } catch (error) {
-        console.log(error)
+        // // // // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

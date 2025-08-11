@@ -34,7 +34,7 @@ const WithForm = () => {
     } = useForm()
 
     const onSubmit = (value) => {
-        console.log(value)
+        // console.log(value)
     }
 
     return (

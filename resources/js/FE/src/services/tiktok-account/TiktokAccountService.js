@@ -48,13 +48,13 @@ export async function apiUpdateTiktokAccountStatus(data) {
 }
 
 export async function apiImportTiktokAccounts(data) {
-    console.log('TiktokAccountService - apiImportTiktokAccounts called with:', data)
+    // // console.log('TiktokAccountService - apiImportTiktokAccounts called with:', data)
     const response = await ApiService.fetchDataWithAxios({
         url: '/tiktok-accounts/import',
         method: 'post',
         data,
     })
-    console.log('TiktokAccountService - apiImportTiktokAccounts response:', response)
+    // // console.log('TiktokAccountService - apiImportTiktokAccounts response:', response)
     return response
 }
 

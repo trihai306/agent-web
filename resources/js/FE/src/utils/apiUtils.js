@@ -29,13 +29,13 @@ export const secureFetch = async (url, options = {}) => {
     const fetchOptions = createSecureFetchOptions(options)
     
     try {
-        console.log('🔍 Making secure API call to:', url)
-        console.log('📋 Options:', JSON.stringify(fetchOptions, null, 2))
+        // console.log('🔍 Making secure API call to:', url)
+        // console.log('📋 Options:', JSON.stringify(fetchOptions, null, 2))
         
         const response = await fetch(url, fetchOptions)
         
-        console.log('📡 Response status:', response.status)
-        console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()))
+        // console.log('📡 Response status:', response.status)
+        // console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()))
         
         if (!response.ok) {
             const errorText = await response.text()
@@ -62,7 +62,7 @@ export const testApiConnectivity = async (baseUrl, apiPrefix = '/api') => {
     
     try {
         // Test OPTIONS request first (CORS preflight)
-        console.log('🔍 Testing CORS preflight...')
+        // console.log('🔍 Testing CORS preflight...')
         const optionsResponse = await fetch(testUrl, {
             method: 'OPTIONS',
             headers: {
@@ -72,10 +72,10 @@ export const testApiConnectivity = async (baseUrl, apiPrefix = '/api') => {
             },
         })
         
-        console.log('✅ CORS preflight status:', optionsResponse.status)
+        // console.log('✅ CORS preflight status:', optionsResponse.status)
         
         // Test actual POST request
-        console.log('🔍 Testing POST request...')
+        // console.log('🔍 Testing POST request...')
         const response = await secureFetch(testUrl, {
             method: 'POST',
             body: JSON.stringify({
@@ -85,7 +85,7 @@ export const testApiConnectivity = async (baseUrl, apiPrefix = '/api') => {
         })
         
         const data = await response.json()
-        console.log('✅ API test successful:', data)
+        // console.log('✅ API test successful:', data)
         return { success: true, data }
         
     } catch (error) {

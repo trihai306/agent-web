@@ -10,7 +10,7 @@ const Closable = () => {
     }
 
     const onDrawerClose = (e) => {
-        console.log('onDrawerClose', e)
+        // console.log('onDrawerClose', e)
         setIsOpen(false)
     }
 

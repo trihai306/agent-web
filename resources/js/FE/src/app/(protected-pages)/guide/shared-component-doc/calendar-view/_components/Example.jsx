@@ -67,13 +67,13 @@ const Example = () => {
             selectable
             events={eventsData}
             eventClick={(arg) => {
-                console.log('onEventClick', arg)
+                // console.log('onEventClick', arg)
             }}
             select={(event) => {
-                console.log('onCellSelect', event)
+                // console.log('onCellSelect', event)
             }}
             eventDrop={(arg) => {
-                console.log('onEventChange', arg)
+                // console.log('onEventChange', arg)
             }}
         />
     )

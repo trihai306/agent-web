@@ -36,7 +36,7 @@ async function getAuthToken() {
   try {
     const { getSession } = await import('next-auth/react');
     const session = await getSession();
-    console.log('session: ', session);
+    // console.log('session: ', session);
     return session?.accessToken || null;
   } catch (error) {
     console.warn('[Echo] Could not get auth token:', error);
@@ -83,7 +83,7 @@ export const initializeEcho = async (manualToken = null) => {
       const url = `${proto}://${wsHost}:${port}/app/${key}?protocol=7&client=js&version=${clientVersion}&flash=false`;
       // URL này chỉ để bạn nhìn nhanh xem client đang trỏ đi đâu
       // (KHÔNG phải url phải gọi trực tiếp)
-      console.log('[Echo] Connecting to:', url);
+      // console.log('[Echo] Connecting to:', url);
     } catch (e) {
       // ignore
     }

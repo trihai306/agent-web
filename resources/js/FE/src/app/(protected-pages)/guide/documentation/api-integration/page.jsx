@@ -79,7 +79,7 @@ import { NextResponse } from 'next/server';
 
 const mockMethodThatSavesToDatabase = async (data) => {
     // Simulate saving to a database
-    console.log('Data saved to database:', data);
+    // console.log('Data saved to database:', data);
 };
 
 export async function POST(request: Request) {
@@ -101,7 +101,7 @@ import { NextResponse } from 'next/server';
 
 const mockMethodThatSavesToDatabase = async (data) => {
     // Simulate saving to a database
-    console.log('Data saved to database:', data);
+    // console.log('Data saved to database:', data);
 };
 
 export async function POST(request) {

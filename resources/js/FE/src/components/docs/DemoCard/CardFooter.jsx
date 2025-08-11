@@ -44,7 +44,7 @@ const CardFooter = (props) => {
             }
             setLoadingMd(false)
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             setLoadingMd(false)
         }
     }

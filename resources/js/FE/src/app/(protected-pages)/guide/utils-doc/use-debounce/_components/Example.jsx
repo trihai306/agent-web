@@ -11,7 +11,7 @@ const Example = () => {
     const [query, setQuery] = useState('')
 
     const handleSearch = (input: string) => {
-        console.log('Searching for:', input)
+        // console.log('Searching for:', input)
     };
 
     const debouncedSearch = useDebounce(handleSearch, 300);

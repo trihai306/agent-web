@@ -35,7 +35,7 @@ const Query = () => {
     }
 
     const handleAction = (cellProps) => {
-        console.log('Action clicked', cellProps)
+        // console.log('Action clicked', cellProps)
     }
 
     const columns = [
@@ -67,7 +67,7 @@ const Query = () => {
     }
 
     const handleSort = ({ order, key }) => {
-        console.log({ order, key })
+        // console.log({ order, key })
         setTableData((prevData) => ({
             ...prevData,
             ...{ sort: { order, key } },

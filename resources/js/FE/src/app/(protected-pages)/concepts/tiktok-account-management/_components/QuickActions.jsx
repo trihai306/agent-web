@@ -21,14 +21,14 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
     }
 
     const fetchRecentActivities = async () => {
-        console.log('🔄 Fetching recent activities...')
+        // // console.log('🔄 Fetching recent activities...')
         setActivitiesLoading(true)
         try {
             const result = await getTiktokAccountRecentActivities()
-            console.log('📊 API Result:', result)
+            // // console.log('📊 API Result:', result)
             
             if (result.success) {
-                console.log('✅ API Success, data count:', result.data.length)
+                // // console.log('✅ API Success, data count:', result.data.length)
                 // Map the API response to match the expected format
                 const mappedActivities = result.data.map(activity => ({
                     id: activity.id,
@@ -40,7 +40,7 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
                     time: activity.time,
                     scenario_name: activity.scenario_name
                 }))
-                console.log('🎯 Mapped activities:', mappedActivities)
+                // // console.log('🎯 Mapped activities:', mappedActivities)
                 setRecentActivities(mappedActivities)
             } else {
                 console.error('❌ Failed to fetch recent activities:', result.message)
@@ -60,8 +60,8 @@ const QuickActions = ({ selectedAccounts = [], onAction, loading = false }) => {
 
     // Debug effect to track state changes
     useEffect(() => {
-        console.log('🔍 Recent activities state changed:', recentActivities.length, 'items')
-        console.log('📋 Activities:', recentActivities)
+        // // console.log('🔍 Recent activities state changed:', recentActivities.length, 'items')
+        // // console.log('📋 Activities:', recentActivities)
     }, [recentActivities])
 
     const quickActions = [

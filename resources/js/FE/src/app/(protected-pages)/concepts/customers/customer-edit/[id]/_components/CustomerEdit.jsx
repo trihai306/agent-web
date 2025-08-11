@@ -17,7 +17,7 @@ const CustomerEdit = ({ data }) => {
     const [isSubmiting, setIsSubmiting] = useState(false)
 
     const handleFormSubmit = async (values) => {
-        console.log('Submitted values', values)
+        // console.log('Submitted values', values)
         setIsSubmiting(true)
         await sleep(800)
         setIsSubmiting(false)

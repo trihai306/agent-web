@@ -57,7 +57,7 @@ const databaseUrl = process.env.DATABASE_URL;
                         <SyntaxHighlighter language="jsx">{`const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 useEffect(() => {
-    console.log('API Base URL:', apiBaseUrl);
+    // console.log('API Base URL:', apiBaseUrl);
 }, []);`}</SyntaxHighlighter>
                     </li>
                 </ol>

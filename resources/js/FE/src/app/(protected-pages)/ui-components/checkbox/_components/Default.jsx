@@ -2,7 +2,7 @@ import Checkbox from '@/components/ui/Checkbox'
 
 const Default = () => {
     const onCheck = (value, e) => {
-        console.log(value, e)
+        // console.log(value, e)
     }
 
     return (

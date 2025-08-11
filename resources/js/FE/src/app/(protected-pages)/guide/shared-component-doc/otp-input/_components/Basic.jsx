@@ -5,7 +5,7 @@ const Basic = () => {
     const [value, setValue] = useState('')
 
     const handleChange = (value) => {
-        console.log(value)
+        // console.log(value)
         setValue(value)
     }
 

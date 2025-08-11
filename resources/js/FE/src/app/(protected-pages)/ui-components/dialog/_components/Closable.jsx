@@ -10,12 +10,12 @@ const Closable = () => {
     }
 
     const onDialogClose = (e) => {
-        console.log('onDialogClose', e)
+        // console.log('onDialogClose', e)
         setIsOpen(false)
     }
 
     const onDialogOk = (e) => {
-        console.log('onDialogOk', e)
+        // console.log('onDialogOk', e)
         setIsOpen(false)
     }
 

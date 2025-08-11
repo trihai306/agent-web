@@ -4,7 +4,7 @@ const Example = () => {
     return (
         <PasswordInput
             onVisibleChange={(visible) => {
-                console.log(visible)
+                // console.log(visible)
             }}
         />
     )

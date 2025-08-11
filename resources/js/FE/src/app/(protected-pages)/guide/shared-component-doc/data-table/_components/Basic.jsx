@@ -31,7 +31,7 @@ const Basic = () => {
                 cell: (props) => (
                     <Button
                         size="xs"
-                        onClick={() => console.log('Action clicked', props)}
+                        onClick={() => // console.log('Action clicked', props)}
                     >
                         Action
                     </Button>

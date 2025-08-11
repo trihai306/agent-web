@@ -20,7 +20,7 @@ export function handleServerActionError(error, defaultMessage = "An unexpected e
         error?.response?.status === 401 || 
         (error.name === 'AxiosError' && error?.response?.status === 401)) {
         
-        console.log('Re-throwing as UnauthorizedError for withAuthCheck')
+        // console.log('Re-throwing as UnauthorizedError for withAuthCheck')
         throw new UnauthorizedError('Authentication failed')
     }
     

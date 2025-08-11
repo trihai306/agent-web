@@ -10,7 +10,7 @@ export async function GET() {
 
         return NextResponse.json(contacts)
     } catch (error) {
-        console.log(error)
+        // // // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

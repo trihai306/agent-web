@@ -218,7 +218,7 @@ const EditAccountModal = ({
                     saveData.tags = formData.tags.filter(tag => tag && tag.trim())
                 }
                 
-                console.log('Prepared save data:', saveData)
+                // // console.log('Prepared save data:', saveData)
                 await onSave(account.id, saveData)
                 // onClose() will be called from parent component after successful save
             } catch (error) {

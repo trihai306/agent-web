@@ -5,7 +5,7 @@ const Basic = () => {
     const [value, setValue] = useState(0)
 
     const handleValueChange = (e) => {
-        console.log(e)
+        // console.log(e)
         setValue(e.floatValue)
     }
 

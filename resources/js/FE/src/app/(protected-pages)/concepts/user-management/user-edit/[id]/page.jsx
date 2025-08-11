@@ -9,7 +9,7 @@ const UserEdit = async (props) => {
     const { id } = await props.params
     const user = await getUser(id)
     const t = await getTranslations('userManagement')
-    console.log('User data in page:', user)
+    // console.log('User data in page:', user)
 
     return (
         <Container>

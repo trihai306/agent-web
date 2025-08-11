@@ -14,7 +14,7 @@ import uniqueId from 'lodash/uniqueId'
 import { TbChevronLeft } from 'react-icons/tb'
 
 const getFileType = (file) => {
-    console.log('file.type', file.type)
+    // console.log('file.type', file.type)
     switch (file.type) {
         case 'image/jpg':
         case 'image/jpeg':

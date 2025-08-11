@@ -13,7 +13,7 @@ export async function GET(_, { params }) {
 
         return NextResponse.json({ ...projectDetailsData, ...project })
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

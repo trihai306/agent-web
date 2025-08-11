@@ -116,7 +116,7 @@ const EventDialog = (props) => {
         if (values.endDate) {
             eventData.end = dayjs(values.endDate).format()
         }
-        console.log('eventData', eventData)
+        // console.log('eventData', eventData)
         submit?.(eventData, selected.type)
         handleDialogClose()
     }

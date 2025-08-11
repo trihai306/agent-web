@@ -65,7 +65,7 @@ const SettingsProfile = ({ data }) => {
         const result = await updateProfile(values);
         if (result.success) {
             // Handle success (e.g., show a toast notification)
-            console.log('Profile updated successfully');
+            // console.log('Profile updated successfully');
         } else {
             // Handle error
             console.error('Failed to update profile:', result.message);

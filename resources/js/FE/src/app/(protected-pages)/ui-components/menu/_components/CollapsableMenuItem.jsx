@@ -2,8 +2,8 @@ import Menu from '@/components/ui/Menu'
 
 const CollapsableMenuItem = () => {
     const handleToggle = (expanded, e) => {
-        console.log('expanded', expanded)
-        console.log('event', e)
+        // console.log('expanded', expanded)
+        // console.log('event', e)
     }
 
     return (

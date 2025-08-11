@@ -5,7 +5,7 @@ import { groupsData } from '@/mock/data/chatData'
 export async function GET(_, { params }) {
     const id = (await params).id
 
-    console.log('contact id:', id)
+    // console.log('contact id:', id)
 
     try {
         const groupsId = ['16', '17', '18']
@@ -16,7 +16,7 @@ export async function GET(_, { params }) {
 
         return NextResponse.json(userDetails)
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

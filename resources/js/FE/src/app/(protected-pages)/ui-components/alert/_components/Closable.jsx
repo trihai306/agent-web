@@ -2,7 +2,7 @@ import Alert from '@/components/ui/Alert'
 
 const Closable = () => {
     const onCloseClick = () => {
-        console.log('Alert closed!')
+        // console.log('Alert closed!')
     }
 
     return (

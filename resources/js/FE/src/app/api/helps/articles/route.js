@@ -22,7 +22,7 @@ export async function GET(request) {
 
         return NextResponse.json(articles)
     } catch (error) {
-        console.log(error)
+        // // // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }
@@ -41,7 +41,7 @@ export async function DELETE(request) {
 
         return NextResponse.json({})
     } catch (error) {
-        console.log(error)
+        // // // console.log(error)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

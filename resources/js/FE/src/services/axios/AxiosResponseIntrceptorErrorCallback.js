@@ -4,18 +4,18 @@ const AxiosResponseIntrceptorErrorCallback = async (error) => {
     const status = error.response?.status
 
     // Debug: Log all error details
-    console.log('AxiosResponseIntrceptorErrorCallback called:', {
-        status,
-        isClient: typeof window !== 'undefined',
-        error: error.response
-    })
+    // // console.log('AxiosResponseIntrceptorErrorCallback called:', {
+    //     status,
+    //     isClient: typeof window !== 'undefined',
+    //     error: error.response
+    // })
 
     // Only handle 401 on the client-side
     // On server-side, let withAuthCheck handle the 401 error
     if (typeof window !== 'undefined' && status === 401) {
-        console.log('401 Unauthorized: Session expired or invalid - redirecting to sign-in')
-        console.log('Current URL:', window.location.href)
-        console.log('Redirect URL:', appConfig.unAuthenticatedEntryPath)
+        // // console.log('401 Unauthorized: Session expired or invalid - redirecting to sign-in')
+        // // console.log('Current URL:', window.location.href)
+        // // console.log('Redirect URL:', appConfig.unAuthenticatedEntryPath)
         
         try {
             // Dynamic import to ensure it works on client-side

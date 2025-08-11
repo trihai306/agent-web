@@ -21,7 +21,7 @@ export default async function getAnalyticDashboard() {
             if (error?.response?.status === 401 || 
                 error?.status === 401 || 
                 (error.name === 'AxiosError' && error?.response?.status === 401)) {
-                console.log("Re-throwing 401 error for withAuthCheck to handle")
+                // console.log("Re-throwing 401 error for withAuthCheck to handle")
                 throw error
             }
             

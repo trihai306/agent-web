@@ -17,7 +17,7 @@ const Component = () => {
 	// 		"image": "https://randomuser.me/api/portraits/lego/1.jpg",
 	// 	}	
 	// }
-	console.log(session)
+	// console.log(session)
 
 	return (...)
 }

@@ -5,7 +5,7 @@ const Group = () => {
     const [checkboxList, setCheckboxList] = useState(['Selection A'])
 
     const onCheckboxChange = (options, e) => {
-        console.log('Checkbox change', options, e)
+        // console.log('Checkbox change', options, e)
         setCheckboxList(options)
     }
 

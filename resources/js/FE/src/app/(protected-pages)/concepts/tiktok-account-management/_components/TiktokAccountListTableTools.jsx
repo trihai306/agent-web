@@ -63,7 +63,7 @@ const TiktokAccountListBulkActionTools = () => {
                     const result = await runTiktokAccountScenario(account.id)
                     if (result.success) {
                         successCount++
-                        console.log(`Created tasks for account ${account.username}`)
+                        // // console.log(`Created tasks for account ${account.username}`)
                     } else {
                         errorMessages.push(`${account.username}: ${result.message}`)
                     }
@@ -145,7 +145,7 @@ const TiktokAccountListBulkActionTools = () => {
                 const result = await updateTiktokAccountStatus(tiktokAccountIds, 'suspended')
                 if (result.success) {
                     statusUpdateSuccess = true
-                    console.log(`Successfully updated ${selectedTiktokAccount.length} accounts to suspended status`)
+                    // // console.log(`Successfully updated ${selectedTiktokAccount.length} accounts to suspended status`)
                 } else {
                     deleteErrorMessages.push(`Lỗi cập nhật trạng thái: ${result.message}`)
                 }
@@ -159,7 +159,7 @@ const TiktokAccountListBulkActionTools = () => {
                 if (deleteResult.success) {
                     deletedTasksCount = deleteResult.data?.deleted_count || 0
                     const devicesNotified = deleteResult.data?.devices_notified || 0
-                    console.log(`Deleted ${deletedTasksCount} pending tasks and notified ${devicesNotified} devices`)
+                    // // console.log(`Deleted ${deletedTasksCount} pending tasks and notified ${devicesNotified} devices`)
                 } else {
                     deleteErrorMessages.push(`Lỗi xóa tasks: ${deleteResult.message}`)
                 }

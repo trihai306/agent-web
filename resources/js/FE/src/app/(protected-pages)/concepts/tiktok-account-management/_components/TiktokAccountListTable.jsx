@@ -20,8 +20,6 @@ import useAppendQueryParams from '@/utils/hooks/useAppendQueryParams'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { useTiktokAccountTableReload } from '@/utils/hooks/useRealtime'
-// Import test utility for debugging
-import '@/utils/testEcho'
 import { 
     TbEye, 
     TbEdit, 
@@ -543,51 +541,39 @@ const TiktokAccountListTable = ({
 
     // Listen to realtime table reload events
     useEffect(() => {
-        console.log('🚀 [TiktokAccountListTable] Setting up realtime listeners...')
+        
+        // Load test utility dynamically (client-side only)
+        if (typeof window !== 'undefined') {
+            import('@/utils/testEcho').catch(err => {
+                console.warn('⚠️ Could not load test utility:', err.message);
+            });
+        }
         
         // Debug Echo status first
         const echoStatus = debugEchoStatus();
-        console.log('🔍 [TiktokAccountListTable] Echo status check result:', echoStatus);
         
         const handleTableReload = (data) => {
-            console.group('🔄 [TiktokAccountListTable] Socket Event Received')
-            console.log('📅 Timestamp:', new Date().toLocaleString())
-            console.log('📦 Event Data:', data)
-            console.log('📋 Event Message:', data?.message || 'No message')
-            console.log('⏰ Event Timestamp:', data?.timestamp || 'No timestamp')
             
             // Call onRefresh to reload the table data
             if (onRefresh) {
-                console.log('🔄 Calling onRefresh to reload table data...')
                 onRefresh()
-                console.log('✅ onRefresh called successfully')
-            } else {
-                console.warn('⚠️ onRefresh function not available')
             }
             
             // Show notification if message is provided
             if (data.message) {
-                console.log('📢 Displaying reload message:', data.message)
                 // You can add toast notification here if needed
             }
-            
-            console.groupEnd()
         }
 
         // Start listening to reload events
-        console.log('👂 Starting to listen for table reload events...')
         const result = listenToTableReload(handleTableReload)
         
         if (result && result.isRetry) {
-            console.warn('⚠️ Echo not ready, will retry when available...')
-            
             // Set up a retry mechanism
             const retryInterval = setInterval(() => {
-                console.log('🔄 [TiktokAccountListTable] Retrying to set up listener...')
                 const retryResult = result.retry()
                 
                 if (retryResult && !retryResult.isRetry) {
-                    console.log('✅ [TiktokAccountListTable] Successfully set up listener on retry')
                     clearInterval(retryInterval)
                 }
             }, 3000) // Retry every 3 seconds
@@ -595,20 +581,13 @@ const TiktokAccountListTable = ({
             // Cleanup retry interval on unmount
             return () => {
                 clearInterval(retryInterval)
-                console.log('🧹 [TiktokAccountListTable] Cleaned up retry interval')
             }
-        } else if (result) {
-            console.log('✅ Successfully set up realtime listener')
-        } else {
-            console.warn('⚠️ Failed to set up realtime listener')
         }
         
         // Cleanup on unmount
         return () => {
-            console.log('🧹 [TiktokAccountListTable] Cleaning up realtime listeners...')
             if (result && !result.isRetry) {
                 stopListeningToTableReload()
-                console.log('✅ Realtime listener cleaned up')
             }
         }
     }, [listenToTableReload, stopListeningToTableReload, onRefresh])
@@ -638,15 +617,10 @@ const TiktokAccountListTable = ({
             const response = await getDevices({ per_page: 100 }) // Get all devices
             
             if (response.success) {
-                // Debug: Log the full response structure
-                console.log('Full devices response:', JSON.stringify(response, null, 2))
-                
                 // Check if data is in response.data.data (paginated) or response.data (direct)
                 const devicesData = response.data?.data || response.data || []
-                console.log('Devices data array:', devicesData)
                 
                 const deviceOptions = devicesData.map((device, index) => {
-                    console.log(`Processing device ${index}:`, device)
                     
                     // Handle different possible field names
                     const deviceName = device.device_name || device.name || device.deviceName || `Device ${device.id || index + 1}`
@@ -705,7 +679,6 @@ const TiktokAccountListTable = ({
 
     const handleSaveAccount = async (accountId, accountData) => {
         try {
-            console.log('Saving account:', accountId, accountData)
             const { default: updateTiktokAccount } = await import('@/server/actions/tiktok-account/updateTiktokAccount')
             const result = await updateTiktokAccount(accountId, accountData)
             
@@ -732,13 +705,11 @@ const TiktokAccountListTable = ({
     // Enhanced action handlers
 
     const handleViewTasks = (tiktokAccount) => {
-        console.log('View tasks for account:', tiktokAccount.username)
         // Navigate to tasks page or open tasks modal
         // router.push(`/concepts/tiktok-account-management/${tiktokAccount.id}/tasks`)
     }
 
     const handleEdit = (tiktokAccount) => {
-        console.log('Edit account:', tiktokAccount.username)
         setSelectedAccountForEdit(tiktokAccount)
         setIsEditModalOpen(true)
         // Load devices and scenarios when opening edit modal
@@ -768,14 +739,12 @@ const TiktokAccountListTable = ({
         setShowStartConfirmDialog(false)
         
         try {
-            console.log('Running scenario for account:', selectedAccountForAction.username)
             // Import the run scenario server action
             const { default: runTiktokAccountScenario } = await import('@/server/actions/tiktok-account/runTiktokAccountScenario')
             
             const result = await runTiktokAccountScenario(selectedAccountForAction.id)
             
             if (result.success) {
-                console.log('Created tasks from scenario successfully', result.data)
                 setDialogMessage(`Đã tạo tasks cho tài khoản ${selectedAccountForAction.username} theo kịch bản liên kết.`)
                 setShowSuccessDialog(true)
                 // Refresh the data
@@ -803,8 +772,6 @@ const TiktokAccountListTable = ({
         setShowStopConfirmDialog(false)
         
         try {
-            console.log('Stopping account:', selectedAccountForAction.username)
-            
             let deletedTasksCount = 0
             let deleteErrorMessages = []
             
@@ -814,7 +781,6 @@ const TiktokAccountListTable = ({
                 const deleteResult = await deletePendingTasks([selectedAccountForAction.id])
                 if (deleteResult.success) {
                     deletedTasksCount = deleteResult.data?.deleted_count || 0
-                    console.log(`Deleted ${deletedTasksCount} pending tasks`)
                 } else {
                     deleteErrorMessages.push(deleteResult.message)
                 }
@@ -827,7 +793,6 @@ const TiktokAccountListTable = ({
             const result = await updateTiktokAccountStatus([selectedAccountForAction.id], 'suspended')
             
             if (result.success) {
-                console.log('Account stopped successfully')
                 let successMessage = `Tài khoản ${selectedAccountForAction.username} đã được dừng thành công!`
                 if (deletedTasksCount > 0) {
                     successMessage += ` Đã xóa ${deletedTasksCount} pending tasks.`
@@ -869,7 +834,6 @@ const TiktokAccountListTable = ({
         setShowDeleteConfirmDialog(false)
 
         try {
-            console.log('Deleting account:', selectedAccountForAction.username)
             const { default: deleteTiktokAccounts } = await import('@/server/actions/tiktok-account/deleteTiktokAccounts')
             const result = await deleteTiktokAccounts([selectedAccountForAction.id])
 

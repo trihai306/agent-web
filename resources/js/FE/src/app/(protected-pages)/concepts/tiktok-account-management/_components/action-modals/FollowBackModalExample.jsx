@@ -22,7 +22,7 @@ const FollowBackModalExample = () => {
     }
 
     const handleSaveConfig = (action, config) => {
-        console.log('Saved config:', { action, config })
+        // // console.log('Saved config:', { action, config })
         
         // Ví dụ config sẽ có dạng:
         // {

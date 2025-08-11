@@ -32,10 +32,6 @@ const dropdownItemList = [
 
 const _UserDropdown = () => {
     const { data: session, status } = useSession()
-
-    // Debug logging
-    console.log('UserDropdown session:', { session, status })
-
     const handleSignOut = async () => {
         await signOut()
     }

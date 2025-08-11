@@ -88,7 +88,7 @@ const _Notification = ({ className }) => {
 
         // Listen to general notifications
         const generalListener = listenToGeneralNotifications((notification) => {
-            console.log('📢 General notification received in header:', notification)
+            // console.log('📢 General notification received in header:', notification)
             
             // Add to real-time notifications list
             const newNotification = {
@@ -114,7 +114,7 @@ const _Notification = ({ className }) => {
 
         // Listen to user-specific notifications
         const userListener = listenToUserNotifications((notification) => {
-            console.log('👤 User notification received in header:', notification)
+            // console.log('👤 User notification received in header:', notification)
             
             // Add to real-time notifications list
             const newNotification = {

@@ -56,7 +56,7 @@ const MailEditor = () => {
     }
 
     const onSubmit = async (value) => {
-        console.log('values', value)
+        // console.log('values', value)
         setFormSubmiting(true)
         await sleep(500)
         toast.push(<Notification type="success">Mail send!</Notification>, {

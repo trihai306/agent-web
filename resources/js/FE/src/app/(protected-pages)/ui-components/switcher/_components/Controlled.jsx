@@ -5,7 +5,7 @@ const Controlled = () => {
     const [checked, setChecked] = useState(false)
 
     const onSwitcherToggle = (val) => {
-        console.log('value', val)
+        // console.log('value', val)
         setChecked(val)
     }
 

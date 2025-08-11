@@ -11,28 +11,18 @@ import { revalidatePath } from 'next/cache'
  * @returns The result of the actionLogic, or redirects on authentication failure.
  */
 export async function withAuthCheck(actionLogic) {
-    console.log('withAuthCheck: Starting execution')
+    // console.log('withAuthCheck: Starting execution')
     try {
         // Execute the actual logic
         const result = await actionLogic()
-        console.log('withAuthCheck: Action completed successfully')
+        // console.log('withAuthCheck: Action completed successfully')
         return result
-    } catch (error) {
-        // Log the error for debugging
-        console.log('withAuthCheck caught error:', {
-            name: error.name,
-            message: error.message,
-            isUnauthorizedError: error instanceof UnauthorizedError,
-            status: error?.response?.status,
-            isAxiosError: error.name === 'AxiosError',
-            fullError: error
-        })
-        
+    } catch (error) {    
         // If it's the specific error we're looking for, redirect.
         if (error instanceof UnauthorizedError || 
             (error.name === 'AxiosError' && error?.response?.status === 401) ||
             error?.status === 401) {
-            console.log('401 Unauthorized detected - performing redirect')
+            // console.log('401 Unauthorized detected - performing redirect')
             
             // Clear any cached data
             revalidatePath('/', 'layout')

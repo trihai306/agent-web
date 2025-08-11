@@ -2,8 +2,8 @@ import Menu from '@/components/ui/Menu'
 
 const Simple = () => {
     const handleSelect = (key, e) => {
-        console.log('key', key)
-        console.log('event', e)
+        // console.log('key', key)
+        // console.log('event', e)
     }
 
     return (
