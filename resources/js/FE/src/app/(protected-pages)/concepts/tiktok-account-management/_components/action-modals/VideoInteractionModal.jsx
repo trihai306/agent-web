@@ -15,7 +15,7 @@ const VideoInteractionModal = ({
     onFetchContentsByGroup 
 }) => {
     // Initialize config based on JSON schema for Random Video Interaction Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tương tác video ngẫu nhiên",
         suggestion_type: "suggest",
         limit_mode: "video",
@@ -48,8 +48,9 @@ const VideoInteractionModal = ({
         comment_contents: [],
         user_list: "",
         content_group: ""
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
     const [loadingContents, setLoadingContents] = useState(false)
     
@@ -284,7 +285,16 @@ const VideoInteractionModal = ({
         }))
     }
 
-
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setContentGroupsState({
+            options: [],
+            hasNextPage: true,
+            isLoading: false,
+            currentPage: 1,
+            searchTerm: ''
+        })
+    }
 
     const handleSave = async () => {
         if (onSave && !isLoading) {
@@ -333,6 +343,8 @@ const VideoInteractionModal = ({
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving video interaction config:', error)
             } finally {
@@ -342,6 +354,8 @@ const VideoInteractionModal = ({
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

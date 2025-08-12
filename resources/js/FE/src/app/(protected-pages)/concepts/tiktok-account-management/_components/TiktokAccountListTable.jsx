@@ -565,30 +565,32 @@ const TiktokAccountListTable = ({
             }
         }
 
-        // Start listening to reload events
-        const result = listenToTableReload(handleTableReload)
-        
-        if (result && result.isRetry) {
-            // Set up a retry mechanism
-            const retryInterval = setInterval(() => {
-                const retryResult = result.retry()
+        // Start listening to reload events (async)
+        const setupListener = async () => {
+            const result = await listenToTableReload(handleTableReload)
+            
+            if (result && result.isRetry) {
+                // Set up a retry mechanism
+                const retryInterval = setInterval(async () => {
+                    const retryResult = await result.retry()
+                    
+                    if (retryResult && !retryResult.isRetry) {
+                        clearInterval(retryInterval)
+                    }
+                }, 3000) // Retry every 3 seconds
                 
-                if (retryResult && !retryResult.isRetry) {
+                // Cleanup retry interval on unmount
+                return () => {
                     clearInterval(retryInterval)
                 }
-            }, 3000) // Retry every 3 seconds
-            
-            // Cleanup retry interval on unmount
-            return () => {
-                clearInterval(retryInterval)
             }
         }
         
+        setupListener()
+        
         // Cleanup on unmount
         return () => {
-            if (result && !result.isRetry) {
-                stopListeningToTableReload()
-            }
+            stopListeningToTableReload()
         }
     }, [listenToTableReload, stopListeningToTableReload, onRefresh])
 

@@ -15,7 +15,7 @@ const KeywordVideoInteractionModal = ({
     onFetchContentsByGroup 
 }) => {
     // Initialize config based on JSON schema for Keyword Video Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tương tác video theo từ khóa",
         keyword_list: "",
         limit_mode: "video",
@@ -45,8 +45,9 @@ const KeywordVideoInteractionModal = ({
         comment_gap_to: 3,
         comment_contents: [],
         content_group: ""
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
     const [loadingContents, setLoadingContents] = useState(false)
     
@@ -248,6 +249,17 @@ const KeywordVideoInteractionModal = ({
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setContentGroupsState({
+            options: [],
+            hasNextPage: true,
+            isLoading: false,
+            currentPage: 1,
+            searchTerm: ''
+        })
+    }
+
     const handleSave = async () => {
         if (onSave && !isLoading) {
             setIsLoading(true)
@@ -293,6 +305,8 @@ const KeywordVideoInteractionModal = ({
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving keyword video interaction config:', error)
             } finally {
@@ -302,6 +316,8 @@ const KeywordVideoInteractionModal = ({
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

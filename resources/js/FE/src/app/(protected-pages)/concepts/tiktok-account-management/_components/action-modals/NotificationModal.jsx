@@ -7,7 +7,7 @@ import Switcher from '@/components/ui/Switcher'
 
 const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Notification Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Đọc thông báo",
         count_from: 1,
         count_to: 2,
@@ -19,8 +19,9 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
         count_say_hi: false,
         say_hi_from: 1,
         say_hi_to: 3
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -37,6 +38,10 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
             ...prev,
             [field]: checked
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -62,6 +67,8 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving notification config:', error)
             } finally {
@@ -71,6 +78,8 @@ const NotificationModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

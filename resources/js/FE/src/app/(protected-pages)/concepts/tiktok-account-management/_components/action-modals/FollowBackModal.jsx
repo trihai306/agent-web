@@ -5,14 +5,15 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
 const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: 'Theo dõi lại',
         user_count_from: 1,
         user_count_to: 1,
         interval_from: 3,
         interval_to: 5
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -22,6 +23,10 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                 ? parseInt(value) || 0 
                 : value
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -41,6 +46,8 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving follow back config:', error)
             } finally {
@@ -50,6 +57,8 @@ const FollowBackModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

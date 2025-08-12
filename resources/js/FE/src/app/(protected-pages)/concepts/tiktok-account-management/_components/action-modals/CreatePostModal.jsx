@@ -7,7 +7,7 @@ import Checkbox from '@/components/ui/Checkbox'
 
 const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Create Post Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tạo bài viết",
         load_time_from: 3,
         load_time_to: 5,
@@ -20,8 +20,9 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
         filter_type: "random",
         custom_filters: "",
         add_trending_music: false
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -45,6 +46,10 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
             ...prev,
             [field]: values
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleFileUpload = (event) => {
@@ -107,6 +112,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving create post config:', error)
             } finally {
@@ -116,6 +123,8 @@ const CreatePostModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

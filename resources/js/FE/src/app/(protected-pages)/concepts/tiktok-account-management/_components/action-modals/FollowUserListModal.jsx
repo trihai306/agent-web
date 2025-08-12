@@ -7,7 +7,7 @@ import Checkbox from '@/components/ui/Checkbox'
 
 const FollowUserListModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Follow User List Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Theo dõi User theo danh sách",
         follow_type: "list",
         user_list: "",
@@ -18,8 +18,9 @@ const FollowUserListModal = ({ isOpen, onClose, action, onSave }) => {
         exit_on_fail: true,
         exit_fail_count: 5,
         open_link_search: false
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -36,6 +37,10 @@ const FollowUserListModal = ({ isOpen, onClose, action, onSave }) => {
             ...prev,
             [field]: checked
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -61,6 +66,8 @@ const FollowUserListModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving follow user list config:', error)
             } finally {
@@ -70,6 +77,8 @@ const FollowUserListModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

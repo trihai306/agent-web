@@ -6,7 +6,8 @@ import Input from '@/components/ui/Input'
 import Switcher from '@/components/ui/Switcher'
 
 const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
-    const [config, setConfig] = useState({
+    // Initial config state
+    const initialConfig = {
         // Cấu hình chung - chuyển sang flat structure
         notification_count_from: 1,
         notification_count_to: 2,
@@ -20,8 +21,9 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
         say_hi_enabled: true,
         say_hi_count_from: 1,
         say_hi_count_to: 3
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -38,6 +40,10 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
             ...prev,
             [field]: checked
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -63,6 +69,8 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
                 // onClose() được gọi từ parent component sau khi save thành công
             } catch (error) {
                 console.error('Error saving action config:', error)
@@ -73,7 +81,8 @@ const ActionConfigModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
-        // Reset form nếu cần
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

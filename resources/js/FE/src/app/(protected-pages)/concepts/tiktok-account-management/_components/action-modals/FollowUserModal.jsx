@@ -10,7 +10,7 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
     const [activeTab, setActiveTab] = useState('list')
     
     // Initialize config based on JSON schema for Follow User Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Theo dõi User",
         follow_type: "list", // "list" hoặc "keyword"
         user_list: "",
@@ -22,8 +22,9 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
         exit_on_fail: false,
         exit_fail_count: 5,
         open_link_search: false
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -50,6 +51,11 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setActiveTab('list')
+    }
+
     const handleSave = async () => {
         if (onSave && !isLoading) {
             setIsLoading(true)
@@ -73,6 +79,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving follow user config:', error)
             } finally {
@@ -82,6 +90,8 @@ const FollowUserModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

@@ -15,7 +15,7 @@ const RandomLiveInteractionModal = ({
     onFetchContentsByGroup 
 }) => {
     // Initialize config based on JSON schema for Random Live Interaction Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tương tác live ngẫu nhiên",
         limit_mode: "video",
         limit_video_from: 1,
@@ -37,7 +37,9 @@ const RandomLiveInteractionModal = ({
         comment_contents: [],
         selectedContentGroupId: "",
         selectedContentTitleId: ""
-    })
+    }
+    
+    const [config, setConfig] = useState(initialConfig)
     
     const [isLoading, setIsLoading] = useState(false)
     const [loadingContents, setLoadingContents] = useState(false)
@@ -268,6 +270,17 @@ const RandomLiveInteractionModal = ({
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setContentGroupsState({
+            options: [],
+            hasNextPage: true,
+            isLoading: false,
+            currentPage: 1,
+            searchTerm: ''
+        })
+    }
+
     const handleSave = async () => {
         if (onSave && !isLoading) {
             setIsLoading(true)
@@ -305,6 +318,8 @@ const RandomLiveInteractionModal = ({
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving random live interaction config:', error)
             } finally {
@@ -314,6 +329,8 @@ const RandomLiveInteractionModal = ({
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

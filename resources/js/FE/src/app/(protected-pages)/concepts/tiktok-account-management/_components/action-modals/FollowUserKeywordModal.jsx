@@ -6,7 +6,7 @@ import Input from '@/components/ui/Input'
 
 const FollowUserKeywordModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Follow User Keyword Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Theo dõi User theo từ khóa",
         follow_type: "keyword",
         keyword_list: "",
@@ -17,8 +17,9 @@ const FollowUserKeywordModal = ({ isOpen, onClose, action, onSave }) => {
         exit_on_fail: false,
         exit_fail_count: 5,
         open_link_search: false
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -28,6 +29,10 @@ const FollowUserKeywordModal = ({ isOpen, onClose, action, onSave }) => {
                 ? parseInt(value) || 0 
                 : value
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -53,6 +58,8 @@ const FollowUserKeywordModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving follow user keyword config:', error)
             } finally {
@@ -62,6 +69,8 @@ const FollowUserKeywordModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

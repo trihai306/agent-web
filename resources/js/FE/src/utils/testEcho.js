@@ -1,64 +1,119 @@
+// Test utility for Echo connection
+// This file can be imported dynamically to test Echo status
+
+import { initializeEcho, getEcho } from './echo';
+
 /**
- * Simple Echo test utility
- * Add this to browser console to test Echo directly
+ * Test Echo connection and return status
  */
-
-// Only run on client-side (not during SSR)
-if (typeof window !== 'undefined') {
-    window.testEcho = function() {
-    console.group('🧪 Testing Echo Directly');
+export const testEchoConnection = async () => {
+    console.group('🧪 [testEcho] Testing Echo Connection');
     
-    // Check if Echo is available
-    if (!window.Echo) {
-        console.error('❌ Echo not available on window object');
-        console.groupEnd();
-        return;
-    }
-    
-    // // console.log('✅ Echo found:', window.Echo);
-    // // console.log('🔗 Connector:', window.Echo.connector);
-    // // console.log('📡 Pusher:', window.Echo.connector?.pusher);
-    // // console.log('🔌 Connection state:', window.Echo.connector?.pusher?.connection?.state);
-    
-    // Try to listen to our channel
     try {
-        // // console.log('🎯 Attempting to listen to tiktok-accounts channel...');
+        // Try to initialize Echo
+        const echo = await initializeEcho();
         
-        const channel = window.Echo.channel('tiktok-accounts');
-        // // console.log('📺 Channel created:', channel);
-        
-        const listener = channel.listen('tiktok-accounts.reload', (data) => {
-            console.group('🎉 Event Received via Direct Test!');
-            // // console.log('📦 Data:', data);
-            // // console.log('🕐 Time:', new Date().toLocaleString());
-            console.groupEnd();
-        });
-        
-        // // console.log('👂 Listener created:', listener);
-        // // console.log('✅ Direct Echo test setup successful!');
-        
-        // Store reference for cleanup
-        window.testEchoChannel = channel;
-        window.testEchoListener = listener;
-        
-        // // console.log('💡 Now run: php artisan test:tiktok-realtime');
-        
-    } catch (error) {
-        console.error('❌ Error in direct Echo test:', error);
-    }
-    
-    console.groupEnd();
-    };
-
-    window.cleanupTestEcho = function() {
-        if (window.testEchoChannel) {
-            // // console.log('🧹 Cleaning up test Echo channel...');
-            window.testEchoChannel.stopListening('tiktok-accounts.reload');
-            delete window.testEchoChannel;
-            delete window.testEchoListener;
-            // // console.log('✅ Test Echo cleaned up');
+        if (echo) {
+            console.log('✅ [testEcho] Echo initialized successfully');
+            
+            // Check connection status
+            const connection = echo.connector?.pusher?.connection;
+            if (connection) {
+                // console.log('🔗 [testEcho] Connection state:', connection.state);
+                // console.log('📡 [testEcho] Socket ID:', connection.socket_id);
+            }
+            
+            // Test public channel
+            try {
+                const testChannel = echo.channel('test-channel');
+                console.log('✅ [testEcho] Public channel creation successful');
+            } catch (error) {
+                console.error('❌ [testEcho] Public channel creation failed:', error);
+            }
+            
+            return {
+                success: true,
+                echo: echo,
+                connectionState: connection?.state,
+                socketId: connection?.socket_id
+            };
+        } else {
+            console.error('❌ [testEcho] Echo initialization failed');
+            return {
+                success: false,
+                error: 'Echo initialization failed'
+            };
         }
-    };
+    } catch (error) {
+        console.error('❌ [testEcho] Error during test:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    } finally {
+        console.groupEnd();
+    }
+};
 
-    // // console.log('🧪 Echo test utilities loaded. Run window.testEcho() to test.');
+/**
+ * Test Echo with manual token
+ */
+export const testEchoWithToken = async (token) => {
+    console.group('🧪 [testEcho] Testing Echo with Manual Token');
+    
+    try {
+        const echo = await initializeEcho(token);
+        
+        if (echo) {
+            console.log('✅ [testEcho] Echo initialized with manual token');
+            return {
+                success: true,
+                echo: echo
+            };
+        } else {
+            console.error('❌ [testEcho] Echo initialization with manual token failed');
+            return {
+                success: false,
+                error: 'Echo initialization with manual token failed'
+            };
+        }
+    } catch (error) {
+        console.error('❌ [testEcho] Error during manual token test:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    } finally {
+        console.groupEnd();
+    }
+};
+
+/**
+ * Get current Echo status
+ */
+export const getEchoStatus = () => {
+    const echo = getEcho();
+    const connectionState = echo?.connector?.pusher?.connection?.state || 'unknown';
+    const socketId = echo?.connector?.pusher?.connection?.socket_id || null;
+    
+    console.group('📊 [testEcho] Current Echo Status');
+    console.log('Echo instance:', !!echo);
+    console.log('Connection state:', connectionState);
+    console.log('Socket ID:', socketId);
+    console.groupEnd();
+    
+    return {
+        echo: !!echo,
+        connectionState,
+        socketId
+    };
+};
+
+// Auto-run test if imported directly
+if (typeof window !== 'undefined') {
+    // Wait a bit for the page to load
+    setTimeout(() => {
+        console.log('🧪 [testEcho] Auto-running Echo test...');
+        testEchoConnection();
+    }, 2000);
 }

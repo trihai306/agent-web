@@ -15,7 +15,7 @@ const SpecificVideoInteractionModal = ({
     onFetchContentsByGroup 
 }) => {
     // Initialize config based on JSON schema for Specific Video Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tương tác video chỉ định",
         link_list: "",
         limit_video_from: 1,
@@ -44,8 +44,9 @@ const SpecificVideoInteractionModal = ({
         comment_gap_to: 3,
         comment_contents: [],
         content_group: ""
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
     const [loadingContents, setLoadingContents] = useState(false)
     
@@ -247,6 +248,17 @@ const SpecificVideoInteractionModal = ({
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setContentGroupsState({
+            options: [],
+            hasNextPage: true,
+            isLoading: false,
+            currentPage: 1,
+            searchTerm: ''
+        })
+    }
+
     const handleSave = async () => {
         if (onSave && !isLoading) {
             setIsLoading(true)
@@ -291,6 +303,8 @@ const SpecificVideoInteractionModal = ({
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving specific video interaction config:', error)
             } finally {
@@ -300,6 +314,8 @@ const SpecificVideoInteractionModal = ({
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

@@ -6,12 +6,13 @@ import Input from '@/components/ui/Input'
 
 const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Change Name Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Đổi tên",
         selection_type: "random",
         name_type: "vietnamese"
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -26,6 +27,10 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
             ...prev,
             [field]: value
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -43,6 +48,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving change name config:', error)
             } finally {
@@ -52,6 +59,8 @@ const ChangeNameModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

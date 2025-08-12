@@ -84,70 +84,76 @@ const _Notification = ({ className }) => {
 
     // Set up real-time listeners
     useEffect(() => {
-        if (!session?.user?.id) return
+        // Vẫn lắng nghe thông báo chung ngay cả khi chưa đăng nhập
 
-        // Listen to general notifications
-        const generalListener = listenToGeneralNotifications((notification) => {
-            // console.log('📢 General notification received in header:', notification)
-            
-            // Add to real-time notifications list
-            const newNotification = {
-                id: `realtime-${notification.id}`,
-                type: notification.type || 'info',
-                data: {
-                    message: notification.message,
-                    title: notification.title,
-                },
-                created_at: notification.timestamp,
-                read_at: null,
-                isRealtime: true,
-            }
-            
-            setRealtimeNotifications(prev => [newNotification, ...prev.slice(0, 9)])
-            
-            // Show toast notification
-            toast.success(notification.message, {
-                duration: 4000,
-                position: 'top-right',
-            })
-        })
-
-        // Listen to user-specific notifications
-        const userListener = listenToUserNotifications((notification) => {
-            // console.log('👤 User notification received in header:', notification)
-            
-            // Add to real-time notifications list
-            const newNotification = {
-                id: `realtime-user-${notification.id}`,
-                type: notification.type || 'info',
-                data: {
-                    message: notification.message,
-                    title: notification.title,
-                },
-                created_at: notification.timestamp,
-                read_at: null,
-                isRealtime: true,
-            }
-            
-            setRealtimeNotifications(prev => [newNotification, ...prev.slice(0, 9)])
-            
-            // Show toast notification with different style for user-specific
-            toast.success(notification.message, {
-                duration: 5000,
-                position: 'top-right',
-                style: {
-                    background: '#3B82F6',
-                    color: 'white',
-                },
+        const setupListeners = async () => {
+            // Listen to general notifications (public channel)
+            const generalListener = await listenToGeneralNotifications((notification) => {
+                // console.log('📢 General notification received in header:', notification)
+                
+                // Add to real-time notifications list
+                const newNotification = {
+                    id: `realtime-${notification.id}`,
+                    type: notification.type || 'info',
+                    data: {
+                        message: notification.message,
+                        title: notification.title,
+                    },
+                    created_at: notification.timestamp,
+                    read_at: null,
+                    isRealtime: true,
+                }
+                
+                setRealtimeNotifications(prev => [newNotification, ...prev.slice(0, 9)])
+                
+                // Show toast notification
+                toast.success(notification.message, {
+                    duration: 4000,
+                    position: 'top-right',
+                })
             })
 
-            // Refresh unread count from server
-            mutateUnreadCount()
-        })
+            // Listen to user-specific notifications (chỉ khi có user id)
+            const userListener = session?.user?.id
+                ? await listenToUserNotifications((notification) => {
+                // console.log('👤 User notification received in header:', notification)
+                
+                // Add to real-time notifications list
+                const newNotification = {
+                    id: `realtime-user-${notification.id}`,
+                    type: notification.type || 'info',
+                    data: {
+                        message: notification.message,
+                        title: notification.title,
+                    },
+                    created_at: notification.timestamp,
+                    read_at: null,
+                    isRealtime: true,
+                }
+                
+                setRealtimeNotifications(prev => [newNotification, ...prev.slice(0, 9)])
+                
+                // Show toast notification with different style for user-specific
+                toast.success(notification.message, {
+                    duration: 5000,
+                    position: 'top-right',
+                    style: {
+                        background: '#3B82F6',
+                        color: 'white',
+                    },
+                })
 
-        return () => {
-            stopListeningToNotifications()
+                // Refresh unread count from server
+                mutateUnreadCount()
+                })
+                : null
+
+            return () => {
+                stopListeningToNotifications()
+            }
         }
+
+        setupListeners()
     }, [session?.user?.id, listenToGeneralNotifications, listenToUserNotifications, stopListeningToNotifications, mutateUnreadCount])
 
     const onMarkAllAsRead = async () => {

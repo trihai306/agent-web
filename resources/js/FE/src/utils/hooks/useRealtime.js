@@ -17,6 +17,15 @@ export const useRealtime = () => {
     const { data: session } = useSession();
     const echoRef = useRef(null);
     const listenersRef = useRef(new Map());
+    const [isInitializing, setIsInitializing] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const initRef = useRef(false);
+    const lastTokenRef = useRef(null);
+    
+    // Use global flag to prevent multiple initializations
+    if (typeof window !== 'undefined' && !window.__ECHO_INITIALIZED__) {
+        window.__ECHO_INITIALIZED__ = false;
+    }
 
     // Initialize Echo when session is available (client-side only)
     useEffect(() => {
@@ -25,41 +34,69 @@ export const useRealtime = () => {
             return;
         }
 
+        // Check if Echo is already initialized globally
+        if (window.__ECHO_INITIALIZED__ && echoRef.current) {
+            console.log('🌐 [useRealtime] Echo already initialized globally, skipping');
+            return;
+        }
+
         const initEcho = async () => {
-            console.group('🚀 [useRealtime] Echo Initialization Process');
+            // console.group('🚀 [useRealtime] Echo Initialization Process');
             
-            if (session?.accessToken && !echoRef.current) {
-                
-                try {
-                    echoRef.current = await initializeEcho(session.accessToken);
-                    } catch (error) {
-                }
-            } else if (session && !session.accessToken) {
-                
-                
-                // Thử khởi tạo Echo mà không có token (cho public channels)
-                if (!echoRef.current) {
-                    try {
-                        echoRef.current = await initializeEcho();
-                    } catch (error) {
-                    }
-                }
+            const currentToken = session?.accessToken;
+            
+            // Kiểm tra token có thay đổi không
+            if (lastTokenRef.current === currentToken && echoRef.current) {
+                console.log('🔄 [useRealtime] Token unchanged, skipping initialization');
+                console.groupEnd();
+                return;
             }
             
-            // Add connection event listeners for debugging
-            if (echoRef.current?.connector?.pusher?.connection) {
-                const connection = echoRef.current.connector.pusher.connection;
+            if (isInitializing || initRef.current) {
+                // console.log('⏳ [useRealtime] Echo is already initializing, skipping...');
+                return;
+            }
+
+            setIsInitializing(true);
+            initRef.current = true;
+            lastTokenRef.current = currentToken;
+            
+            try {
+                // Luôn khởi tạo Echo để hỗ trợ public channel, có token nếu có session
+                if (!echoRef.current) {
+                    if (session?.accessToken) {
+                        echoRef.current = await initializeEcho(session.accessToken);
+                    } else {
+                        console.log('🔓 [useRealtime] Initializing Echo without access token (public channels allowed)');
+                        echoRef.current = await initializeEcho();
+                    }
+                    setIsInitialized(true);
+                    window.__ECHO_INITIALIZED__ = true;
+                }
                 
-                connection.bind('connected', () => {
-                    // WebSocket connected
-                });
-                
-                connection.bind('disconnected', () => {
-                    // WebSocket disconnected
-                });
-                
-                connection.bind('error', (error) => {
-                });
+                // Add connection event listeners for debugging
+                if (echoRef.current?.connector?.pusher?.connection) {
+                    const connection = echoRef.current.connector.pusher.connection;
+                    
+                    connection.bind('connected', () => {
+                        // console.log('✅ [useRealtime] WebSocket connected');
+                    });
+                    
+                    connection.bind('disconnected', () => {
+                        // console.log('❌ [useRealtime] WebSocket disconnected');
+                    });
+                    
+                    connection.bind('error', (error) => {
+                        // console.error('💥 [useRealtime] WebSocket error:', error);
+                    });
+                }
+            } catch (error) {
+                // console.error('❌ [useRealtime] Error initializing Echo:', error);
+                setIsInitialized(false);
+            } finally {
+                setIsInitializing(false);
+                initRef.current = false;
+                // console.groupEnd();
             }
         };
 
@@ -71,19 +108,50 @@ export const useRealtime = () => {
                 disconnectEcho();
                 echoRef.current = null;
                 listenersRef.current.clear();
+                setIsInitialized(false);
+                initRef.current = false;
+                window.__ECHO_INITIALIZED__ = false;
             }
         };
-    }, [session]);
+    }, [session?.accessToken]);
 
     /**
-     * Listen to a public channel
+     * Wait for Echo to be initialized
      */
-    const listenToPublicChannel = useCallback((channelName, eventName, callback) => {
+    const waitForEcho = useCallback(async (maxRetries = 20, delay = 300) => {
+        for (let i = 0; i < maxRetries; i++) {
+            // Nếu ref đã có, trả về ngay
+            if (echoRef.current) {
+                return echoRef.current;
+            }
+
+            // Nếu global singleton đã khởi tạo, gán vào ref để dùng chung giữa các hook instances
+            try {
+                const globalEcho = (typeof window !== 'undefined' && window.Echo) || getEcho?.();
+                if (globalEcho) {
+                    echoRef.current = globalEcho;
+                    setIsInitialized(true);
+                    return echoRef.current;
+                }
+            } catch (_) { /* ignore */ }
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        return null;
+    }, []);
+
+    /**
+     * Listen to a public channel with retry mechanism
+     */
+    const listenToPublicChannel = useCallback(async (channelName, eventName, callback) => {
         if (typeof window === 'undefined') {
             return null;
         }
 
-        if (!echoRef.current) {
+        // Wait for Echo to be initialized
+        const echo = await waitForEcho();
+        if (!echo) {
+            console.error('❌ [useRealtime] Echo not initialized after retries for public channel');
             return null;
         }
 
@@ -107,61 +175,50 @@ export const useRealtime = () => {
         
         // Remove existing listener if any
         if (listenersRef.current.has(listenerKey)) {
-            // // console.log(`🔄 [useRealtime] Removing existing listener for: ${listenerKey}`);
-            const existingListener = listenersRef.current.get(listenerKey);
-            existingListener.stopListening();
+            const cleanup = listenersRef.current.get(listenerKey);
+            if (typeof cleanup === 'function') {
+                try { cleanup(); } catch (_) {}
+            }
+            listenersRef.current.delete(listenerKey);
         }
 
-        // Add new listener (use direct echo instance instead of async helper)
-        // // console.log(`👂 [useRealtime] Creating listener for channel: ${channelName}, event: ${eventName}`);
-        // // console.log(`🔍 [useRealtime] Echo instance:`, echoRef.current);
-        // // console.log(`🔍 [useRealtime] Echo connector:`, echoRef.current?.connector);
-        // // console.log(`🔍 [useRealtime] Connection state:`, echoRef.current?.connector?.pusher?.connection?.state);
-        
         try {
-            // // console.log(`🔍 [useRealtime] About to create channel with name: "${channelName}"`);
-            // // console.log(`🔍 [useRealtime] Channel name type:`, typeof channelName);
-            // // console.log(`🔍 [useRealtime] Channel name length:`, channelName?.length);
-            
-            const channel = echoRef.current.channel(channelName);
-            // // console.log(`🔍 [useRealtime] Channel created:`, channel);
-            
-            // // console.log(`🔍 [useRealtime] About to listen to event: "${eventName}"`);
-            // // console.log(`🔍 [useRealtime] Event name type:`, typeof eventName);
-            // // console.log(`🔍 [useRealtime] Event name length:`, eventName?.length);
-            
-            const listener = channel.listen(eventName, callback);
-            // // console.log(`🔍 [useRealtime] Listener created:`, listener);
-            
-            listenersRef.current.set(listenerKey, listener);
+            const channel = echo.channel(channelName);
+
+            // Listen for both raw and dotted event names (Laravel Echo requires leading dot for broadcastAs)
+            const dottedName = eventName.startsWith('.') ? eventName : `.${eventName}`;
+            const namesToListen = [...new Set([eventName, dottedName])];
+
+            namesToListen.forEach((name) => channel.listen(name, callback));
+
+            // Store cleanup function for all names
+            const cleanup = () => {
+                namesToListen.forEach((name) => {
+                    try { channel.stopListening(name); } catch (_) {}
+                });
+            };
+            listenersRef.current.set(listenerKey, cleanup);
 
             // // console.log(`✅ [useRealtime] Successfully set up listener for: ${listenerKey}`);
-            // // console.log(`📊 [useRealtime] Total active listeners: ${listenersRef.current.size}`);
-
-            return listener;
+            return cleanup;
         } catch (error) {
             console.error(`❌ [useRealtime] Error creating listener:`, error);
-            console.error(`🔍 [useRealtime] Error details:`, {
-                message: error.message,
-                stack: error.stack,
-                channelName,
-                eventName,
-                echoInstance: !!echoRef.current
-            });
             return null;
         }
-    }, []);
+    }, [waitForEcho]);
 
     /**
-     * Listen to a private channel
+     * Listen to a private channel with retry mechanism
      */
-    const listenToPrivateChannel = useCallback((channelName, eventName, callback) => {
+    const listenToPrivateChannel = useCallback(async (channelName, eventName, callback) => {
         if (typeof window === 'undefined') {
             return null;
         }
 
-        if (!echoRef.current) {
-            console.warn('Echo not initialized');
+        // Wait for Echo to be initialized
+        const echo = await waitForEcho();
+        if (!echo) {
+            console.error('❌ [useRealtime] Echo not initialized after retries');
             return null;
         }
 
@@ -169,16 +226,34 @@ export const useRealtime = () => {
         
         // Remove existing listener if any
         if (listenersRef.current.has(listenerKey)) {
-            const existingListener = listenersRef.current.get(listenerKey);
-            existingListener.stopListening();
+            const cleanup = listenersRef.current.get(listenerKey);
+            if (typeof cleanup === 'function') {
+                try { cleanup(); } catch (_) {}
+            }
+            listenersRef.current.delete(listenerKey);
         }
 
-        // Add new listener (use direct echo instance instead of async helper)
-        const listener = echoRef.current.private(channelName).listen(eventName, callback);
-        listenersRef.current.set(listenerKey, listener);
+        try {
+            // Add new listener
+            const channel = echo.private(channelName);
 
-        return listener;
-    }, []);
+            // Listen for both raw and dotted event names
+            const dottedName = eventName.startsWith('.') ? eventName : `.${eventName}`;
+            const namesToListen = [...new Set([eventName, dottedName])];
+            namesToListen.forEach((name) => channel.listen(name, callback));
+
+            const cleanup = () => {
+                namesToListen.forEach((name) => {
+                    try { channel.stopListening(name); } catch (_) {}
+                });
+            };
+            listenersRef.current.set(listenerKey, cleanup);
+            return cleanup;
+        } catch (error) {
+            console.error(`❌ [useRealtime] Error creating private channel listener:`, error);
+            return null;
+        }
+    }, [waitForEcho]);
 
     /**
      * Stop listening to a specific channel/event
@@ -191,16 +266,27 @@ export const useRealtime = () => {
         if (eventName) {
             const listenerKey = `${channelName}:${eventName}`;
             const privateListenerKey = `private:${channelName}:${eventName}`;
-            
+
+            // Cleanup public listener
             if (listenersRef.current.has(listenerKey)) {
+                const cleanup = listenersRef.current.get(listenerKey);
+                if (typeof cleanup === 'function') {
+                    try { cleanup(); } catch (_) {}
+                }
                 listenersRef.current.delete(listenerKey);
             }
+            // Cleanup private listener
             if (listenersRef.current.has(privateListenerKey)) {
+                const cleanup = listenersRef.current.get(privateListenerKey);
+                if (typeof cleanup === 'function') {
+                    try { cleanup(); } catch (_) {}
+                }
                 listenersRef.current.delete(privateListenerKey);
             }
+        } else {
+            // If no event specified, attempt to leave the whole channel
+            try { leaveChannel(channelName); } catch (_) {}
         }
-        
-        leaveChannel(channelName);
     }, []);
 
     /**
@@ -222,7 +308,17 @@ export const useRealtime = () => {
         }
         
         if (!echoRef.current) {
-            return { available: false, reason: 'Echo not initialized' };
+            // Thử lấy từ global nếu có
+            try {
+                const globalEcho = (typeof window !== 'undefined' && window.Echo) || getEcho?.();
+                if (globalEcho) {
+                    echoRef.current = globalEcho;
+                }
+            } catch (_) { /* ignore */ }
+
+            if (!echoRef.current) {
+                return { available: false, reason: 'Echo not initialized' };
+            }
         }
         
         const state = echoRef.current?.connector?.pusher?.connection?.state;
@@ -233,9 +329,39 @@ export const useRealtime = () => {
             echo: !!echoRef.current,
             connector: !!echoRef.current?.connector,
             pusher: !!echoRef.current?.connector?.pusher,
-            connection: !!echoRef.current?.connector?.pusher?.connection
+            connection: !!echoRef.current?.connector?.pusher?.connection,
+            isInitialized: isInitialized,
+            isInitializing: isInitializing
         };
-    }, []);
+    }, [isInitialized, isInitializing]);
+
+    /**
+     * Debug function to check Echo status
+     */
+    const debugEchoStatus = useCallback(() => {
+        console.group('🔍 [useRealtime] Debug Echo Status');
+        
+        const connectionInfo = getConnectionInfo();
+        console.log('Connection Info:', connectionInfo);
+        
+        if (typeof window !== 'undefined') {
+            console.log('Window available:', true);
+            console.log('Session available:', !!session);
+            console.log('Session user ID:', session?.user?.id);
+            console.log('Access token available:', !!session?.accessToken);
+            
+            // Try to access Echo directly
+            if (window.Echo) {
+                console.log('Global Echo instance:', window.Echo);
+                console.log('Echo connector:', window.Echo.connector);
+                console.log('Echo pusher:', window.Echo.connector?.pusher);
+                console.log('Connection state:', window.Echo.connector?.pusher?.connection?.state);
+            }
+        }
+        
+        console.groupEnd();
+        return connectionInfo;
+    }, [getConnectionInfo, session]);
 
     return {
         echo: echoRef.current,
@@ -244,6 +370,9 @@ export const useRealtime = () => {
         stopListening,
         isConnected,
         getConnectionInfo,
+        debugEchoStatus,
+        isInitialized,
+        isInitializing
     };
 };
 
@@ -256,21 +385,21 @@ export const useNotifications = (userId = null) => {
     /**
      * Listen to general notifications
      */
-    const listenToGeneralNotifications = useCallback((callback) => {
+    const listenToGeneralNotifications = useCallback(async (callback) => {
         if (typeof window === 'undefined') {
             return null;
         }
-        return listenToPublicChannel('notifications', 'notification.sent', callback);
+        return await listenToPublicChannel('notifications', 'notification.sent', callback);
     }, [listenToPublicChannel]);
 
     /**
      * Listen to user-specific notifications
      */
-    const listenToUserNotifications = useCallback((callback) => {
+    const listenToUserNotifications = useCallback(async (callback) => {
         if (typeof window === 'undefined' || !userId) {
             return null;
         }
-        return listenToPrivateChannel(`user.${userId}`, 'notification.sent', callback);
+        return await listenToPrivateChannel(`user.${userId}`, 'notification.sent', callback);
     }, [listenToPrivateChannel, userId]);
 
     /**
@@ -302,11 +431,11 @@ export const useTiktokAccountUpdates = (accountId = null) => {
     /**
      * Listen to TikTok account updates
      */
-    const listenToAccountUpdates = useCallback((callback) => {
+    const listenToAccountUpdates = useCallback(async (callback) => {
         if (typeof window === 'undefined' || !accountId) {
             return null;
         }
-        return listenToPrivateChannel(`tiktok-accounts.${accountId}`, 'tiktok-account.updated', callback);
+        return await listenToPrivateChannel(`tiktok-accounts.${accountId}`, 'tiktok-account.updated', callback);
     }, [listenToPrivateChannel, accountId]);
 
     /**
@@ -334,11 +463,11 @@ export const useTransactionUpdates = (userId = null) => {
     /**
      * Listen to transaction status changes
      */
-    const listenToTransactionUpdates = useCallback((callback) => {
+    const listenToTransactionUpdates = useCallback(async (callback) => {
         if (typeof window === 'undefined' || !userId) {
             return null;
         }
-        return listenToPrivateChannel(`transactions.${userId}`, 'transaction.status-changed', callback);
+        return await listenToPrivateChannel(`transactions.${userId}`, 'transaction.status-changed', callback);
     }, [listenToPrivateChannel, userId]);
 
     /**
@@ -360,29 +489,24 @@ export const useTransactionUpdates = (userId = null) => {
 /**
  * Hook for listening to TikTok Account table reload events
  */
-export const useTiktokAccountTableReload = () => {
-    const { listenToPublicChannel, stopListening, getConnectionInfo } = useRealtime();
+export const useTiktokAccountTableReload = (userId = null) => {
+    const { listenToPublicChannel, listenToPrivateChannel, stopListening, getConnectionInfo } = useRealtime();
+    
+    // Silent in production; no console logs
 
     /**
      * Listen to table reload events with retry mechanism
      */
-    const listenToTableReload = useCallback((callback) => {
+    const listenToTableReload = useCallback(async (callback) => {
         if (typeof window === 'undefined') {
             console.warn('🚫 [useTiktokAccountTableReload] Window is undefined, cannot listen to events');
             return null;
         }
         
-        const channelName = 'tiktok-accounts';
         const eventName = 'tiktok-accounts.reload'; // Event name từ broadcastAs()
-        
-        // // console.log('🎯 [useTiktokAccountTableReload] Setting up listener');
-        // // console.log('🔍 [useTiktokAccountTableReload] Channel name:', channelName);
-        // // console.log('🔍 [useTiktokAccountTableReload] Event name:', eventName);
-        // // console.log('🔍 [useTiktokAccountTableReload] Callback type:', typeof callback);
         
         // Check if Echo is available before trying to set up listener
         const connectionInfo = getConnectionInfo();
-        // // console.log('🔍 [useTiktokAccountTableReload] Connection info:', connectionInfo);
         
         if (!connectionInfo.available) {
             console.error('❌ [useTiktokAccountTableReload] Echo not available:', connectionInfo.reason);
@@ -397,67 +521,48 @@ export const useTiktokAccountTableReload = () => {
         
         // Wrap the callback to add logging
         const wrappedCallback = (data) => {
-            console.group('📡 [useTiktokAccountTableReload] Raw Socket Event Received');
-            // // console.log('🔗 Channel: tiktok-accounts');
-            // // console.log('📢 Event: tiktok-accounts.reload');
-            // // console.log('📦 Raw Data:', data);
-            // // console.log('🕐 Received at:', new Date().toISOString());
-            console.groupEnd();
-            
-            // Call the original callback
+            // Gọi callback để reload bảng
             if (callback && typeof callback === 'function') {
                 callback(data);
-            } else {
-                console.warn('⚠️ [useTiktokAccountTableReload] Callback is not a function:', callback);
             }
         };
         
-        // Try to set up listener with the standard format first
-        // // console.log(`🔄 [useTiktokAccountTableReload] Trying to set up listener...`);
-        
         try {
-            const listener = listenToPublicChannel(channelName, eventName, wrappedCallback);
+            let listener;
+            
+            if (userId) {
+                // Sử dụng private channel cho user cụ thể
+                const privateChannelName = `user.${userId}.tiktok-accounts`;
+                // silent
+                listener = await listenToPrivateChannel(privateChannelName, eventName, wrappedCallback);
+            } else {
+                // Sử dụng public channel cho tất cả users
+                const publicChannelName = 'tiktok-accounts';
+                // silent
+                listener = await listenToPublicChannel(publicChannelName, eventName, wrappedCallback);
+            }
             
             if (listener) {
-                // // console.log('✅ [useTiktokAccountTableReload] Successfully set up listener');
-                // // console.log('🔍 [useTiktokAccountTableReload] Event format used:', eventName);
-                // // console.log('🔍 [useTiktokAccountTableReload] Listener object:', listener);
+                // Log các channel đã subscribe để xác nhận
+                // silent
                 return listener;
             } else {
-                console.error('❌ [useTiktokAccountTableReload] listenToPublicChannel returned null');
+                console.error('❌ [useTiktokAccountTableReload] listenToChannel returned null');
                 
-                // Get detailed connection info for debugging
-                const connectionInfo = getConnectionInfo();
-                console.error('🔍 [useTiktokAccountTableReload] Connection info:', connectionInfo);
-                
-                if (!connectionInfo.available) {
-                    console.error('💡 [useTiktokAccountTableReload] Suggestion: Echo is not initialized. Check session/auth.');
-                } else if (!connectionInfo.connected) {
-                    console.error('💡 [useTiktokAccountTableReload] Suggestion: WebSocket not connected. Check Reverb server.');
-                } else {
-                    console.error('💡 [useTiktokAccountTableReload] Suggestion: Check event name format or Laravel broadcasting config.');
-                }
-                
+                // Im lặng, chỉ trả về retry helper
                 return {
                     retry: () => listenToTableReload(callback),
                     isRetry: true
                 };
             }
         } catch (error) {
-            console.error('❌ [useTiktokAccountTableReload] Error setting up listener:', error);
-            console.error('🔍 [useTiktokAccountTableReload] Error details:', {
-                message: error.message,
-                stack: error.stack
-            });
-            
+            // Im lặng, chỉ trả về retry helper
             return {
                 retry: () => listenToTableReload(callback),
                 isRetry: true
             };
         }
-        
-        return listener;
-    }, [listenToPublicChannel]);
+    }, [listenToPublicChannel, listenToPrivateChannel, getConnectionInfo, userId]);
 
     /**
      * Stop listening to table reload events
@@ -467,35 +572,25 @@ export const useTiktokAccountTableReload = () => {
             return;
         }
         
-        // // console.log('🛑 [useTiktokAccountTableReload] Stopping listener for channel: tiktok-accounts');
-        stopListening('tiktok-accounts');
-        // // console.log('✅ [useTiktokAccountTableReload] Listener stopped');
-    }, [stopListening]);
+        if (userId) {
+            stopListening(`user.${userId}.tiktok-accounts`);
+        } else {
+            stopListening('tiktok-accounts');
+        }
+    }, [stopListening, userId]);
 
     /**
      * Debug function to check Echo status
      */
     const debugEchoStatus = useCallback(() => {
-        console.group('🔍 [useTiktokAccountTableReload] Debug Echo Status');
         
         const connectionInfo = getConnectionInfo();
-        // // console.log('Connection Info:', connectionInfo);
         
         if (typeof window !== 'undefined') {
-            // // console.log('Window available:', true);
-            // // console.log('Echo instance:', window.Echo);
-            
-            // Try to access Echo directly
-            if (window.Echo) {
-                // // console.log('Echo connector:', window.Echo.connector);
-                // // console.log('Echo pusher:', window.Echo.connector?.pusher);
-                // // console.log('Connection state:', window.Echo.connector?.pusher?.connection?.state);
-            }
         }
         
-        console.groupEnd();
         return connectionInfo;
-    }, [getConnectionInfo]);
+    }, [getConnectionInfo, userId]);
 
     return {
         listenToTableReload,

@@ -7,12 +7,13 @@ import Checkbox from '@/components/ui/Checkbox'
 
 const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Update Avatar Form
-    const [config, setConfig] = useState({
-        name: "Cập nhật Ảnh đại diện",
+    const initialConfig = {
+        name: "Cập nhật avatar",
         uploaded_files: [],
         delete_used_images: false
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -36,17 +37,20 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+    }
+
     const handleFileUpload = (event) => {
         const files = Array.from(event.target.files)
         
-        // Chỉ cho phép ảnh cho avatar
+        // Phân loại file theo loại
         const imageFiles = files.filter(file => file.type.startsWith('image/'))
         
         if (imageFiles.length > 0) {
-            // Chỉ lấy ảnh đầu tiên cho avatar
             setConfig(prev => ({
                 ...prev,
-                uploaded_files: [imageFiles[0]]
+                uploaded_files: imageFiles
             }))
         }
     }
@@ -73,6 +77,8 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving update avatar config:', error)
             } finally {
@@ -82,6 +88,8 @@ const UpdateAvatarModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

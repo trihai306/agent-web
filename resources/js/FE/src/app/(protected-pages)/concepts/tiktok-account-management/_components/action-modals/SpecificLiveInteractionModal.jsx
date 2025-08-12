@@ -15,7 +15,7 @@ const SpecificLiveInteractionModal = ({
     onFetchContentsByGroup 
 }) => {
     // Initialize config based on JSON schema for Specific Live Interaction Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tương tác live chỉ định",
         live_url: "",
         view_from: 3,
@@ -46,8 +46,9 @@ const SpecificLiveInteractionModal = ({
         add_to_cart_rate: 100,
         add_to_cart_gap_from: 1,
         add_to_cart_gap_to: 3
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
     const [loadingContents, setLoadingContents] = useState(false)
     
@@ -277,6 +278,17 @@ const SpecificLiveInteractionModal = ({
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setContentGroupsState({
+            options: [],
+            hasNextPage: true,
+            isLoading: false,
+            currentPage: 1,
+            searchTerm: ''
+        })
+    }
+
     const handleSave = async () => {
         if (onSave && !isLoading) {
             setIsLoading(true)
@@ -323,6 +335,8 @@ const SpecificLiveInteractionModal = ({
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving specific live interaction config:', error)
             } finally {
@@ -332,6 +346,8 @@ const SpecificLiveInteractionModal = ({
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

@@ -85,6 +85,11 @@ Broadcast::channel('system.notifications', function ($user) {
 */
 
 // Public channel cho TikTok account table reload events
-Broadcast::channel('tiktok-accounts', function () {
-    return true; // Public channel - không cần authentication
+Broadcast::channel('tiktok-accounts', function ($user) {
+    return true; // Tất cả authenticated users có thể lắng nghe
+});
+
+// Private channel cho tiktok accounts của user cụ thể
+Broadcast::channel('user.{userId}.tiktok-accounts', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
 });

@@ -58,43 +58,64 @@ export const initializeEcho = async (manualToken = null) => {
   // Lấy token từ NextAuth session hoặc sử dụng token thủ công
   const authToken = manualToken || await getAuthToken();
 
-  echoInstance = new Echo({
-    broadcaster: 'pusher',      // Sử dụng 'pusher' thay vì 'reverb'
-    key,
-    wsHost,
-    wsPort: port,
-    wssPort: port,
-    forceTLS: useTLS,
-    enabledTransports,          // tránh thử sai giao thức gây lỗi "Invalid frame header"
-    disableStats: true,         // Tắt stats để tránh lỗi
-    cluster: 'mt1',             // Thêm cluster cho pusher (bắt buộc)
-    authEndpoint: `${apiUrl.replace(/\/$/, '')}/api/broadcasting/auth`,
-    auth: {
-      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-    },
-  });
+  try {
+        echoInstance = new Echo({
+            broadcaster: 'pusher',      // Sử dụng 'pusher' cho Laravel Reverb
+            key,
+            wsHost,
+            wsPort: port,
+            wssPort: port,
+            forceTLS: useTLS,
+            enabledTransports,          // tránh thử sai giao thức gây lỗi "Invalid frame header"
+            disableStats: true,         // Tắt stats để tránh lỗi
+            cluster: 'mt1',             // Thêm cluster cho pusher (bắt buộc)
+            authEndpoint: `${apiUrl.replace(/\/$/, '')}/api/broadcasting/auth`,
+            auth: {
+                headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+            },
+        });
 
-  // Debug tiện tra cứu khi local
-  if (process.env.NODE_ENV === 'development') {
+    // Gắn vào window để debug và để các nơi khác có thể kiểm tra nhanh
     try {
-      // eslint-disable-next-line no-underscore-dangle
-      const clientVersion = Pusher.VERSION || 'unknown';
-      const proto = useTLS ? 'wss' : 'ws';
-      const url = `${proto}://${wsHost}:${port}/app/${key}?protocol=7&client=js&version=${clientVersion}&flash=false`;
-      // URL này chỉ để bạn nhìn nhanh xem client đang trỏ đi đâu
-      // (KHÔNG phải url phải gọi trực tiếp)
-      // console.log('[Echo] Connecting to:', url);
-    } catch (e) {
-      // ignore
+      window.Echo = echoInstance;
+    } catch (_) { /* ignore */ }
+
+    // Debug tiện tra cứu khi local
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        // eslint-disable-next-line no-underscore-dangle
+        const clientVersion = Pusher.VERSION || 'unknown';
+        const proto = useTLS ? 'wss' : 'ws';
+        const url = `${proto}://${wsHost}:${port}/app/${key}?protocol=7&client=js&version=${clientVersion}&flash=false`;
+        // URL này chỉ để bạn nhìn nhanh xem client đang trỏ đi đâu
+        // (KHÔNG phải url phải gọi trực tiếp)
+        // console.log('[Echo] Connecting to:', url);
+      } catch (e) {
+        // ignore
+      }
+
+      // Lắng lỗi kết nối
+      echoInstance.connector.pusher.connection.bind('error', (err) => {
+        console.error('[Echo] connection error:', err);
+      });
+
+      // Lắng sự kiện kết nối thành công
+      echoInstance.connector.pusher.connection.bind('connected', () => {
+        console.log('[Echo] Successfully connected to WebSocket server');
+      });
+
+      // Lắng sự kiện ngắt kết nối
+      echoInstance.connector.pusher.connection.bind('disconnected', () => {
+        console.log('[Echo] Disconnected from WebSocket server');
+      });
     }
 
-    // Lắng lỗi kết nối
-    echoInstance.connector.pusher.connection.bind('error', (err) => {
-      console.error('[Echo] connection error:', err);
-    });
+    return echoInstance;
+  } catch (error) {
+    console.error('[Echo] Error initializing Echo:', error);
+    echoInstance = null;
+    throw error;
   }
-
-  return echoInstance;
 };
 
 /** Lấy instance hiện tại */

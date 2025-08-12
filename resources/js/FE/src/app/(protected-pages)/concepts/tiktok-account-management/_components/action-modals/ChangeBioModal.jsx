@@ -7,13 +7,14 @@ import Checkbox from '@/components/ui/Checkbox'
 
 const ChangeBioModal = ({ isOpen, onClose, action, onSave }) => {
     // Initialize config based on JSON schema for Change Bio Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Đổi tiểu sử",
         new_bio: "",
         add_emoji: false,
         max_length: 80
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleInputChange = (field, value) => {
@@ -28,6 +29,10 @@ const ChangeBioModal = ({ isOpen, onClose, action, onSave }) => {
             ...prev,
             [field]: checked
         }))
+    }
+
+    const resetForm = () => {
+        setConfig(initialConfig)
     }
 
     const handleSave = async () => {
@@ -46,6 +51,8 @@ const ChangeBioModal = ({ isOpen, onClose, action, onSave }) => {
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving change bio config:', error)
             } finally {
@@ -55,6 +62,8 @@ const ChangeBioModal = ({ isOpen, onClose, action, onSave }) => {
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

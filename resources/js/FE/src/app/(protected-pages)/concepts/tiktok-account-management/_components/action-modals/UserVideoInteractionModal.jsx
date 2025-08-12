@@ -15,7 +15,7 @@ const UserVideoInteractionModal = ({
     onFetchContentsByGroup 
 }) => {
     // Initialize config based on JSON schema for User Video Form
-    const [config, setConfig] = useState({
+    const initialConfig = {
         name: "Tương tác video theo User",
         link_list: "",
         limit_mode: "video",
@@ -48,8 +48,9 @@ const UserVideoInteractionModal = ({
         comment_contents: [],
         content_group: "",
         content_topic: ""
-    })
+    }
     
+    const [config, setConfig] = useState(initialConfig)
     const [isLoading, setIsLoading] = useState(false)
     const [loadingContents, setLoadingContents] = useState(false)
     
@@ -294,6 +295,17 @@ const UserVideoInteractionModal = ({
         }))
     }
 
+    const resetForm = () => {
+        setConfig(initialConfig)
+        setContentGroupsState({
+            options: [],
+            hasNextPage: true,
+            isLoading: false,
+            currentPage: 1,
+            searchTerm: ''
+        })
+    }
+
     const handleSave = async () => {
         if (onSave && !isLoading) {
             setIsLoading(true)
@@ -342,6 +354,8 @@ const UserVideoInteractionModal = ({
                     }
                 }
                 await onSave(action, saveData)
+                // Reset form sau khi lưu thành công
+                resetForm()
             } catch (error) {
                 console.error('Error saving user video interaction config:', error)
             } finally {
@@ -351,6 +365,8 @@ const UserVideoInteractionModal = ({
     }
 
     const handleClose = () => {
+        // Reset form khi đóng modal
+        resetForm()
         onClose()
     }
 

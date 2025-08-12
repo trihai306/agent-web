@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
@@ -16,10 +16,14 @@ import updateTiktokAccountStatus from '@/server/actions/tiktok-account/updateTik
 import { useTranslations } from 'next-intl'
 import Dialog from '@/components/ui/Dialog'
 import Button from '@/components/ui/Button'
+import { useTiktokAccountTableReload } from '@/utils/hooks/useRealtime'
+import { useSession } from 'next-auth/react'
 
 const TiktokAccountManagementClient = ({ data, params }) => {
+    
     const t = useTranslations('tiktokAccountManagement')
     const router = useRouter()
+    const { data: session } = useSession()
     const [isLoading, setIsLoading] = useState(false)
     const [showInteractionConfigModal, setShowInteractionConfigModal] = useState(false)
     const [showStartConfirmation, setShowStartConfirmation] = useState(false)
@@ -45,6 +49,56 @@ const TiktokAccountManagementClient = ({ data, params }) => {
             setIsLoading(false)
         }
     }
+
+    // Realtime: reload table on broadcast event (private channel cho user hiện tại)
+    const { listenToTableReload, stopListeningToTableReload } = useTiktokAccountTableReload(session?.user?.id)
+    
+    // Chỉ log khi reload table được kích hoạt
+    useEffect(() => {
+        // Chỉ setup khi có session
+        if (!session?.user?.id) {
+            console.log('⏳ [TiktokAccountManagementClient] Waiting for session...');
+            return;
+        }
+        
+        // Quiet logs; chỉ log khi nhận event
+        
+        let cleanup = null
+        let retryInterval = null
+        const setup = async () => {
+            const result = await listenToTableReload(() => {
+                console.log('🔄 Table reload triggered');
+                handleRefresh()
+            })
+            
+            if (result && typeof result === 'object' && result.isRetry && typeof result.retry === 'function') {
+                // silent
+                retryInterval = setInterval(async () => {
+                    const r = await result.retry()
+                    if (r && typeof r === 'function') {
+                        // Đã subscribe thành công, lưu cleanup và dừng retry
+                        cleanup = r
+                        clearInterval(retryInterval)
+                        retryInterval = null
+                        // silent
+                    }
+                }, 2000)
+            } else if (typeof result === 'function') {
+                cleanup = result
+            }
+        }
+        setup()
+        
+        return () => {
+            if (retryInterval) {
+                clearInterval(retryInterval)
+            }
+            if (cleanup && typeof cleanup === 'function') {
+                try { cleanup() } catch (_) {}
+            }
+            try { stopListeningToTableReload() } catch (_) {}
+        }
+    }, [session?.user?.id, listenToTableReload, stopListeningToTableReload])
 
     const handleSettings = () => {
         // Open interaction config modal
