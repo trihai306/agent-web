@@ -4,89 +4,124 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default Reverb Server
+    | Reverb Server Configuration
     |--------------------------------------------------------------------------
     |
-    | This option controls the default server used by Reverb to handle
-    | WebSocket connections. This server is used when no other server
-    | is explicitly specified when starting the Reverb server.
+    | Here you may configure the Reverb server settings for your application.
+    | These settings control how the Reverb server operates and connects
+    | to your application.
     |
     */
 
-    'default' => env('REVERB_SERVER', 'reverb'),
+    'host' => env('REVERB_HOST', 'socket.lionsoftware.cloud'),
+    'port' => env('REVERB_PORT', 443),
+    'scheme' => env('REVERB_SCHEME', 'https'),
+    'app_id' => env('REVERB_APP_ID', 'your-reverb-app-id'),
+    'app_key' => env('REVERB_APP_KEY', 'xynwukcprjb0jctqndga'),
+    'app_secret' => env('REVERB_APP_SECRET', 'your-reverb-secret'),
+    'cluster' => env('REVERB_CLUSTER', 'mt1'),
 
     /*
     |--------------------------------------------------------------------------
-    | Reverb Servers
+    | SSL/TLS Configuration
     |--------------------------------------------------------------------------
     |
-    | Here you may define details for each of the Reverb servers that
-    | should be available to your application. Each server should
-    | have a unique name and may be configured independently.
+    | Configure SSL/TLS settings for secure WebSocket connections.
     |
     */
 
-    'servers' => [
+    'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
+    'encrypted' => true,
 
-        'reverb' => [
-            'host' => env('REVERB_HOST', '0.0.0.0'),
-            'port' => env('REVERB_PORT', 8080),
-            'hostname' => env('REVERB_HOSTNAME'),
-            'options' => [
-                'tls' => [],
-            ],
-            'max_request_size' => env('REVERB_MAX_REQUEST_SIZE', 10_000),
-            'max_message_size' => env('REVERB_MAX_MESSAGE_SIZE', 10_000),
-            'scaling' => [
-                'enabled' => env('REVERB_SCALING_ENABLED', false),
-                'channel' => env('REVERB_SCALING_CHANNEL', 'reverb'),
-                'server' => [
-                    'url' => env('REDIS_URL'),
-                    'host' => env('REDIS_HOST', '127.0.0.1'),
-                    'port' => env('REDIS_PORT', '6379'),
-                    'username' => env('REDIS_USERNAME'),
-                    'password' => env('REDIS_PASSWORD'),
-                    'database' => env('REDIS_DB', '0'),
-                ],
-            ],
-            'pulse_ingest_interval' => env('REVERB_PULSE_INTERVAL', 30),
-            'telescope_ingest_interval' => env('REVERB_TELESCOPE_INTERVAL', 15),
+    /*
+    |--------------------------------------------------------------------------
+    | Connection Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure connection timeouts and retry settings.
+    |
+    */
+
+    'activityTimeout' => 120000,
+    'pongTimeout' => 30000,
+    'unavailableTimeout' => 10000,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scaling Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure Redis scaling for multiple Reverb instances.
+    |
+    */
+
+    'scaling' => [
+        'enabled' => env('REVERB_SCALING_ENABLED', false),
+        'driver' => env('REVERB_SCALING_DRIVER', 'redis'),
+        'redis' => [
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'port' => env('REDIS_PORT', 6379),
+            'password' => env('REDIS_PASSWORD', null),
+            'database' => env('REDIS_DB', 0),
         ],
-
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Reverb Applications
+    | CORS Configuration
     |--------------------------------------------------------------------------
     |
-    | Here you may define how Reverb applications are managed. A default
-    | provider is shipped with Reverb that uses the local configuration
-    | array to manage applications. You are free to write your own.
+    | Configure CORS settings for WebSocket connections.
     |
     */
 
-    'apps' => [
-
-        'provider' => 'config',
-
-        'apps' => [
-            [
-                'key' => env('REVERB_APP_KEY'),
-                'secret' => env('REVERB_APP_SECRET'),
-                'app_id' => env('REVERB_APP_ID'),
-                'options' => [
-                    'host' => env('REVERB_HOST', '0.0.0.0'),
-                    'port' => env('REVERB_PORT', 8080),
-                    'scheme' => env('REVERB_SCHEME', 'http'),
-                ],
-                'allowed_origins' => ['*'],
-                'ping_interval' => env('REVERB_PING_INTERVAL', 30),
-                'activity_timeout' => env('REVERB_ACTIVITY_TIMEOUT', 30),
-                'max_message_size' => env('REVERB_MAX_MESSAGE_SIZE', 10_000),
-            ],
+    'cors' => [
+        'allowed_origins' => [
+            'http://localhost:3000',
+            'https://localhost:3000',
+            'http://127.0.0.1:3000',
+            'https://127.0.0.1:3000',
+            'https://*.lionsoftware.cloud',
         ],
+        'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        'allowed_headers' => ['*'],
+        'exposed_headers' => [],
+        'max_age' => 86400,
+        'supports_credentials' => true,
+    ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure authentication settings for private channels.
+    |
+    */
+
+    'auth' => [
+        'endpoint' => '/api/broadcasting/auth',
+        'middleware' => ['auth:sanctum'],
+        'headers' => [
+            'Authorization',
+            'Accept',
+            'Content-Type',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logging Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure logging settings for the Reverb server.
+    |
+    */
+
+    'logging' => [
+        'enabled' => env('REVERB_LOGGING_ENABLED', true),
+        'level' => env('REVERB_LOGGING_LEVEL', 'info'),
+        'channel' => env('REVERB_LOGGING_CHANNEL', 'stack'),
     ],
 
 ];

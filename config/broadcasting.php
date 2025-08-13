@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('BROADCAST_DRIVER', 'null'),
+    'default' => env('BROADCAST_DRIVER', 'reverb'),
 
     /*
     |--------------------------------------------------------------------------
@@ -62,14 +62,16 @@ return [
 
         'reverb' => [
             'driver' => 'reverb',
-            'key' => env('REVERB_APP_KEY'),
-            'secret' => env('REVERB_APP_SECRET'),
-            'app_id' => env('REVERB_APP_ID'),
+            'key' => env('REVERB_APP_KEY', 'xynwukcprjb0jctqndga'),
+            'secret' => env('REVERB_APP_SECRET', 'your-reverb-secret'),
+            'app_id' => env('REVERB_APP_ID', 'your-reverb-app-id'),
             'options' => [
-                'host' => env('REVERB_HOST', '127.0.0.1'),
-                'port' => env('REVERB_PORT', 8080),
-                'scheme' => env('REVERB_SCHEME', 'http'),
-                'useTLS' => env('REVERB_SCHEME', 'http') === 'https',
+                'host' => env('REVERB_HOST', 'socket.lionsoftware.cloud'),
+                'port' => env('REVERB_PORT', 443),
+                'scheme' => env('REVERB_SCHEME', 'https'),
+                'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
+                'encrypted' => true,
+                'cluster' => env('REVERB_CLUSTER', 'mt1'),
             ],
         ],
 

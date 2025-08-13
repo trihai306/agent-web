@@ -28,9 +28,8 @@ class AppServiceProvider extends ServiceProvider
             return true;
         });
 
-        // Enable broadcasting
-        // Broadcast::routes(['middleware' => ['auth:sanctum']]);
-        // Using custom broadcasting auth route in api.php instead
+        // Enable broadcasting for Laravel Reverb
+        Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {
