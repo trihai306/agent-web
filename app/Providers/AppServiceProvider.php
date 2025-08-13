@@ -29,7 +29,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Enable broadcasting
-        Broadcast::routes(['middleware' => ['auth:sanctum']]);
+        // Broadcast::routes(['middleware' => ['auth:sanctum']]);
+        // Using custom broadcasting auth route in api.php instead
 
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {

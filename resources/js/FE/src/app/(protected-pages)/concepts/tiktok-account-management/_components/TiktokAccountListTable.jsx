@@ -542,13 +542,6 @@ const TiktokAccountListTable = ({
     // Listen to realtime table reload events
     useEffect(() => {
         
-        // Load test utility dynamically (client-side only)
-        if (typeof window !== 'undefined') {
-            import('@/utils/testEcho').catch(err => {
-                console.warn('⚠️ Could not load test utility:', err.message);
-            });
-        }
-        
         // Debug Echo status first
         const echoStatus = debugEchoStatus();
         

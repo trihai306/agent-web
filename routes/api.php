@@ -181,4 +181,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/connection-info', [RealtimeTestController::class, 'getConnectionInfo']);
     });
 });
-Broadcast::routes(['middleware' => ['auth:sanctum']]);
+Broadcast::routes([
+    'middleware' => ['auth:sanctum'],
+]);
