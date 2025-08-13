@@ -32,7 +32,7 @@ export const initializeEcho = async (manualToken = null) => {
   const port = 443;
   const useTLS = true;
   const enabledTransports = ['wss'];
-  const apiUrl = 'https://api.lionsoftware.cloud';
+  const apiUrl = 'https://api.lionsoftware.cloud'; // Use API server domain
   
   console.log('🔧 [Echo] Config:', { key, wsHost, port, useTLS, enabledTransports, apiUrl });
   

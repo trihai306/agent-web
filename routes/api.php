@@ -180,6 +180,89 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/simulate-transaction-status', [RealtimeTestController::class, 'simulateTransactionStatusChange']);
         Route::get('/connection-info', [RealtimeTestController::class, 'getConnectionInfo']);
     });
+    
+    // Custom broadcasting auth route for JWT authentication
+    Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+        try {
+            // Debug: Log request details
+            \Log::info('Broadcasting auth request received', [
+                'headers' => $request->headers->all(),
+                'body' => $request->all(),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            
+            // Debug: Log broadcasting config
+            \Log::info('Broadcasting config', [
+                'driver' => config('broadcasting.default'),
+                'pusher_key' => config('broadcasting.connections.pusher.key'),
+                'pusher_secret' => config('broadcasting.connections.pusher.secret') ? 'SET' : 'NOT SET',
+                'pusher_app_id' => config('broadcasting.connections.pusher.app_id'),
+                'pusher_options' => config('broadcasting.connections.pusher.options')
+            ]);
+            
+            // Get the authorization header
+            $authHeader = $request->header('Authorization');
+            if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+                \Log::warning('Broadcasting auth failed - No Bearer token');
+                return response()->json(['error' => 'Unauthorized - No Bearer token provided'], 401);
+            }
+            
+            // Extract the token
+            $token = substr($authHeader, 7);
+            
+            // Use Sanctum authentication instead of manual token lookup
+            try {
+                // Get the user from Sanctum token
+                $user = \Laravel\Sanctum\PersonalAccessToken::findToken($token)?->tokenable;
+                
+                if (!$user || !($user instanceof \App\Models\User)) {
+                    \Log::warning('Broadcasting auth failed - Invalid Sanctum token: ' . substr($token, 0, 10) . '...');
+                    return response()->json(['error' => 'Unauthorized - Invalid token'], 401);
+                }
+                
+                \Log::info('Broadcasting auth successful for user: ' . $user->id . ' (' . $user->email . ')');
+                
+            } catch (\Exception $e) {
+                \Log::error('Broadcasting auth error during Sanctum validation: ' . $e->getMessage());
+                return response()->json(['error' => 'Unauthorized - Token validation failed'], 401);
+            }
+            
+            // Get the channel name and socket ID
+            $channelName = $request->input('channel_name');
+            $socketId = $request->input('socket_id');
+            
+            // Validate channel access for private channels
+            if (str_starts_with($channelName, 'private-')) {
+                $channelName = str_replace('private-', '', $channelName);
+                
+                // Add your channel authorization logic here
+                // Example: Check if user can access this channel
+                // if (!$user->canAccessChannel($channelName)) {
+                //     return response()->json(['error' => 'Forbidden - Channel access denied'], 403);
+                // }
+            }
+            
+            // Generate the auth response using Reverb (Pusher-compatible)
+            $reverb = new \Pusher\Pusher(
+                config('broadcasting.connections.reverb.key'),
+                config('broadcasting.connections.reverb.secret'),
+                config('broadcasting.connections.reverb.app_id'),
+                config('broadcasting.connections.reverb.options')
+            );
+            
+            $auth = $reverb->socket_auth($channelName, $socketId);
+            
+            \Log::info('Broadcasting auth response generated successfully');
+            return response($auth);
+            
+        } catch (\Exception $e) {
+            \Log::error('Broadcasting auth error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Internal server error'], 500);
+        }
+    })->middleware('throttle:60,1'); // Rate limiting
 });
 // Broadcast::routes([
 //     'middleware' => ['auth:sanctum'],
